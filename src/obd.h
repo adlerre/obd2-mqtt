@@ -95,6 +95,11 @@ std::atomic_bool supportedPids_61_80_cached{false};
 
 std::string VIN;
 
+/**
+* Checks if PID is supported.
+*
+* @param pid the PID
+*/
 inline bool isPidSupported(uint8_t pid) {
     bool cached = false;
     uint32_t response = 0;
@@ -222,7 +227,6 @@ inline void BTEvent(esp_spp_cb_event_t event, esp_spp_cb_param_t *param) {
     }
 }
 
-
 inline void connectToOBD() {
 connect:
     ELM_PORT.register_callback(BTEvent);
@@ -330,6 +334,14 @@ connect:
     }
 }
 
+/**
+* Set (int) value and next state.
+*
+* @param var the variable to set
+* @param nextState the next state
+* @param value the value to set
+* @return <code>true</code> on success
+*/
 inline bool setStateIntValue(std::atomic<int> &var, obd_pid_states nextState, int value) {
     if (myELM327.nb_rx_state == ELM_SUCCESS) {
         var = value;
@@ -349,6 +361,14 @@ inline bool setStateIntValue(std::atomic<int> &var, obd_pid_states nextState, in
     return false;
 }
 
+/**
+* Set (float) value and next state.
+*
+* @param var the variable to set
+* @param nextState the next state
+* @param value the value to set
+* @return <code>true</code> on success
+*/
 inline bool setStateFloatValue(std::atomic<float> &var, obd_pid_states nextState, float value) {
     if (myELM327.nb_rx_state == ELM_SUCCESS) {
         var = value;
