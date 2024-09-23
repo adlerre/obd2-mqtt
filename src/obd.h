@@ -31,6 +31,8 @@ esp_spp_role_t role = ESP_SPP_ROLE_SLAVE; // or ESP_SPP_ROLE_SLAVE | ESP_SPP_ROL
 #define OBD_ADP_NAME        "OBDII" // 1c:a1:35:69:8d:c5
 // #define OBD_ADP_MAC         "1c:a1:35:69:8d:c5"
 
+#define OBD_PROTOCOL        AUTOMATIC
+
 #define BT_DISCOVER_TIME    10000
 
 ELM327 myELM327;
@@ -292,7 +294,7 @@ connect:
 
     if (!ELM_PORT.isClosed() && ELM_PORT.connected()) {
         int retryCount = 0;
-        while (!myELM327.begin(ELM_PORT, false, 2000, ISO_15765_11_BIT_500_KBAUD) && retryCount < 3) {
+        while (!myELM327.begin(ELM_PORT, false, 2000, OBD_PROTOCOL) && retryCount < 3) {
             Serial.println("Couldn't connect to OBD scanner - Phase 2");
             delay(BT_DISCOVER_TIME);
             retryCount++;
