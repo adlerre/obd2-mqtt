@@ -11,7 +11,7 @@
 * a ESP32 with [SIM800L](https://de.aliexpress.com/item/33045221960.html) or [A7670](https://de.aliexpress.com/item/1005006477044118.html)
   * (optional) [RP-SMA to IPX cable](https://www.amazon.de/dp/B0B9RXDLNN)
   * (optional) [Antenna](https://www.amazon.de/dp/B0B2DCXL5N) or other (work's for me)
-  * (optional) a 3D Printer for [case](3d-files)
+  * (optional) a 3D Printer for the [case](3d-files)
 * a [ELM327 OBD Bluetooth Adapter](https://de.aliexpress.com/item/1005005775562398.html) or any other
 * a SIM Card - i'm use one from [fraenk](https://fraenk.page.link/?link=https%3A%2F%2Ffraenk.de%2Fdeeplink%2Fmgm%3FfriendCode%3DRENA45&apn=de.congstar.fraenk&amv=1040000&imv=1.4&isi=1493980266&ibi=de.congstar.fraenk&ius=fraenk&ofl=https%3A%2F%2Ffraenk.de)
 * and the most important thing, a car
