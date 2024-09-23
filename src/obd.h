@@ -28,9 +28,7 @@ esp_spp_sec_t sec_mask = ESP_SPP_SEC_NONE;
 // or ESP_SPP_SEC_ENCRYPT|ESP_SPP_SEC_AUTHENTICATE to request pincode confirmation
 esp_spp_role_t role = ESP_SPP_ROLE_SLAVE; // or ESP_SPP_ROLE_SLAVE | ESP_SPP_ROLE_MASTER
 
-#define OBD_ADP_NAME        "OBDII" // 1c:a1:35:69:8d:c5
-// #define OBD_ADP_MAC         "1c:a1:35:69:8d:c5"
-
+#define OBD_ADP_NAME        "OBDII"
 #define OBD_PROTOCOL        AUTOMATIC
 
 #define BT_DISCOVER_TIME    10000
