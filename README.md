@@ -1,4 +1,4 @@
-#  OBD2 to MQTT for Home Assistant
+#  OBD2 to MQTT for Home Assistant <a href="https://www.buymeacoffee.com/adlerre" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style="height: 30px !important;width: 108px !important;" ></a>
 
 > __!!!WARNING!!!__
 >
@@ -14,6 +14,7 @@
   * (optional) a 3D Printer for [case](3d-files)
 * a [ELM327 OBD Bluetooth Adapter](https://de.aliexpress.com/item/1005005775562398.html) or any other
 * a SIM Card - i'm use one from [fraenk](https://fraenk.page.link/?link=https%3A%2F%2Ffraenk.de%2Fdeeplink%2Fmgm%3FfriendCode%3DRENA45&apn=de.congstar.fraenk&amv=1040000&imv=1.4&isi=1493980266&ibi=de.congstar.fraenk&ius=fraenk&ofl=https%3A%2F%2Ffraenk.de)
+* and the most important thing, a car
 
 ## Getting started
 
