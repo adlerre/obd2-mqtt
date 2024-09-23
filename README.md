@@ -2,12 +2,12 @@
 
 > __!!!WARNING!!!__
 >
-> I'm not a C/C++ programmer therefore i'm not responsible for any headaches nor other WTF moments. ;)
+> I'm not a C/C++ programmer therefore I'm not responsible for any headaches nor other WTF moments. ;)
 
 ## What you need?
 
-* a installed Home Assistant with Mosquitto Broker
-* a installed PlatformIO IDE or other IDE 
+* an installed Home Assistant with Mosquitto Broker
+* an installed PlatformIO IDE or other IDE 
 * a ESP32 with [SIM800L](https://de.aliexpress.com/item/33045221960.html) or [A7670](https://de.aliexpress.com/item/1005006477044118.html)
   * (optional) [RP-SMA to IPX cable](https://www.amazon.de/dp/B0B9RXDLNN)
   * (optional) [Antenna](https://www.amazon.de/dp/B0B2DCXL5N) or other (work's for me)
@@ -21,16 +21,16 @@
 * change [src/privates.h](src/privates.h) to your needs
   * let __OBD_DEV_MODE__ on true for now
   * set Bluetooth adapter MAC on __OBD_ADP_MAC__
-    * or let it empty to discover adapter, by default a adapter with name OBDII is used
+    * or let it empty to discover adapter, by default an adapter with name OBDII is used
   * define your device
   * SIM Pin
   * APN
   * MQTT Broker settings
-  * (optional) Wifi - only used for development
+  * (optional) Wi-Fi - only used for development
 * and compile and upload to device
 
 ## ToDos
 
 * better consumption/distance calculation
 * support more PIDs (odometer,...)
-* get vehicle informations (working)
+* get vehicle information (working)
