@@ -45,13 +45,13 @@ ELM327 myELM327;
 #define AF_RATIO_DIESEL     14.6
 
 // https://kraftstoff-info.de/vergleich-der-kraftstoffe-nach-energiegehalt-und-dichte
-#define DENSITY_GAS        540.0
-#define DENSITY_GASOLINE   740.0
-#define DENSITY_PROPANE    505.0
-#define DENSITY_ETHANOL    789.0
-#define DENSITY_METHANOL   792.0
-#define DENSITY_HYDROGEN   70.0
-#define DENSITY_DIESEL     830.0
+#define DENSITY_GAS         540.0
+#define DENSITY_GASOLINE    740.0
+#define DENSITY_PROPANE     505.0
+#define DENSITY_ETHANOL     789.0
+#define DENSITY_METHANOL    792.0
+#define DENSITY_HYDROGEN    70.0
+#define DENSITY_DIESEL      830.0
 
 // https://en.m.wikipedia.org/w/index.php?title=OBD-II_PIDs
 #define FUEL_TYPE_GASOLINE  1
