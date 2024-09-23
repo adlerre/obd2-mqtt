@@ -306,6 +306,7 @@ connect:
     if (!myELM327.connected) {
         delay(BT_DISCOVER_TIME);
         Serial.println("Restarting OBD connect.");
+        ELM_PORT.end();
         goto connect;
     }
 
