@@ -2,7 +2,7 @@
 
 > __!!!WARNING!!!__
 >
-> I'm not a C++ programmer therefore i'm not responsible for any headaches nor other WTF moments. ;)
+> I'm not a C/C++ programmer therefore i'm not responsible for any headaches nor other WTF moments. ;)
 
 ## What you need?
 
