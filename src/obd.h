@@ -138,15 +138,17 @@ inline bool isPidSupported(uint8_t pid) {
             default:
                 break;
         }
-        if (!cached && myELM327.nb_rx_state == ELM_GETTING_MSG) {
-            Serial.print(".");
-            delay(500);
-            retries++;
-        } else if (!cached && myELM327.nb_rx_state != ELM_SUCCESS) {
-            Serial.print("x");
-            delay(500);
+        if (!cached) {
+            if (myELM327.nb_rx_state == ELM_GETTING_MSG) {
+                Serial.print(".");
+                delay(50);
+            } else if (myELM327.nb_rx_state != ELM_SUCCESS) {
+                Serial.print("x");
+                delay(500);
+                retries++;
+            }
         }
-    } while (!cached && response == 0 && myELM327.nb_rx_state != ELM_SUCCESS && retries < 10);
+    } while (!cached && response == 0 && myELM327.nb_rx_state != ELM_SUCCESS && retries < 3);
     if (!cached) {
         Serial.println("");
     }
@@ -310,7 +312,6 @@ connect:
 
     Serial.println("Connected to ELM327");
 
-    // TODO make me working
     Serial.println("Cache supported PIDs...");
     isPidSupported(MONITOR_STATUS_SINCE_DTC_CLEARED);
     isPidSupported(DISTANCE_TRAVELED_WITH_MIL_ON);
