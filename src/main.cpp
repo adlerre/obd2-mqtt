@@ -510,8 +510,9 @@ bool sendDiscoveryData() {
     allSendsSuccessed |= mqtt.sendTopicConfig("", "batVoltage", "Battery Voltage", "battery", "V", "power",
                                               "measurement", "");
 
-    allSendsSuccessed |= mqtt.sendTopicConfig("", "curConsumption", "Calculated current consumption",
-                                              "gas-station-outline", "l/100km", "", "measurement", "");
+    // allSendsSuccessed |= mqtt.sendTopicConfig("", "curConsumption", "Calculated current consumption",
+    //                                           "gas-station-outline", "l/100km", "", "measurement", "");
+
     allSendsSuccessed |= mqtt.sendTopicConfig("", "consumption", "Calculated consumption",
                                               "gas-station", "l", "volume", "measurement", "");
     allSendsSuccessed |= mqtt.sendTopicConfig("", "consumptionPer100", "Calculated consumption per 100km",
@@ -631,8 +632,9 @@ bool sendOBDData() {
     sprintf(tmp_char, "%4.2f", static_cast<float>(batVoltage));
     allSendsSuccessed |= mqtt.sendTopicUpdate("batVoltage", std::string(tmp_char));
 
-    sprintf(tmp_char, "%4.2f", static_cast<float>(curConsumption));
-    allSendsSuccessed |= mqtt.sendTopicUpdate("curConsumption", std::string(tmp_char));
+    // not really needed
+    // sprintf(tmp_char, "%4.2f", static_cast<float>(curConsumption));
+    // allSendsSuccessed |= mqtt.sendTopicUpdate("curConsumption", std::string(tmp_char));
 
     sprintf(tmp_char, "%4.2f", static_cast<float>(consumption));
     allSendsSuccessed |= mqtt.sendTopicUpdate("consumption", std::string(tmp_char));
