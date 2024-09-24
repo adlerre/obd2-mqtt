@@ -28,8 +28,15 @@ esp_spp_sec_t sec_mask = ESP_SPP_SEC_NONE;
 // or ESP_SPP_SEC_ENCRYPT|ESP_SPP_SEC_AUTHENTICATE to request pincode confirmation
 esp_spp_role_t role = ESP_SPP_ROLE_SLAVE; // or ESP_SPP_ROLE_SLAVE | ESP_SPP_ROLE_MASTER
 
+// set default adapter name
+#ifndef OBD_ADP_NAME
 #define OBD_ADP_NAME        "OBDII"
+#endif
+
+// set default OBD protocol
+#ifndef OBD_PROTOCOL
 #define OBD_PROTOCOL        AUTOMATIC
+#endif
 
 #define BT_DISCOVER_TIME    10000
 
@@ -141,14 +148,15 @@ inline bool isPidSupported(uint8_t pid) {
         if (!cached) {
             if (myELM327.nb_rx_state == ELM_GETTING_MSG) {
                 Serial.print(".");
-                delay(50);
+                delay(500);
+                retries++;
             } else if (myELM327.nb_rx_state != ELM_SUCCESS) {
                 Serial.print("x");
                 delay(500);
                 retries++;
             }
         }
-    } while (!cached && response == 0 && myELM327.nb_rx_state != ELM_SUCCESS && retries < 3);
+    } while (!cached && response == 0 && myELM327.nb_rx_state != ELM_SUCCESS && retries < 10);
     if (!cached) {
         Serial.println("");
     }
