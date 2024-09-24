@@ -445,7 +445,7 @@ void readStates() {
         }
 
         avgSpeed = distanceDriven / (static_cast<float>(millis() - runStartTime) / 1000.0f) * 3600.0f;
-        curConsumption = calcCurrentConsumption(fuelType, kph, mafRate);
+        // curConsumption = calcCurrentConsumption(fuelType, kph, mafRate);
         consumptionPer100 = consumption / distanceDriven * 100.0f;
     } else {
         delay(500);
@@ -512,7 +512,6 @@ bool sendDiscoveryData() {
 
     // allSendsSuccessed |= mqtt.sendTopicConfig("", "curConsumption", "Calculated current consumption",
     //                                           "gas-station-outline", "l/100km", "", "measurement", "");
-
     allSendsSuccessed |= mqtt.sendTopicConfig("", "consumption", "Calculated consumption",
                                               "gas-station", "l", "volume", "measurement", "");
     allSendsSuccessed |= mqtt.sendTopicConfig("", "consumptionPer100", "Calculated consumption per 100km",
@@ -632,7 +631,6 @@ bool sendOBDData() {
     sprintf(tmp_char, "%4.2f", static_cast<float>(batVoltage));
     allSendsSuccessed |= mqtt.sendTopicUpdate("batVoltage", std::string(tmp_char));
 
-    // not really needed
     // sprintf(tmp_char, "%4.2f", static_cast<float>(curConsumption));
     // allSendsSuccessed |= mqtt.sendTopicUpdate("curConsumption", std::string(tmp_char));
 
