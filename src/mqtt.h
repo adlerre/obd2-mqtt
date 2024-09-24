@@ -99,6 +99,23 @@ public:
     }
 
     /**
+    * Returns the defined serial number.
+    * @return the serial number
+    */
+    std::string getSerialNo() {
+        return serialNo;
+    }
+
+    /**
+    * Set serial number.
+    *
+    * @param serialNo
+    */
+    void setSerialNo(const std::string &serialNo) {
+        this->serialNo = serialNo;
+    }
+
+    /**
     * Returns the number of reconnect attemps.
     *
     * @return how many reconnects done
