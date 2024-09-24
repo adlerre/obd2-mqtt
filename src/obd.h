@@ -470,7 +470,7 @@ inline float calcConsumption(const int fuelType, const int kph, const float mafR
                 density = DENSITY_GASOLINE;
                 break;
         }
-        return (mafRate * 3600.0f) / (afRatio * density) / 10.0f;
+        return (mafRate * 3600.0f) / (afRatio * density);
     }
 
     return 0.0;
