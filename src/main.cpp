@@ -521,7 +521,7 @@ bool sendDiscoveryData() {
     // }
 
     if (isPidSupported(MAF_FLOW_RATE)) {
-        allSendsSuccessed |= mqtt.sendTopicConfig("", "mafRate", "Mass Air Flow", "turbine", "g/s", "",
+        allSendsSuccessed |= mqtt.sendTopicConfig("", "mafRate", "Mass Air Flow", "air-filter", "g/s", "",
                                                   "measurement", "");
     }
 
@@ -551,7 +551,7 @@ bool sendDiscoveryData() {
                                               "measurement", "");
 
     if (isPidSupported(RELATIVE_ACCELERATOR_PEDAL_POS)) {
-        allSendsSuccessed |= mqtt.sendTopicConfig("", "pedalPosition", "Pedal Position", "arrow-up-down", "%", "",
+        allSendsSuccessed |= mqtt.sendTopicConfig("", "pedalPosition", "Pedal Position", "seat-recline-extra", "%", "",
                                                   "measurement", "");
     }
 
