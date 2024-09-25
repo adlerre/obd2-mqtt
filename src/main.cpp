@@ -573,11 +573,11 @@ bool sendDiscoveryData() {
     return allSendsSuccessed;
 }
 
-bool sendStaticDiscoveryData() {
+bool sendDiagnosticDiscoveryData() {
     const unsigned long start = millis();
     bool allSendsSuccessed = false;
 
-    DEBUG_PORT.print("Send static discovery data...");
+    DEBUG_PORT.print("Send diagnostic discovery data...");
 
     allSendsSuccessed |= mqtt.sendTopicConfig("", "cpuTemp", "CPU Temperature", "thermometer", "°C", "temperature",
                                               "measurement", "diagnostic");
@@ -599,6 +599,17 @@ bool sendStaticDiscoveryData() {
     allSendsSuccessed |= mqtt.sendTopicConfig("", "gpsLocation", "GPS Location", "crosshairs-gps", "", "", "",
                                               "diagnostic", "device_tracker", "gps", true);
 #endif
+
+    DEBUG_PORT.printf("...%s (%dms)\n", allSendsSuccessed ? "done" : "failed", millis() - start);
+
+    return allSendsSuccessed;
+}
+
+bool sendStaticDiagnosticDiscoveryData() {
+    const unsigned long start = millis();
+    bool allSendsSuccessed = false;
+
+    DEBUG_PORT.print("Send static diagnostic discovery data...");
 
     if (supportedPids_1_20 != 0 || supportedPids_21_40 != 0 || supportedPids_41_60 != 0
         || supportedPids_61_80 != 0) {
@@ -826,7 +837,9 @@ void mqttSendData() {
             allDiscoverySend = false;
         }
 
-        if (!allDiscoverySend && ((allDiscoverySend = sendDiscoveryData() && sendStaticDiscoveryData()))) {
+        if (!allDiscoverySend && ((allDiscoverySend =
+                                   sendDiscoveryData() && sendDiagnosticDiscoveryData() &&
+                                   sendStaticDiagnosticDiscoveryData()))) {
             lastMQTTDiscoveryOutput = millis();
         }
 
