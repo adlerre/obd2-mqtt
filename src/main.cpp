@@ -854,6 +854,8 @@ void setup() {
 
     connectToOBD();
 
+    mqtt.setIdentifier(!VIN.empty() ? VIN : connectedBTAddress);
+
     // disable Watch Dog for Core 0 - should fix crashes
     disableCore0WDT();
 
