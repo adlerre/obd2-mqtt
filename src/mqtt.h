@@ -17,6 +17,8 @@
 #pragma once
 #include <ArduinoJson.h>
 #include <PubSubClient.h>
+#include <regex>
+#include <string>
 
 #ifndef BUILD_GIT_BRANCH
 #define BUILD_GIT_BRANCH ""
@@ -35,11 +37,21 @@ class MQTT {
     PubSubClient mqtt;
     int numReconnects = 0;
     std::string maintopic = "obd2mqtt";
-    std::string serialNo;
+    std::string identifier;
+    std::string identifierName;
 
-    static std::string createNodeId(std::string &topic) {
+    static std::string stripChars(const std::string &str) {
+        std::regex reg("[^a-zA-Z0-9_-]");
+        return std::regex_replace(str, reg, "");
+    }
+
+    static std::string createNodeId(const std::string &topic) {
         auto splitPos = topic.find_last_of('/');
-        return (splitPos == std::string::npos) ? topic : topic.substr(splitPos + 1);
+        return stripChars((splitPos == std::string::npos) ? topic : topic.substr(splitPos + 1));
+    }
+
+    std::string createFieldTopic(const std::string &field) const {
+        return stripChars((!identifier.empty() ? identifier : maintopic) + "_" + field);
     }
 
 public:
@@ -67,8 +79,7 @@ public:
     void connect(const char *clientId, const char *username, const char *password) {
         while (!mqtt.connected()) {
             Serial.printf("The client %s connects to the MQTT broker...", clientId);
-            std::string lwtTopic = maintopic + "/" + (serialNo.empty() ? "" : serialNo + "-") +
-                                   String(LWT_TOPIC).c_str();
+            std::string lwtTopic = maintopic + "/" + createFieldTopic(LWT_TOPIC);
             if (mqtt.connect(clientId, username, password, lwtTopic.c_str(), 0, false, LWT_DISCONNECTED, true)) {
                 Serial.println("...connected.");
                 ++numReconnects;
@@ -99,20 +110,39 @@ public:
     }
 
     /**
-    * Returns the defined serial number.
-    * @return the serial number
+    * Returns the defined identifier.
+    *
+    * @return the identifier
     */
-    std::string getSerialNo() {
-        return serialNo;
+    std::string getIdentifier() {
+        return identifier;
     }
 
     /**
-    * Set serial number.
+    * Set the identifier.
     *
-    * @param serialNo
+    * @param identifier the identifier
     */
-    void setSerialNo(const std::string &serialNo) {
-        this->serialNo = serialNo;
+    void setIdentifier(const std::string &identifier) {
+        this->identifier = identifier;
+    }
+
+    /**
+    * Returns the identifier name.
+    *
+    * @return the identifier name
+    */
+    std::string getIdentifierName() {
+        return identifierName;
+    }
+
+    /**
+    * Set the identifier name.
+    *
+    * @param identifierName the identifier name
+    */
+    void setIdentifierName(const std::string &identifierName) {
+        this->identifierName = identifierName;
     }
 
     /**
@@ -219,24 +249,17 @@ public:
                          const std::string &stateClass, const std::string &entityCategory,
                          const std::string &topicType = "sensor", const std::string &sourceType = "",
                          bool allowOffline = false) {
-        std::string topicFull;
-        std::string configTopic;
         std::string payload;
 
-        if (serialNo.empty()) {
-            configTopic = field;
-        } else {
-            configTopic = serialNo + "-" + field;
-        }
-
+        std::string configTopic = createFieldTopic(field);
         std::string node_id = createNodeId(maintopic);
-        topicFull = "homeassistant/" + topicType + "/" + node_id + "/" + configTopic + "/config";
+        std::string topicFull = "homeassistant/" + topicType + "/" + node_id + "/" + configTopic + "/config";
 
         JsonDocument config;
 
         config["~"] = maintopic;
-        config["unique_id"] = maintopic + "-" + configTopic;
-        config["object_id"] = maintopic + "-" + configTopic;
+        config["unique_id"] = configTopic;
+        config["object_id"] = configTopic;
         config["name"] = name;
 
         if (!icon.empty()) {
@@ -245,9 +268,9 @@ public:
 
         if (topicType != "device_tracker") {
             if (!group.empty()) {
-                config["state_topic"] = "~/" + group + "/" + field;
+                config["state_topic"] = "~/" + group + "/" + configTopic;
             } else {
-                config["state_topic"] = "~/" + field;
+                config["state_topic"] = "~/" + configTopic;
             }
         }
 
@@ -255,9 +278,9 @@ public:
             config["value_template"] = "{{ 'OFF' if 'off' in value else 'ON'}}";
         } else if (topicType == "device_tracker") {
             if (!group.empty()) {
-                config["json_attributes_topic"] = "~/" + group + "/" + field + "/attributes";
+                config["json_attributes_topic"] = "~/" + group + "/" + configTopic + "/attributes";
             } else {
-                config["json_attributes_topic"] = "~/" + field + "/attributes";
+                config["json_attributes_topic"] = "~/" + configTopic + "/attributes";
             }
         }
 
@@ -282,19 +305,19 @@ public:
         }
 
         if (!allowOffline) {
-            config["availability_topic"] = "~/" + std::string(LWT_TOPIC);
+            config["availability_topic"] = "~/" + createFieldTopic(LWT_TOPIC);
             config["payload_available"] = LWT_CONNECTED;
             config["payload_not_available"] = LWT_DISCONNECTED;
         }
 
-        config["device"]["identifiers"] = maintopic;
-        config["device"]["name"] = maintopic;
+        config["device"]["identifiers"].add(!identifier.empty() ? identifier : maintopic);
+        config["device"]["name"] = !identifierName.empty()
+                                       ? identifierName
+                                       : !identifier.empty()
+                                             ? identifier
+                                             : maintopic;;
         config["device"]["model"] = "OBD2 to MQTT";
         config["device"]["manufacturer"] = "René Adler";
-
-        if (!serialNo.empty()) {
-            config["device"]["serial_number"] = serialNo;
-        }
 
         if (BUILD_GIT_BRANCH != "" && BUILD_GIT_COMMIT_HASH != "") {
             config["device"]["sw_version"] = String(BUILD_GIT_BRANCH) + " (" + String(BUILD_GIT_COMMIT_HASH) + ")";
@@ -313,15 +336,8 @@ public:
     * @param isAttribJson <code>true</code> if json attribute
     */
     bool sendTopicUpdate(const std::string &field, const std::string &payload, bool isAttribJson = false) {
-        std::string topicFull;
-        std::string configTopic;
-
         std::string node_id = createNodeId(maintopic);
-        if (serialNo.empty()) {
-            topicFull = node_id + "/" + field;
-        } else {
-            topicFull = node_id + "/" + serialNo + "-" + field;
-        }
+        std::string topicFull = node_id + "/" + createFieldTopic(field);
 
         if (isAttribJson) {
             topicFull += "/attributes";
