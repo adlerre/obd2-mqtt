@@ -55,13 +55,8 @@
 
 #if defined(SIM800L_IP5306_VERSION_20190610) or defined(SIM800L_AXP192_VERSION_20200327) or defined(SIM800C_AXP192_VERSION_20200609) or defined(SIM800L_IP5306_VERSION_20200811)
 #include "device_sim800.h"
-
-// Select your modem:
-#define TINY_GSM_MODEM_SIM800
 #elif defined(LILYGO_T_A7670) or defined(LILYGO_T_CALL_A7670_V1_0) or defined(LILYGO_T_CALL_A7670_V1_1) or defined(LILYGO_T_SIM767XG_S3) or defined(LILYGO_T_A7608X) or defined(LILYGO_T_A7608X_S3) or defined(LILYGO_T_A7608X_DC_S3)
 #include "device_simA7670.h"
-
-#define TINY_GSM_MODEM_SIM7600
 #endif
 
 #include <TinyGsmClient.h>

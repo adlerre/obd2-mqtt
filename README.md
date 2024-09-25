@@ -22,7 +22,7 @@
   * let __OBD_DEV_MODE__ on true for now
   * set Bluetooth adapter MAC on __OBD_ADP_MAC__
     * or let it empty to discover adapter, by default an adapter with name OBDII is used
-  * define your device
+  * define your device (see [platformio.ini](platformio.ini))
   * SIM Pin
   * APN
   * MQTT Broker settings
