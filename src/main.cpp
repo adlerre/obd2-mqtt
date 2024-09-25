@@ -361,7 +361,7 @@ void readStates() {
             }
             case SPEED: {
                 if (isPidSupported(VEHICLE_SPEED)) {
-                    long kphBefore = kph;
+                    int kphBefore = kph;
                     setStateIntValue(kph, MAF_RATE, myELM327.kph());
 
                     if (runStartTime == 0 & kph > 0) {
@@ -370,8 +370,8 @@ void readStates() {
 
                     distanceDriven = distanceDriven +
                                      calcDistance(
-                                         (kphBefore + kph) / 2,
-                                         static_cast<float>(millis() - lastReadSpeed) / 1000
+                                         (kphBefore + kph) / 2.0f,
+                                         static_cast<float>(millis() - lastReadSpeed) / 1000.0f
                                      );
                     consumption = consumption + calcConsumption(fuelType, kph, mafRate) / 3600.0f * static_cast<float>(
                                       millis() - lastReadSpeed) /
@@ -518,7 +518,8 @@ bool sendDiscoveryData() {
     allSendsSuccessed |= mqtt.sendTopicConfig("", "fuelLevel", "Fuel Level", "fuel", "%", "", "measurement", "");
     allSendsSuccessed |= mqtt.sendTopicConfig("", "batVoltage", "Battery Voltage", "battery", "V", "power",
                                               "measurement", "");
-    allSendsSuccessed |= mqtt.sendTopicConfig("", "pedalPosition", "Pedal Position", "arrow-up-down", "%", "", "measurement", "");
+    allSendsSuccessed |= mqtt.sendTopicConfig("", "pedalPosition", "Pedal Position", "arrow-up-down", "%", "",
+                                              "measurement", "");
 
     // allSendsSuccessed |= mqtt.sendTopicConfig("", "curConsumption", "Calculated current consumption",
     //                                           "gas-station-outline", "l/100km", "", "measurement", "");
