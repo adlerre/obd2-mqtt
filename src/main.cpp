@@ -370,7 +370,7 @@ void readStates() {
 
                     distanceDriven = distanceDriven +
                                      calcDistance(
-                                         (kphBefore + kph) / 2.0f,
+                                         (kphBefore + kph) / 2,
                                          static_cast<float>(millis() - lastReadSpeed) / 1000.0f
                                      );
                     consumption = consumption + calcConsumption(fuelType, kph, mafRate) / 3600.0f * static_cast<float>(
