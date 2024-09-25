@@ -67,7 +67,7 @@ public:
     void connect(const char *clientId, const char *username, const char *password) {
         while (!mqtt.connected()) {
             Serial.printf("The client %s connects to the MQTT broker...", clientId);
-            std::string lwtTopic = maintopic + "/" + (serialNo.empty() ? "" : serialNo + "/") +
+            std::string lwtTopic = maintopic + "/" + (serialNo.empty() ? "" : serialNo + "-") +
                                    String(LWT_TOPIC).c_str();
             if (mqtt.connect(clientId, username, password, lwtTopic.c_str(), 0, false, LWT_DISCONNECTED, true)) {
                 Serial.println("...connected.");
@@ -226,7 +226,7 @@ public:
         if (serialNo.empty()) {
             configTopic = field;
         } else {
-            configTopic = serialNo + "/" + field;
+            configTopic = serialNo + "-" + field;
         }
 
         std::string node_id = createNodeId(maintopic);
@@ -320,7 +320,7 @@ public:
         if (serialNo.empty()) {
             topicFull = node_id + "/" + field;
         } else {
-            topicFull = node_id + "/" + serialNo + "/" + field;
+            topicFull = node_id + "/" + serialNo + "-" + field;
         }
 
         if (isAttribJson) {
