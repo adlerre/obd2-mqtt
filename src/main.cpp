@@ -837,10 +837,17 @@ void mqttSendData() {
             allDiscoverySend = false;
         }
 
-        if (!allDiscoverySend && ((allDiscoverySend =
-                                   sendDiscoveryData() && sendDiagnosticDiscoveryData() &&
-                                   sendStaticDiagnosticDiscoveryData()))) {
-            lastMQTTDiscoveryOutput = millis();
+        if (!allDiscoverySend) {
+            bool allSendsSuccessed = false;
+
+            allSendsSuccessed |= sendDiscoveryData();
+            allSendsSuccessed |= sendDiagnosticDiscoveryData();
+            allSendsSuccessed |= sendStaticDiagnosticDiscoveryData();
+
+            if (allSendsSuccessed) {
+                allDiscoverySend = true;
+                lastMQTTDiscoveryOutput = millis();
+            }
         }
 
         sendOBDData();
