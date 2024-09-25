@@ -522,20 +522,20 @@ bool sendDiscoveryData() {
                                                   "temperature", "measurement", "");
     }
 
-    if (isPidSupported(INTAKE_MANIFOLD_ABS_PRESSURE)) {
-        allSendsSuccessed |= mqtt.sendTopicConfig("", "manifoldPressure", "Manifold Pressure", "", "kPa",
-                                                  "pressure", "measurement", "");
-    }
+    // if (isPidSupported(INTAKE_MANIFOLD_ABS_PRESSURE)) {
+    //     allSendsSuccessed |= mqtt.sendTopicConfig("", "manifoldPressure", "Manifold Pressure", "", "kPa",
+    //                                               "pressure", "measurement", "");
+    // }
 
     if (isPidSupported(MAF_FLOW_RATE)) {
         allSendsSuccessed |= mqtt.sendTopicConfig("", "mafRate", "Mass Air Flow", "turbine", "g/s", "",
                                                   "measurement", "");
     }
 
-    if (isPidSupported(TIMING_ADVANCE)) {
-        allSendsSuccessed |= mqtt.sendTopicConfig("", "timingAdvance", "Timing Advance", "axis-x-rotate-clockwise", "°",
-                                                  "", "measurement", "");
-    }
+    // if (isPidSupported(TIMING_ADVANCE)) {
+    //     allSendsSuccessed |= mqtt.sendTopicConfig("", "timingAdvance", "Timing Advance", "axis-x-rotate-clockwise", "°",
+    //                                               "", "measurement", "");
+    // }
 
     if (isPidSupported(ENGINE_RPM)) {
         allSendsSuccessed |= mqtt.sendTopicConfig("", "rpm", "Rounds per minute", "engine", "", "", "measurement", "");
@@ -670,20 +670,20 @@ bool sendOBDData() {
         allSendsSuccessed |= mqtt.sendTopicUpdate("intakeAirTemp", std::string(tmp_char));
     }
 
-    if (isPidSupported(INTAKE_MANIFOLD_ABS_PRESSURE)) {
-        sprintf(tmp_char, "%d", static_cast<int>(manifoldPressure));
-        allSendsSuccessed |= mqtt.sendTopicUpdate("manifoldPressure", std::string(tmp_char));
-    }
+    // if (isPidSupported(INTAKE_MANIFOLD_ABS_PRESSURE)) {
+    //     sprintf(tmp_char, "%d", static_cast<int>(manifoldPressure));
+    //     allSendsSuccessed |= mqtt.sendTopicUpdate("manifoldPressure", std::string(tmp_char));
+    // }
 
     if (isPidSupported(MAF_FLOW_RATE)) {
         sprintf(tmp_char, "%4.2f", static_cast<float>(mafRate));
         allSendsSuccessed |= mqtt.sendTopicUpdate("mafRate", std::string(tmp_char));
     }
 
-    if (isPidSupported(TIMING_ADVANCE)) {
-        sprintf(tmp_char, "%d", static_cast<int>(timingAdvance));
-        allSendsSuccessed |= mqtt.sendTopicUpdate("timingAdvance", std::string(tmp_char));
-    }
+    // if (isPidSupported(TIMING_ADVANCE)) {
+    //     sprintf(tmp_char, "%d", static_cast<int>(timingAdvance));
+    //     allSendsSuccessed |= mqtt.sendTopicUpdate("timingAdvance", std::string(tmp_char));
+    // }
 
     if (isPidSupported(ENGINE_RPM)) {
         sprintf(tmp_char, "%d", static_cast<int>(rpm));
