@@ -85,7 +85,8 @@ typedef enum {
     FUEL_LEVEL,
     FUEL_RATE,
     FUEL_T,
-    BAT_VOLTAGE
+    BAT_VOLTAGE,
+    PEDAL_POS
 } obd_pid_states;
 
 obd_pid_states obd_state = ENG_LOAD;

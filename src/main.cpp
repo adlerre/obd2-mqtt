@@ -123,6 +123,7 @@ std::atomic<float> batVoltage{0};
 std::atomic<float> intakeAirTemp{0};
 std::atomic<int> manifoldPressure{0};
 std::atomic<float> timingAdvance{0};
+std::atomic<float> pedalPosition{0};
 
 std::atomic<unsigned long> lastReadSpeed{0};
 std::atomic<unsigned long> runStartTime{0};
@@ -436,7 +437,15 @@ void readStates() {
             }
             case IGN_TIMING: {
                 if (isPidSupported(TIMING_ADVANCE)) {
-                    setStateFloatValue(timingAdvance, ENG_LOAD, myELM327.timingAdvance());
+                    setStateFloatValue(timingAdvance, PEDAL_POS, myELM327.timingAdvance());
+                } else {
+                    obd_state = PEDAL_POS;
+                }
+                break;
+            }
+            case PEDAL_POS: {
+                if (isPidSupported(RELATIVE_ACCELERATOR_PEDAL_POS)) {
+                    setStateFloatValue(pedalPosition, ENG_LOAD, myELM327.relativePedalPos());
                 } else {
                     obd_state = ENG_LOAD;
                 }
@@ -509,6 +518,7 @@ bool sendDiscoveryData() {
     allSendsSuccessed |= mqtt.sendTopicConfig("", "fuelLevel", "Fuel Level", "fuel", "%", "", "measurement", "");
     allSendsSuccessed |= mqtt.sendTopicConfig("", "batVoltage", "Battery Voltage", "battery", "V", "power",
                                               "measurement", "");
+    allSendsSuccessed |= mqtt.sendTopicConfig("", "pedalPosition", "Pedal Position", "arrow-up-down", "%", "", "measurement", "");
 
     // allSendsSuccessed |= mqtt.sendTopicConfig("", "curConsumption", "Calculated current consumption",
     //                                           "gas-station-outline", "l/100km", "", "measurement", "");
@@ -630,6 +640,9 @@ bool sendOBDData() {
 
     sprintf(tmp_char, "%4.2f", static_cast<float>(batVoltage));
     allSendsSuccessed |= mqtt.sendTopicUpdate("batVoltage", std::string(tmp_char));
+
+    sprintf(tmp_char, "%d", static_cast<int>(pedalPosition));
+    allSendsSuccessed |= mqtt.sendTopicUpdate("pedalPosition", std::string(tmp_char));
 
     // sprintf(tmp_char, "%4.2f", static_cast<float>(curConsumption));
     // allSendsSuccessed |= mqtt.sendTopicUpdate("curConsumption", std::string(tmp_char));
