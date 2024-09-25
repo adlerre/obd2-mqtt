@@ -494,32 +494,73 @@ bool sendDiscoveryData() {
     allSendsSuccessed |= mqtt.sendTopicConfig("", "engineRunning", "Engine Running", "engine", "", "", "", "",
                                               "binary_sensor");
 
-    allSendsSuccessed |= mqtt.sendTopicConfig("", "load", "Engine Load", "engine", "%", "", "", "");
+    if (isPidSupported(ENGINE_LOAD)) {
+        allSendsSuccessed |= mqtt.sendTopicConfig("", "load", "Engine Load", "engine", "%", "", "", "");
+    }
 
-    allSendsSuccessed |= mqtt.sendTopicConfig("", "throttle", "Throttle", "gauge", "%", "", "", "");
-    allSendsSuccessed |= mqtt.sendTopicConfig("", "coolantTemp", "Engine Coolant Temperature", "thermometer", "°C",
-                                              "temperature", "measurement", "");
-    allSendsSuccessed |= mqtt.sendTopicConfig("", "oilTemp", "Oil Temperature", "thermometer", "°C",
-                                              "temperature", "measurement", "");
-    allSendsSuccessed |= mqtt.sendTopicConfig("", "ambientAirTemp", "Ambient Temperature", "thermometer",
-                                              "°C", "temperature", "measurement", "");
-    allSendsSuccessed |= mqtt.sendTopicConfig("", "intakeAirTemp", "Intake Air Temperature", "thermometer", "°C",
-                                              "temperature", "measurement", "");
-    allSendsSuccessed |= mqtt.sendTopicConfig("", "manifoldPressure", "Manifold Pressure", "", "kPa",
-                                              "pressure", "measurement", "");
-    allSendsSuccessed |= mqtt.sendTopicConfig("", "mafRate", "Mass Air Flow", "turbine", "g/s", "",
-                                              "measurement", "");
-    allSendsSuccessed |= mqtt.sendTopicConfig("", "timingAdvance", "Timing Advance", "axis-x-rotate-clockwise", "°", "",
-                                              "measurement", "");
-    allSendsSuccessed |= mqtt.sendTopicConfig("", "rpm", "Rounds per minute", "engine", "", "", "measurement", "");
-    allSendsSuccessed |= mqtt.sendTopicConfig("", "kph", "Kilometer per Hour", "speedometer", "km/h", "speed",
-                                              "measurement", "");
-    allSendsSuccessed |= mqtt.sendTopicConfig("", "fuelRate", "Fuel Rate", "fuel", "L/h", "", "measurement", "");
-    allSendsSuccessed |= mqtt.sendTopicConfig("", "fuelLevel", "Fuel Level", "fuel", "%", "", "measurement", "");
+    if (isPidSupported(THROTTLE_POSITION)) {
+        allSendsSuccessed |= mqtt.sendTopicConfig("", "throttle", "Throttle", "gauge", "%", "", "", "");
+    }
+
+    if (isPidSupported(ENGINE_COOLANT_TEMP)) {
+        allSendsSuccessed |= mqtt.sendTopicConfig("", "coolantTemp", "Engine Coolant Temperature", "thermometer", "°C",
+                                                  "temperature", "measurement", "");
+    }
+
+    if (isPidSupported(ENGINE_OIL_TEMP)) {
+        allSendsSuccessed |= mqtt.sendTopicConfig("", "oilTemp", "Oil Temperature", "thermometer", "°C",
+                                                  "temperature", "measurement", "");
+    }
+
+    if (isPidSupported(AMBIENT_AIR_TEMP)) {
+        allSendsSuccessed |= mqtt.sendTopicConfig("", "ambientAirTemp", "Ambient Temperature", "thermometer",
+                                                  "°C", "temperature", "measurement", "");
+    }
+
+    if (isPidSupported(INTAKE_AIR_TEMP)) {
+        allSendsSuccessed |= mqtt.sendTopicConfig("", "intakeAirTemp", "Intake Air Temperature", "thermometer", "°C",
+                                                  "temperature", "measurement", "");
+    }
+
+    if (isPidSupported(INTAKE_MANIFOLD_ABS_PRESSURE)) {
+        allSendsSuccessed |= mqtt.sendTopicConfig("", "manifoldPressure", "Manifold Pressure", "", "kPa",
+                                                  "pressure", "measurement", "");
+    }
+
+    if (isPidSupported(MAF_FLOW_RATE)) {
+        allSendsSuccessed |= mqtt.sendTopicConfig("", "mafRate", "Mass Air Flow", "turbine", "g/s", "",
+                                                  "measurement", "");
+    }
+
+    if (isPidSupported(TIMING_ADVANCE)) {
+        allSendsSuccessed |= mqtt.sendTopicConfig("", "timingAdvance", "Timing Advance", "axis-x-rotate-clockwise", "°",
+                                                  "", "measurement", "");
+    }
+
+    if (isPidSupported(ENGINE_RPM)) {
+        allSendsSuccessed |= mqtt.sendTopicConfig("", "rpm", "Rounds per minute", "engine", "", "", "measurement", "");
+    }
+
+    if (isPidSupported(VEHICLE_SPEED)) {
+        allSendsSuccessed |= mqtt.sendTopicConfig("", "kph", "Kilometer per Hour", "speedometer", "km/h", "speed",
+                                                  "measurement", "");
+    }
+
+    if (isPidSupported(ENGINE_FUEL_RATE)) {
+        allSendsSuccessed |= mqtt.sendTopicConfig("", "fuelRate", "Fuel Rate", "fuel", "L/h", "", "measurement", "");
+    }
+
+    if (isPidSupported(FUEL_TANK_LEVEL_INPUT)) {
+        allSendsSuccessed |= mqtt.sendTopicConfig("", "fuelLevel", "Fuel Level", "fuel", "%", "", "measurement", "");
+    }
+
     allSendsSuccessed |= mqtt.sendTopicConfig("", "batVoltage", "Battery Voltage", "battery", "V", "power",
                                               "measurement", "");
-    allSendsSuccessed |= mqtt.sendTopicConfig("", "pedalPosition", "Pedal Position", "arrow-up-down", "%", "",
-                                              "measurement", "");
+
+    if (isPidSupported(RELATIVE_ACCELERATOR_PEDAL_POS)) {
+        allSendsSuccessed |= mqtt.sendTopicConfig("", "pedalPosition", "Pedal Position", "arrow-up-down", "%", "",
+                                                  "measurement", "");
+    }
 
     // allSendsSuccessed |= mqtt.sendTopicConfig("", "curConsumption", "Calculated current consumption",
     //                                           "gas-station-outline", "l/100km", "", "measurement", "");
@@ -531,6 +572,17 @@ bool sendDiscoveryData() {
                                               "map-marker-distance", "km", "distance", "measurement", "");
     allSendsSuccessed |= mqtt.sendTopicConfig("", "avgSpeed", "Calculated average speed",
                                               "speedometer-medium", "km/h", "speed", "measurement", "");
+
+    DEBUG_PORT.printf("...%s (%dms)\n", allSendsSuccessed ? "done" : "failed", millis() - start);
+
+    return allSendsSuccessed;
+}
+
+bool sendStaticDiscoveryData() {
+    const unsigned long start = millis();
+    bool allSendsSuccessed = false;
+
+    DEBUG_PORT.print("Send static discovery data...");
 
     allSendsSuccessed |= mqtt.sendTopicConfig("", "cpuTemp", "CPU Temperature", "thermometer", "°C", "temperature",
                                               "measurement", "diagnostic");
@@ -553,17 +605,6 @@ bool sendDiscoveryData() {
                                               "diagnostic", "device_tracker", "gps", true);
 #endif
 
-    DEBUG_PORT.printf("...%s (%dms)\n", allSendsSuccessed ? "done" : "failed", millis() - start);
-
-    return allSendsSuccessed;
-}
-
-bool sendStaticDiscoveryData() {
-    const unsigned long start = millis();
-    bool allSendsSuccessed = false;
-
-    DEBUG_PORT.print("Send static discovery data...");
-
     if (supportedPids_1_20 != 0 || supportedPids_21_40 != 0 || supportedPids_41_60 != 0
         || supportedPids_61_80 != 0) {
         allSendsSuccessed |= mqtt.sendTopicConfig("", "supportedPids_1_20", "Supported PIDs 1-20", "", "", "", "",
@@ -574,15 +615,11 @@ bool sendStaticDiscoveryData() {
                                                   "diagnostic");
         allSendsSuccessed |= mqtt.sendTopicConfig("", "supportedPids_61_80", "Supported PIDs 61-80", "", "", "", "",
                                                   "diagnostic");
-    } else {
-        allSendsSuccessed = true;
     }
 
     if (!VIN.empty()) {
         allSendsSuccessed |= mqtt.sendTopicConfig("", "VIN", "Vehicle Identification Number", "car", "", "", "", "",
                                                   "diagnostic");
-    } else {
-        allSendsSuccessed = true;
     }
 
     DEBUG_PORT.printf("...%s (%dms)\n", allSendsSuccessed ? "done" : "failed", millis() - start);
@@ -598,52 +635,83 @@ bool sendOBDData() {
     DEBUG_PORT.print("Send OBD data...");
 
     allSendsSuccessed |= mqtt.sendTopicUpdate(LWT_TOPIC, LWT_CONNECTED);
-    allSendsSuccessed |= mqtt.sendTopicUpdate("engineRunning", rpm > 300 ? "on" : "off");
 
-    sprintf(tmp_char, "%d", static_cast<int>(load));
-    allSendsSuccessed |= mqtt.sendTopicUpdate("load", std::string(tmp_char));
+    if (isPidSupported(ENGINE_RPM)) {
+        allSendsSuccessed |= mqtt.sendTopicUpdate("engineRunning", rpm > 300 ? "on" : "off");
+    }
 
-    sprintf(tmp_char, "%d", static_cast<int>(throttle));
-    allSendsSuccessed |= mqtt.sendTopicUpdate("throttle", std::string(tmp_char));
+    if (isPidSupported(ENGINE_LOAD)) {
+        sprintf(tmp_char, "%d", static_cast<int>(load));
+        allSendsSuccessed |= mqtt.sendTopicUpdate("load", std::string(tmp_char));
+    }
 
-    sprintf(tmp_char, "%d", static_cast<int>(coolantTemp));
-    allSendsSuccessed |= mqtt.sendTopicUpdate("coolantTemp", std::string(tmp_char));
+    if (isPidSupported(THROTTLE_POSITION)) {
+        sprintf(tmp_char, "%d", static_cast<int>(throttle));
+        allSendsSuccessed |= mqtt.sendTopicUpdate("throttle", std::string(tmp_char));
+    }
 
-    sprintf(tmp_char, "%d", static_cast<int>(oilTemp));
-    allSendsSuccessed |= mqtt.sendTopicUpdate("oilTemp", std::string(tmp_char));
+    if (isPidSupported(ENGINE_COOLANT_TEMP)) {
+        sprintf(tmp_char, "%d", static_cast<int>(coolantTemp));
+        allSendsSuccessed |= mqtt.sendTopicUpdate("coolantTemp", std::string(tmp_char));
+    }
 
-    sprintf(tmp_char, "%d", static_cast<int>(ambientAirTemp));
-    allSendsSuccessed |= mqtt.sendTopicUpdate("ambientAirTemp", std::string(tmp_char));
+    if (isPidSupported(ENGINE_OIL_TEMP)) {
+        sprintf(tmp_char, "%d", static_cast<int>(oilTemp));
+        allSendsSuccessed |= mqtt.sendTopicUpdate("oilTemp", std::string(tmp_char));
+    }
 
-    sprintf(tmp_char, "%d", static_cast<int>(intakeAirTemp));
-    allSendsSuccessed |= mqtt.sendTopicUpdate("intakeAirTemp", std::string(tmp_char));
+    if (isPidSupported(AMBIENT_AIR_TEMP)) {
+        sprintf(tmp_char, "%d", static_cast<int>(ambientAirTemp));
+        allSendsSuccessed |= mqtt.sendTopicUpdate("ambientAirTemp", std::string(tmp_char));
+    }
 
-    sprintf(tmp_char, "%d", static_cast<int>(manifoldPressure));
-    allSendsSuccessed |= mqtt.sendTopicUpdate("manifoldPressure", std::string(tmp_char));
+    if (isPidSupported(INTAKE_AIR_TEMP)) {
+        sprintf(tmp_char, "%d", static_cast<int>(intakeAirTemp));
+        allSendsSuccessed |= mqtt.sendTopicUpdate("intakeAirTemp", std::string(tmp_char));
+    }
 
-    sprintf(tmp_char, "%4.2f", static_cast<float>(mafRate));
-    allSendsSuccessed |= mqtt.sendTopicUpdate("mafRate", std::string(tmp_char));
+    if (isPidSupported(INTAKE_MANIFOLD_ABS_PRESSURE)) {
+        sprintf(tmp_char, "%d", static_cast<int>(manifoldPressure));
+        allSendsSuccessed |= mqtt.sendTopicUpdate("manifoldPressure", std::string(tmp_char));
+    }
 
-    sprintf(tmp_char, "%d", static_cast<int>(timingAdvance));
-    allSendsSuccessed |= mqtt.sendTopicUpdate("timingAdvance", std::string(tmp_char));
+    if (isPidSupported(MAF_FLOW_RATE)) {
+        sprintf(tmp_char, "%4.2f", static_cast<float>(mafRate));
+        allSendsSuccessed |= mqtt.sendTopicUpdate("mafRate", std::string(tmp_char));
+    }
 
-    sprintf(tmp_char, "%d", static_cast<int>(rpm));
-    allSendsSuccessed |= mqtt.sendTopicUpdate("rpm", std::string(tmp_char));
+    if (isPidSupported(TIMING_ADVANCE)) {
+        sprintf(tmp_char, "%d", static_cast<int>(timingAdvance));
+        allSendsSuccessed |= mqtt.sendTopicUpdate("timingAdvance", std::string(tmp_char));
+    }
 
-    sprintf(tmp_char, "%d", static_cast<int>(kph));
-    allSendsSuccessed |= mqtt.sendTopicUpdate("kph", std::string(tmp_char));
+    if (isPidSupported(ENGINE_RPM)) {
+        sprintf(tmp_char, "%d", static_cast<int>(rpm));
+        allSendsSuccessed |= mqtt.sendTopicUpdate("rpm", std::string(tmp_char));
+    }
 
-    sprintf(tmp_char, "%4.2f", static_cast<float>(fuelRate));
-    allSendsSuccessed |= mqtt.sendTopicUpdate("fuelRate", std::string(tmp_char));
+    if (isPidSupported(VEHICLE_SPEED)) {
+        sprintf(tmp_char, "%d", static_cast<int>(kph));
+        allSendsSuccessed |= mqtt.sendTopicUpdate("kph", std::string(tmp_char));
+    }
 
-    sprintf(tmp_char, "%d", static_cast<int>(fuelLevel));
-    allSendsSuccessed |= mqtt.sendTopicUpdate("fuelLevel", std::string(tmp_char));
+    if (isPidSupported(ENGINE_FUEL_RATE)) {
+        sprintf(tmp_char, "%4.2f", static_cast<float>(fuelRate));
+        allSendsSuccessed |= mqtt.sendTopicUpdate("fuelRate", std::string(tmp_char));
+    }
+
+    if (isPidSupported(FUEL_TANK_LEVEL_INPUT)) {
+        sprintf(tmp_char, "%d", static_cast<int>(fuelLevel));
+        allSendsSuccessed |= mqtt.sendTopicUpdate("fuelLevel", std::string(tmp_char));
+    }
 
     sprintf(tmp_char, "%4.2f", static_cast<float>(batVoltage));
     allSendsSuccessed |= mqtt.sendTopicUpdate("batVoltage", std::string(tmp_char));
 
-    sprintf(tmp_char, "%d", static_cast<int>(pedalPosition));
-    allSendsSuccessed |= mqtt.sendTopicUpdate("pedalPosition", std::string(tmp_char));
+    if (isPidSupported(RELATIVE_ACCELERATOR_PEDAL_POS)) {
+        sprintf(tmp_char, "%d", static_cast<int>(pedalPosition));
+        allSendsSuccessed |= mqtt.sendTopicUpdate("pedalPosition", std::string(tmp_char));
+    }
 
     // sprintf(tmp_char, "%4.2f", static_cast<float>(curConsumption));
     // allSendsSuccessed |= mqtt.sendTopicUpdate("curConsumption", std::string(tmp_char));
