@@ -100,6 +100,7 @@ std::atomic_bool supportedPids_41_60_cached{false};
 std::atomic_uint32_t supportedPids_61_80{0};
 std::atomic_bool supportedPids_61_80_cached{false};
 
+std::string connectedBTAddress;
 std::string VIN;
 
 /**
@@ -296,7 +297,9 @@ connect:
 
     if (addr) {
         Serial.printf("connecting to %s - %d\n", addr.toString().c_str(), channel);
-        ELM_PORT.connect(addr, channel, sec_mask, role);
+        if (ELM_PORT.connect(addr, channel, sec_mask, role)) {
+            connectedBTAddress = addr.toString().c_str();
+        }
     }
 #endif
 
