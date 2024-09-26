@@ -40,11 +40,6 @@ class MQTT {
     std::string identifier;
     std::string identifierName;
 
-    static std::string stripChars(const std::string &str) {
-        std::regex reg("[^a-zA-Z0-9_-]");
-        return std::regex_replace(str, reg, "");
-    }
-
     static std::string createNodeId(const std::string &topic) {
         auto splitPos = topic.find_last_of('/');
         return stripChars((splitPos == std::string::npos) ? topic : topic.substr(splitPos + 1));
@@ -55,6 +50,11 @@ class MQTT {
     }
 
 public:
+    static std::string stripChars(const std::string &str) {
+        std::regex reg("[^a-zA-Z0-9_-]");
+        return std::regex_replace(str, reg, "");
+    }
+
     /**
     * Constructor of MQTT Helper
     *
