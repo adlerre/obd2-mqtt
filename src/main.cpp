@@ -53,7 +53,7 @@
 
 #if defined(SIM800L_IP5306_VERSION_20190610) or defined(SIM800L_AXP192_VERSION_20200327) or defined(SIM800C_AXP192_VERSION_20200609) or defined(SIM800L_IP5306_VERSION_20200811)
 #include "device_sim800.h"
-#elif defined(LILYGO_T_A7670) or defined(LILYGO_T_CALL_A7670_V1_0) or defined(LILYGO_T_CALL_A7670_V1_1) or defined(LILYGO_T_SIM767XG_S3) or defined(LILYGO_T_A7608X) or defined(LILYGO_T_A7608X_S3) or defined(LILYGO_T_A7608X_DC_S3)
+#elif defined(LILYGO_T_A7670) or defined(LILYGO_T_CALL_A7670_V1_0) or defined(LILYGO_T_CALL_A7670_V1_1) or defined(LILYGO_T_A7608X)
 #include "device_simA7670.h"
 #endif
 
@@ -79,7 +79,16 @@ boolean wifiConnected = false;
 // WiFiClient wifiClient;
 // PubSubClient mqtt(wifiClient);
 
+// #define DUMP_AT_COMMANDS
+
+#ifdef DUMP_AT_COMMANDS
+#include <StreamDebugger.h>
+StreamDebugger debugger(SerialAT, Serial);
+TinyGsm modem(debugger);
+#else
 TinyGsm modem(SerialAT);
+#endif
+
 TinyGsmClient client(modem);
 PubSubClient mqttClient(client);
 
@@ -129,6 +138,7 @@ std::atomic<float> avgSpeed{0};
 TaskHandle_t outputTaskHdl;
 TaskHandle_t stateTaskHdl;
 TaskHandle_t mqttTaskHdl;
+TaskHandle_t locationTaskHdl;
 
 size_t getESPHeapSize() {
     return heap_caps_get_free_size(MALLOC_CAP_8BIT);
@@ -169,7 +179,7 @@ void connectToNetwork() {
     // Set GSM module baud rate and UART pins
     SerialAT.begin(115200, SERIAL_8N1, MODEM_RX, MODEM_TX);
 
-#elif defined(LILYGO_T_A7670) or defined(LILYGO_T_CALL_A7670_V1_0) or defined(LILYGO_T_CALL_A7670_V1_1) or defined(LILYGO_T_SIM767XG_S3) or defined(LILYGO_T_A7608X) or defined(LILYGO_T_A7608X_S3) or defined(LILYGO_T_A7608X_DC_S3)
+#elif defined(LILYGO_T_A7670) or defined(LILYGO_T_CALL_A7670_V1_0) or defined(LILYGO_T_CALL_A7670_V1_1) or defined(LILYGO_T_A7608X)
     // Turn on DC boost to power on the modem
 #ifdef BOARD_POWERON_PIN
     pinMode(BOARD_POWERON_PIN, OUTPUT);
@@ -196,7 +206,7 @@ void connectToNetwork() {
     SerialAT.begin(115200, SERIAL_8N1, MODEM_RX_PIN, MODEM_TX_PIN);
 #endif
 
-    delay(6000);
+    delay(3000);
 restart:
     // Restart takes quite some time
     // To skip it, call init() instead of restart()
@@ -241,7 +251,7 @@ restart:
     DEBUG_PORT.print("Waiting for network...");
     if (!modem.waitForNetwork()) {
         DEBUG_PORT.println("...fail");
-        delay(10000);
+        delay(3000);
         goto restart;
     }
     DEBUG_PORT.println("...success");
@@ -255,7 +265,7 @@ restart:
     DEBUG_PORT.printf("Connecting to %s...", apn);
     if (!modem.gprsConnect(apn, gprsUser, gprsPass)) {
         DEBUG_PORT.println("...fail");
-        delay(10000);
+        delay(3000);
         goto restart;
     }
     DEBUG_PORT.println("...success");
@@ -264,6 +274,7 @@ restart:
         DEBUG_PORT.println("GPRS connected");
     }
 
+    DEBUG_PORT.printf("IP Address: %s\n", modem.getLocalIP().c_str());
     delay(1000);
 #endif
 }
@@ -272,9 +283,10 @@ bool checkNetwork() {
     // Make sure we're still registered on the network
     if (!modem.isNetworkConnected()) {
         DEBUG_PORT.println("Network disconnected");
+        DEBUG_PORT.print("Waiting for network...");
         if (!modem.waitForNetwork(20000L, true)) {
             DEBUG_PORT.println("...fail");
-            delay(10000);
+            delay(3000);
             return false;
         }
         if (modem.isNetworkConnected()) {
@@ -289,16 +301,46 @@ bool checkNetwork() {
             DEBUG_PORT.printf("Connecting to %s...", apn);
             if (!modem.gprsConnect(apn, gprsUser, gprsPass)) {
                 DEBUG_PORT.println("...fail");
-                delay(10000);
+                delay(3000);
                 return false;
             }
             if (modem.isGprsConnected()) {
                 DEBUG_PORT.println("GPRS reconnected");
+
+                DEBUG_PORT.printf("IP Address: %s\n", modem.getLocalIP().c_str());
             }
         }
 #endif
     }
+    return true;
+}
 
+void connectGPS() {
+#if defined TINY_GSM_MODEM_HAS_GPS
+#if !defined(TINY_GSM_MODEM_SARAR5)  // not needed for this module
+    DEBUG_PORT.print("Enabling GPS/GNSS/GLONASS...");
+    while (!modem.enableGPS(MODEM_GPS_ENABLE_GPIO)) {
+        Serial.print(".");
+    }
+    Serial.println("...success");
+
+    modem.setGPSBaud(115200);
+#endif
+#endif
+}
+
+bool checkGPS() {
+#if defined TINY_GSM_MODEM_HAS_GPS
+    if (!modem.isEnableGPS()) {
+        DEBUG_PORT.println("GPS/GNSS/GLONASS disabled");
+        DEBUG_PORT.print("Enabling GPS/GNSS/GLONASS...");
+        if (!modem.enableGPS()) {
+            DEBUG_PORT.println("...fail");
+            return false;
+        }
+        DEBUG_PORT.println("...success");
+    }
+#endif
     return true;
 }
 
@@ -591,7 +633,7 @@ bool sendDiagnosticDiscoveryData() {
 #endif
 #if defined TINY_GSM_MODEM_HAS_GSM_LOCATION
     allSendsSuccessed |= mqtt.sendTopicConfig("", "gsmLocation", "GSM Location", "crosshairs-gps", "", "", "",
-                                              "diagnostic", "device_tracker", "gps", true);
+                                              "diagnostic", "device_tracker", "gsm", true);
 #endif
 #if defined TINY_GSM_MODEM_HAS_GPS
     allSendsSuccessed |= mqtt.sendTopicConfig("", "gpsLocation", "GPS Location", "crosshairs-gps", "", "", "",
@@ -772,7 +814,8 @@ bool sendDiagnosticData() {
     serializeJson(attribs, payload);
 
     allSendsSuccessed |= mqtt.sendTopicUpdate("gsmLocation", payload, true);
-#elif  defined TINY_GSM_MODEM_HAS_GPS
+#endif
+#if defined TINY_GSM_MODEM_HAS_GPS
     attribs["latitude"] = static_cast<float>(gpsLatitude);
     attribs["longitude"] = static_cast<float>(gpsLongitude);
     attribs["gps_accuracy"] = static_cast<float>(gpsAccuracy);
@@ -869,58 +912,68 @@ void readStatesTask(void *parameters) {
     }
 }
 
+bool readGSMLocation() {
+#if defined TINY_GSM_MODEM_HAS_GSM_LOCATION
+    float gsm_latitude = 0;
+    float gsm_longitude = 0;
+    float gsm_accuracy = 0;
+
+#if defined(SIM800L_IP5306_VERSION_20190610) or defined(SIM800L_AXP192_VERSION_20200327) or defined(SIM800C_AXP192_VERSION_20200609) or defined(SIM800L_IP5306_VERSION_20200811)
+    // lat/lng seams to be swapped
+    if (modem.getGsmLocation(&gsm_longitude, &gsm_latitude, &gsm_accuracy)) {
+#else
+    if (modem.getGsmLocation(&gsm_latitude, &gsm_longitude, &gsm_accuracy)) {
+#endif
+        gsmLatitude = gsm_latitude;
+        gsmLongitude = gsm_longitude;
+        gsmAccuracy = gsm_accuracy;
+    } else {
+        return false;
+    }
+#endif
+    return true;
+}
+
+bool readGPSLocation() {
+#if defined TINY_GSM_MODEM_HAS_GPS
+    uint8_t status = 0;
+    float gps_latitude = 0;
+    float gps_longitude = 0;
+    float gps_speed = 0;
+    float gps_altitude = 0;
+    int gps_vsat = 0;
+    int gps_usat = 0;
+    float gps_accuracy = 0;
+
+    if (modem.getGPS(&status, &gps_latitude, &gps_longitude, &gps_speed, &gps_altitude, &gps_vsat, &gps_usat,
+                     &gps_accuracy)) {
+        gpsLatitude = gps_latitude;
+        gpsLongitude = gps_longitude;
+        gpsAccuracy = gps_accuracy;
+    } else {
+        return false;
+    }
+#endif
+    return true;
+}
+
 void outputTask(void *parameters) {
     for (;;) {
-        // debugOutputStates();
-
         if (!checkNetwork()) {
             continue;
         }
+        // debugOutputStates();
 
 #if TINY_GSM_USE_GPRS
         signalQuality = modem.getSignalQuality();
 #endif
-#if defined TINY_GSM_MODEM_HAS_GSM_LOCATION
-        float gsm_latitude = 0;
-        float gsm_longitude = 0;
-        float gsm_accuracy = 0;
-
-#if defined(SIM800L_IP5306_VERSION_20190610) or defined(SIM800L_AXP192_VERSION_20200327) or defined(SIM800C_AXP192_VERSION_20200609) or defined(SIM800L_IP5306_VERSION_20200811)
-        // lat/lng seams to be swapped
-        if (modem.getGsmLocation(&gsm_longitude, &gsm_latitude, &gsm_accuracy)) {
-#else
-        if (modem.getGsmLocation(&gsm_latitude, &gsm_longitude, &gsm_accuracy)) {
-#endif
-            gsmLatitude = gsm_latitude;
-            gsmLongitude = gsm_longitude;
-            gsmAccuracy = gsm_accuracy;
-        }
-#endif
-
-#if defined TINY_GSM_MODEM_HAS_GPS
-        float gps_latitude = 0;
-        float gps_longitude = 0;
-        float gps_speed = 0;
-        float gps_altitude = 0;
-        int gps_vsat = 0;
-        int gps_usat = 0;
-        float gps_accuracy = 0;
-
-        if (modem.getGPS(&gps_latitude, &gps_longitude, &gps_speed, &gps_altitude,
-                         &gps_vsat, &gps_usat, &gps_accuracy)) {
-            gpsLatitude = gps_latitude;
-            gpsLongitude = gps_longitude;
-            gpsAccuracy = gps_accuracy;
-        }
-#endif
 
         if (!mqtt.connected()) {
-            auto client_id = String(MQTT_CLIENT_ID) + "-" + modem.getIMEI();
+            auto client_id = String(MQTT_CLIENT_ID) + "-" + MQTT::stripChars(connectedBTAddress).c_str();
             mqtt.connect(client_id.c_str(), mqttUsername, mqttPassword);
         } else {
             mqttSendData();
         }
-
         delay(1);
     }
 }
@@ -932,6 +985,23 @@ void mqttTask(void *parameters) {
     }
 }
 
+void locationTask(void *parameters) {
+    unsigned long checkInterval = 0;
+    for (;;) {
+        if (millis() > checkInterval) {
+            if (modem.isNetworkConnected()) {
+                readGSMLocation();
+            }
+
+            if (!readGPSLocation()) {
+                checkGPS();
+            }
+
+            checkInterval = millis() + 30000L;
+        }
+        delay(1);
+    }
+}
 
 void setup() {
     startTime = millis();
@@ -940,25 +1010,24 @@ void setup() {
 
     connectToNetwork();
     // connectToWiFi(wifiSSID, wifiPass);
-
-#if defined TINY_GSM_MODEM_HAS_GPS
-#if !defined(TINY_GSM_MODEM_SARAR5)  // not needed for this module
-    modem.enableGPS();
-#endif
-#endif
-
+    connectGPS();
     connectToOBD();
 
-    mqtt.setIdentifier(!VIN.empty() ? VIN : connectedBTAddress);
+    mqtt.setIdentifier(!MQTT::stripChars(VIN).empty() ? VIN : connectedBTAddress);
 
     // disable Watch Dog for Core 0 - should fix crashes
     disableCore0WDT();
 
-    xTaskCreatePinnedToCore(outputTask, "OutputTask", 10000,NULL, 10, &outputTaskHdl, 0);
-    xTaskCreatePinnedToCore(mqttTask, "MQTTTask", 10000,NULL, 1, &mqttTaskHdl, 0);
-    xTaskCreatePinnedToCore(readStatesTask, "ReadStatesTask", 10000,NULL, 0, &stateTaskHdl, 1);
+    xTaskCreatePinnedToCore(mqttTask, "MQTTTask", 8192, nullptr, 1, &mqttTaskHdl, 0);
+    xTaskCreatePinnedToCore(outputTask, "OutputTask", 8192, nullptr, 10, &outputTaskHdl, 0);
+
+#if defined TINY_GSM_MODEM_HAS_GSM_LOCATION || defined TINY_GSM_MODEM_HAS_GPS
+    xTaskCreatePinnedToCore(locationTask, "LocationTask", 8192, nullptr, 11, &locationTaskHdl, tskNO_AFFINITY);
+#endif
+
+    xTaskCreatePinnedToCore(readStatesTask, "ReadStatesTask", 8192, nullptr, 1, &stateTaskHdl, 1);
 }
 
 void loop() {
-    vTaskDelete(NULL);
+    vTaskDelete(nullptr);
 }
