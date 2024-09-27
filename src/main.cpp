@@ -101,6 +101,7 @@ std::atomic<unsigned long> lastMQTTDiscoveryOutput{0};
 std::atomic<unsigned long> lastMQTTOutput{0};
 std::atomic<unsigned long> lastMQTTDiagnosticOutput{0};
 
+std::string ipAddress;
 std::atomic<int> signalQuality{0};
 std::atomic<float> gsmLatitude{0};
 std::atomic<float> gsmLongitude{0};
@@ -274,7 +275,8 @@ restart:
         DEBUG_PORT.println("GPRS connected");
     }
 
-    DEBUG_PORT.printf("IP Address: %s\n", modem.getLocalIP().c_str());
+    ipAddress = modem.getLocalIP().c_str();
+    DEBUG_PORT.printf("IP Address: %s\n", ipAddress.c_str());
     delay(1000);
 #endif
 }
@@ -307,7 +309,8 @@ bool checkNetwork() {
             if (modem.isGprsConnected()) {
                 DEBUG_PORT.println("GPRS reconnected");
 
-                DEBUG_PORT.printf("IP Address: %s\n", modem.getLocalIP().c_str());
+                ipAddress = modem.getLocalIP().c_str();
+                DEBUG_PORT.printf("IP Address: %s\n", ipAddress.c_str());
             }
         }
 #endif
@@ -627,6 +630,12 @@ bool sendDiagnosticDiscoveryData() {
                                               "diagnostic");
     allSendsSuccessed |= mqtt.sendTopicConfig("", "reconnects", "Number of reconnects", "connection", "", "",
                                               "measurement", "diagnostic");
+
+    if (!ipAddress.empty()) {
+        allSendsSuccessed |= mqtt.sendTopicConfig("", "ipAddress", "IP Address", "ip", "", "", "", "",
+                                                  "diagnostic");
+    }
+
 #if TINY_GSM_USE_GPRS
     allSendsSuccessed |= mqtt.sendTopicConfig("", "signalQuality", "Signal Quality", "signal", "dBm",
                                               "signal_strength", "", "diagnostic");
@@ -798,6 +807,11 @@ bool sendDiagnosticData() {
     sprintf(tmp_char, "%d", mqtt.reconnectAttemps());
     allSendsSuccessed |= mqtt.sendTopicUpdate("reconnects", std::string(tmp_char));
 
+    if (!ipAddress.empty()) {
+        sprintf(tmp_char, "%s", ipAddress.c_str());
+        allSendsSuccessed |= mqtt.sendTopicUpdate("ipAddress", std::string(tmp_char));
+    }
+
 #if TINY_GSM_USE_GPRS
     sprintf(tmp_char, "%d", static_cast<int>(signalQuality));
     allSendsSuccessed |= mqtt.sendTopicUpdate("signalQuality", std::string(tmp_char));
@@ -858,8 +872,6 @@ bool sendStaticDiagnosticData() {
     if (!VIN.empty()) {
         sprintf(tmp_char, "%s", VIN.c_str());
         allSendsSuccessed |= mqtt.sendTopicUpdate("VIN", std::string(tmp_char));
-    } else {
-        allSendsSuccessed = true;
     }
 
     DEBUG_PORT.printf("...%s (%dms)\n", allSendsSuccessed ? "done" : "failed", millis() - start);
