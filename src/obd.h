@@ -333,18 +333,21 @@ connect:
 
     Serial.println("Try to get VIN...");
     char vin[18];
+    int status;
     int retryCount = 0;
-    while (myELM327.get_vin_blocking(vin) != ELM_SUCCESS && retryCount < 3) {
+    while ((status = myELM327.get_vin_blocking(vin)) != ELM_SUCCESS && retryCount < 3) {
         Serial.println("...failed to obtain VIN...");
         delay(500);
         retryCount++;
     }
 
-    VIN = std::string(vin);
-    if (!VIN.empty()) {
-        Serial.printf("...VIN %s obtained.\n", VIN.c_str());
-    } else {
-        Serial.println("...VIN is empty.");
+    if (status == ELM_SUCCESS) {
+        VIN = std::string(vin);
+        if (!VIN.empty()) {
+            Serial.printf("...VIN %s obtained.\n", VIN.c_str());
+        } else {
+            Serial.println("...VIN is empty.");
+        }
     }
 }
 
