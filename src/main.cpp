@@ -1067,7 +1067,9 @@ void outputTask(void *parameters) {
         // debugOutputStates();
 
 #if TINY_GSM_USE_GPRS
-        signalQuality = modem.getSignalQuality();
+        if (modem.isNetworkConnected()) {
+            signalQuality = modem.getSignalQuality();
+        }
 #endif
 
         if (!mqtt.connected()) {
