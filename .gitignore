@@ -1,4 +1,4 @@
 .pio
 .idea
 /src/privates.h
-/3d-files/esp32-sim800 v2.20240922-192953.FCBak
+*.FCBak
