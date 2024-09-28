@@ -325,7 +325,7 @@ public:
 
         serializeJson(config, payload);
 
-        return publish(topicFull, payload, true, 200);
+        return publish(topicFull, payload, true, MQTT_MAX_PACKET_SIZE / 2);
     }
 
     /**
@@ -343,6 +343,6 @@ public:
             topicFull += "/attributes";
         }
 
-        return publish(topicFull, payload, true, 200);
+        return publish(topicFull, payload, true, MQTT_MAX_PACKET_SIZE / 2);
     }
 };
