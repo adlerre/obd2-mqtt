@@ -92,7 +92,7 @@ PubSubClient mqttClient(client);
 
 MQTT mqtt(mqttClient, mqttBroker, mqttPort);
 
-#define MQTT_DISCOVERY_INTERVAL             30000L
+#define MQTT_DISCOVERY_INTERVAL             300000L
 #define MQTT_DATA_INTERVAL                  1000;
 #define MQTT_DIAGNOSTIC_INTERVAL            30000L
 #define MQTT_STATIC_DIAGNOSTIC_INTERVAL     60000L
