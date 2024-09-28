@@ -116,7 +116,7 @@ public:
     bool isUseGPRS() {
 #if TINY_GSM_USE_GPRS
         return true;
-#elif
+#else
         return false;
 #endif
     }
@@ -125,10 +125,10 @@ public:
         Serial.println("Start modem...");
 
 #if defined(SIM800L_IP5306_VERSION_20190610) or defined(SIM800L_AXP192_VERSION_20200327) or defined(SIM800C_AXP192_VERSION_20200609) or defined(SIM800L_IP5306_VERSION_20200811)
-    setupModem();
+        setupModem();
 
-    // Set GSM module baud rate and UART pins
-    SerialAT.begin(115200, SERIAL_8N1, MODEM_RX, MODEM_TX);
+        // Set GSM module baud rate and UART pins
+        SerialAT.begin(115200, SERIAL_8N1, MODEM_RX, MODEM_TX);
 
 #elif defined(LILYGO_T_A7670) or defined(LILYGO_T_CALL_A7670_V1_0) or defined(LILYGO_T_CALL_A7670_V1_1) or defined(LILYGO_T_A7608X)
         // Turn on DC boost to power on the modem
@@ -295,7 +295,7 @@ public:
     bool hasGSMLocation() {
 #if defined TINY_GSM_MODEM_HAS_GSM_LOCATION
         return true;
-#elif
+#else
         return false;
 #endif
     }
@@ -303,13 +303,13 @@ public:
     bool hasGPSLocation() {
 #if defined TINY_GSM_MODEM_HAS_GPS
         return true;
-#elif
+#else
         return false;
 #endif
     }
 
     void connectGPS() {
-        if (hasGPSLocation()) {
+#if defined TINY_GSM_MODEM_HAS_GPS
 #if !defined(TINY_GSM_MODEM_SARAR5)  // not needed for this module
             Serial.print("Enabling GPS/GNSS/GLONASS...");
             while (!modem.enableGPS(MODEM_GPS_ENABLE_GPIO)) {
@@ -319,11 +319,11 @@ public:
 
             modem.setGPSBaud(115200);
 #endif
-        }
+#endif
     }
 
     bool checkGPS() {
-        if (hasGPSLocation()) {
+#if defined TINY_GSM_MODEM_HAS_GPS
             if (!modem.isEnableGPS()) {
                 Serial.println("GPS/GNSS/GLONASS disabled");
                 Serial.print("Enabling GPS/GNSS/GLONASS...");
@@ -333,7 +333,7 @@ public:
                 }
                 Serial.println("...success");
             }
-        }
+#endif
         return true;
     }
 
@@ -360,7 +360,7 @@ public:
     }
 
     bool readGPSLocation(float &gpsLatitude, float &gpsLongitude, float &gpsAccuracy) {
-        if (hasGPSLocation()) {
+#if defined TINY_GSM_MODEM_HAS_GPS
             uint8_t status = 0;
             float gps_latitude = 0;
             float gps_longitude = 0;
@@ -378,7 +378,7 @@ public:
             } else {
                 return false;
             }
-        }
+#endif
         return true;
     }
 };
