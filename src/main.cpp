@@ -73,8 +73,6 @@
 #define TINY_GSM_USE_WIFI false
 #endif
 
-std::atomic_bool allDiscoverySend{false};
-
 boolean wifiConnected = false;
 // WiFiClient wifiClient;
 // PubSubClient mqtt(wifiClient);
@@ -94,12 +92,25 @@ PubSubClient mqttClient(client);
 
 MQTT mqtt(mqttClient, mqttBroker, mqttPort);
 
+#define MQTT_DISCOVERY_INTERVAL             30000L
+#define MQTT_DATA_INTERVAL                  1000;
+#define MQTT_DIAGNOSTIC_INTERVAL            30000L
+#define MQTT_STATIC_DIAGNOSTIC_INTERVAL     60000L
+
 std::atomic<unsigned long> startTime{0};
+std::atomic<unsigned int> reconnectAttempts{0};
+
+std::atomic_bool allDiscoverySend{false};
+std::atomic_bool allDiagnosticDiscoverySend{false};
+std::atomic_bool allStaticDiagnosticDiscoverySend{false};
 
 std::atomic<unsigned long> lastDebugOutput{0};
 std::atomic<unsigned long> lastMQTTDiscoveryOutput{0};
+std::atomic<unsigned long> lastMQTTDiagnosticDiscoveryOutput{0};
+std::atomic<unsigned long> lastMQTTStaticDiagnosticDiscoveryOutput{0};
 std::atomic<unsigned long> lastMQTTOutput{0};
 std::atomic<unsigned long> lastMQTTDiagnosticOutput{0};
+std::atomic<unsigned long> lastMQTTStaticDiagnosticOutput{0};
 
 std::string ipAddress;
 std::atomic<int> signalQuality{0};
@@ -281,17 +292,68 @@ restart:
 #endif
 }
 
+void resetModem() {
+#if defined(SIM800L_IP5306_VERSION_20190610) or defined(SIM800L_AXP192_VERSION_20200327) or defined(SIM800C_AXP192_VERSION_20200609) or defined(SIM800L_IP5306_VERSION_20200811)
+    digitalWrite(MODEM_POWER_ON, LOW);
+    delay(1000);
+    digitalWrite(MODEM_POWER_ON, HIGH);
+#elif defined(LILYGO_T_A7670) or defined(LILYGO_T_CALL_A7670_V1_0) or defined(LILYGO_T_CALL_A7670_V1_1) or defined(LILYGO_T_A7608X)
+#ifdef BOARD_POWERON_PIN
+    digitalWrite(BOARD_POWERON_PIN, LOW);
+    delay(1000);
+    digitalWrite(BOARD_POWERON_PIN, HIGH);
+#endif
+#endif
+
+    DEBUG_PORT.print("Reset modem...");
+    int retry = 0;
+    while (!modem.testAT(1000)) {
+        Serial.print(".");
+        if (retry++ > 10) {
+#if defined(SIM800L_IP5306_VERSION_20190610) or defined(SIM800L_AXP192_VERSION_20200327) or defined(SIM800C_AXP192_VERSION_20200609) or defined(SIM800L_IP5306_VERSION_20200811)
+            digitalWrite(MODEM_PWRKEY, LOW);
+            delay(100);
+            digitalWrite(MODEM_PWRKEY, HIGH);
+            delay(1000);
+            digitalWrite(MODEM_PWRKEY, LOW);
+#elif defined(LILYGO_T_A7670) or defined(LILYGO_T_CALL_A7670_V1_0) or defined(LILYGO_T_CALL_A7670_V1_1) or defined(LILYGO_T_A7608X)
+            digitalWrite(BOARD_PWRKEY_PIN, LOW);
+            delay(100);
+            digitalWrite(BOARD_PWRKEY_PIN, HIGH);
+            delay(1000);
+            digitalWrite(BOARD_PWRKEY_PIN, LOW);
+#endif
+            retry = 0;
+        }
+    }
+    DEBUG_PORT.println("...success");
+}
+
 bool checkNetwork() {
     // Make sure we're still registered on the network
     if (!modem.isNetworkConnected()) {
         DEBUG_PORT.println("Network disconnected");
+
+        if (reconnectAttempts > 10) {
+            resetModem();
+            DEBUG_PORT.print("Restart modem...");
+            if (!modem.init()) {
+                DEBUG_PORT.println("...fail");
+                return false;
+            }
+            DEBUG_PORT.println("...success");
+            reconnectAttempts = 0;
+        }
+
         DEBUG_PORT.print("Waiting for network...");
         if (!modem.waitForNetwork(20000L, true)) {
             DEBUG_PORT.println("...fail");
             delay(3000);
+            ++reconnectAttempts;
             return false;
         }
         if (modem.isNetworkConnected()) {
+            reconnectAttempts = 0;
             DEBUG_PORT.println("Network reconnected");
         }
 
@@ -592,7 +654,7 @@ bool sendDiscoveryData() {
         allSendsSuccessed |= mqtt.sendTopicConfig("", "fuelLevel", "Fuel Level", "fuel", "%", "", "measurement", "");
     }
 
-    allSendsSuccessed |= mqtt.sendTopicConfig("", "batVoltage", "Battery Voltage", "battery", "V", "power",
+    allSendsSuccessed |= mqtt.sendTopicConfig("", "batVoltage", "Battery Voltage", "battery", "V", "voltage",
                                               "measurement", "");
 
     if (isPidSupported(RELATIVE_ACCELERATOR_PEDAL_POS)) {
@@ -603,7 +665,7 @@ bool sendDiscoveryData() {
     // allSendsSuccessed |= mqtt.sendTopicConfig("", "curConsumption", "Calculated current consumption",
     //                                           "gas-station-outline", "l/100km", "", "measurement", "");
     allSendsSuccessed |= mqtt.sendTopicConfig("", "consumption", "Calculated consumption",
-                                              "gas-station", "l", "volume", "measurement", "");
+                                              "gas-station", "L", "volume", "", "");
     allSendsSuccessed |= mqtt.sendTopicConfig("", "consumptionPer100", "Calculated consumption per 100km",
                                               "gas-station", "l/100km", "", "measurement", "");
     allSendsSuccessed |= mqtt.sendTopicConfig("", "distanceDriven", "Calculated driven distance",
@@ -632,7 +694,7 @@ bool sendDiagnosticDiscoveryData() {
                                               "measurement", "diagnostic");
 
     if (!ipAddress.empty()) {
-        allSendsSuccessed |= mqtt.sendTopicConfig("", "ipAddress", "IP Address", "ip", "", "", "", "",
+        allSendsSuccessed |= mqtt.sendTopicConfig("", "ipAddress", "IP Address", "network-outline", "", "", "", "",
                                                   "diagnostic");
     }
 
@@ -642,7 +704,7 @@ bool sendDiagnosticDiscoveryData() {
 #endif
 #if defined TINY_GSM_MODEM_HAS_GSM_LOCATION
     allSendsSuccessed |= mqtt.sendTopicConfig("", "gsmLocation", "GSM Location", "crosshairs-gps", "", "", "",
-                                              "diagnostic", "device_tracker", "gsm", true);
+                                              "diagnostic", "device_tracker", "gps", true);
 #endif
 #if defined TINY_GSM_MODEM_HAS_GPS
     allSendsSuccessed |= mqtt.sendTopicConfig("", "gpsLocation", "GPS Location", "crosshairs-gps", "", "", "",
@@ -880,38 +942,66 @@ bool sendStaticDiagnosticData() {
 }
 
 void mqttSendData() {
-    if (millis() - lastMQTTOutput < 1000) {
+    if (millis() < lastMQTTOutput) {
         return;
     }
 
     if (mqtt.connected()) {
-        // resend discovery topics
-        if (millis() - lastMQTTDiscoveryOutput > 300000) {
+        if (millis() > lastMQTTDiscoveryOutput) {
             allDiscoverySend = false;
         }
 
         if (!allDiscoverySend) {
-            bool allSendsSuccessed = false;
-
-            allSendsSuccessed |= sendDiscoveryData();
-            allSendsSuccessed |= sendDiagnosticDiscoveryData();
-            allSendsSuccessed |= sendStaticDiagnosticDiscoveryData();
-
-            if (allSendsSuccessed) {
-                allDiscoverySend = true;
-                lastMQTTDiscoveryOutput = millis();
+            if ((allDiscoverySend = sendDiscoveryData())) {
+                lastMQTTDiscoveryOutput = millis() + MQTT_DISCOVERY_INTERVAL;
+            } else {
+                return;
             }
         }
 
-        sendOBDData();
+        if (millis() > lastMQTTDiagnosticDiscoveryOutput) {
+            allDiagnosticDiscoverySend = false;
+        }
 
-        if (millis() - lastMQTTDiagnosticOutput > 30000) {
-            if (sendDiagnosticData() && sendStaticDiagnosticData()) {
-                lastMQTTDiagnosticOutput = millis();
+        if (!allDiagnosticDiscoverySend) {
+            if ((allDiagnosticDiscoverySend = sendDiagnosticDiscoveryData())) {
+                lastMQTTDiagnosticDiscoveryOutput = millis() + MQTT_DISCOVERY_INTERVAL;
+            } else {
+                return;
             }
         }
 
-        lastMQTTOutput = millis();
+        if (millis() > lastMQTTStaticDiagnosticDiscoveryOutput) {
+            allStaticDiagnosticDiscoverySend = false;
+        }
+
+        if (!allStaticDiagnosticDiscoverySend) {
+            if ((allStaticDiagnosticDiscoverySend = sendStaticDiagnosticDiscoveryData())) {
+                lastMQTTStaticDiagnosticDiscoveryOutput = millis() + MQTT_DISCOVERY_INTERVAL;
+            } else {
+                return;
+            }
+        }
+
+        if (millis() > lastMQTTDiagnosticOutput) {
+            if (sendDiagnosticData()) {
+                lastMQTTDiagnosticOutput = millis() + MQTT_DIAGNOSTIC_INTERVAL;
+            } else {
+                return;
+            }
+        }
+
+        if (millis() > lastMQTTStaticDiagnosticOutput) {
+            if (sendStaticDiagnosticData()) {
+                lastMQTTStaticDiagnosticOutput = millis() + MQTT_STATIC_DIAGNOSTIC_INTERVAL;
+            } else {
+                return;
+            }
+        }
+
+        if (sendOBDData()) {
+            lastMQTTOutput = millis() + MQTT_DATA_INTERVAL;
+        }
     } else {
         delay(500);
     }
@@ -1005,9 +1095,11 @@ void locationTask(void *parameters) {
                 readGSMLocation();
             }
 
+#if defined TINY_GSM_MODEM_HAS_GPS
             if (!readGPSLocation()) {
                 checkGPS();
             }
+#endif
 
             checkInterval = millis() + 30000L;
         }
