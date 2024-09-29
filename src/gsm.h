@@ -286,7 +286,7 @@ public:
     }
 
     short int getSignalQuality() {
-        if (isUseGPRS() && isNetworkConnected()) {
+        if (isUseGPRS()) {
             return modem.getSignalQuality();
         }
         return 0;
