@@ -62,6 +62,8 @@ TinyGsm modem(SerialAT);
 
 TinyGsmClient client(modem);
 
+#define SQ_NOT_KNOWN    99
+
 class GSM {
     std::string ipAddress;
     unsigned int reconnectAttempts;
@@ -104,6 +106,22 @@ class GSM {
     }
 
 public:
+    /**
+    * Convert signal quality value to RSSI
+    *
+    * @param signalQuality the signal quality
+    * @return the signal quality as RSSI value
+    *
+    * @see https://m2msupport.net/m2msupport/atcsq-signal-quality/
+    */
+    static int convertSQToRSSI(int signalQuality) {
+        if (signalQuality > 0 && signalQuality <= 30) {
+            return (111 - signalQuality * 2 - 2) * -1;
+        }
+
+        return signalQuality;
+    }
+
     GSM() {
         ipAddress = "";
         reconnectAttempts = 0;
@@ -311,28 +329,28 @@ public:
     void connectGPS() {
 #if defined TINY_GSM_MODEM_HAS_GPS
 #if !defined(TINY_GSM_MODEM_SARAR5)  // not needed for this module
-            Serial.print("Enabling GPS/GNSS/GLONASS...");
-            while (!modem.enableGPS(MODEM_GPS_ENABLE_GPIO)) {
-                Serial.print(".");
-            }
-            Serial.println("...success");
+        Serial.print("Enabling GPS/GNSS/GLONASS...");
+        while (!modem.enableGPS(MODEM_GPS_ENABLE_GPIO)) {
+            Serial.print(".");
+        }
+        Serial.println("...success");
 
-            modem.setGPSBaud(115200);
+        modem.setGPSBaud(115200);
 #endif
 #endif
     }
 
     bool checkGPS() {
 #if defined TINY_GSM_MODEM_HAS_GPS
-            if (!modem.isEnableGPS()) {
-                Serial.println("GPS/GNSS/GLONASS disabled");
-                Serial.print("Enabling GPS/GNSS/GLONASS...");
-                if (!modem.enableGPS()) {
-                    Serial.println("...fail");
-                    return false;
-                }
-                Serial.println("...success");
+        if (!modem.isEnableGPS()) {
+            Serial.println("GPS/GNSS/GLONASS disabled");
+            Serial.print("Enabling GPS/GNSS/GLONASS...");
+            if (!modem.enableGPS()) {
+                Serial.println("...fail");
+                return false;
             }
+            Serial.println("...success");
+        }
 #endif
         return true;
     }
@@ -361,23 +379,23 @@ public:
 
     bool readGPSLocation(float &gpsLatitude, float &gpsLongitude, float &gpsAccuracy) {
 #if defined TINY_GSM_MODEM_HAS_GPS
-            uint8_t status = 0;
-            float gps_latitude = 0;
-            float gps_longitude = 0;
-            float gps_speed = 0;
-            float gps_altitude = 0;
-            int gps_vsat = 0;
-            int gps_usat = 0;
-            float gps_accuracy = 0;
+        uint8_t status = 0;
+        float gps_latitude = 0;
+        float gps_longitude = 0;
+        float gps_speed = 0;
+        float gps_altitude = 0;
+        int gps_vsat = 0;
+        int gps_usat = 0;
+        float gps_accuracy = 0;
 
-            if (modem.getGPS(&status, &gps_latitude, &gps_longitude, &gps_speed, &gps_altitude, &gps_vsat, &gps_usat,
-                             &gps_accuracy)) {
-                gpsLatitude = gps_latitude;
-                gpsLongitude = gps_longitude;
-                gpsAccuracy = gps_accuracy;
-            } else {
-                return false;
-            }
+        if (modem.getGPS(&status, &gps_latitude, &gps_longitude, &gps_speed, &gps_altitude, &gps_vsat, &gps_usat,
+                         &gps_accuracy)) {
+            gpsLatitude = gps_latitude;
+            gpsLongitude = gps_longitude;
+            gpsAccuracy = gps_accuracy;
+        } else {
+            return false;
+        }
 #endif
         return true;
     }

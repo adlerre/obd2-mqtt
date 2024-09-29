@@ -624,8 +624,8 @@ bool sendDiagnosticData() {
         allSendsSuccessed |= mqtt.sendTopicUpdate("ipAddress", std::string(tmp_char));
     }
 
-    if (gsm.isUseGPRS()) {
-        sprintf(tmp_char, "%d", static_cast<int>(signalQuality));
+    if (gsm.isUseGPRS() && signalQuality != SQ_NOT_KNOWN) {
+        sprintf(tmp_char, "%d", GSM::convertSQToRSSI(signalQuality));
         allSendsSuccessed |= mqtt.sendTopicUpdate("signalQuality", std::string(tmp_char));
     }
 
