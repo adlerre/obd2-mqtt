@@ -832,7 +832,7 @@ void setup() {
 
     gsm.connectToNetwork();
     // connectToWiFi(wifiSSID, wifiPass);
-    gsm.connectGPS();
+    gsm.enableGPS();
     connectToOBD();
 
     mqtt.setIdentifier(!MQTT::stripChars(VIN).empty() ? VIN : connectedBTAddress);

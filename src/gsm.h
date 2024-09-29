@@ -68,6 +68,9 @@ class GSM {
     std::string ipAddress;
     unsigned int reconnectAttempts;
 
+    /**
+    * Hard reset modem. Seems to crash after long runs.
+    */
     static void resetModem() {
 #if defined(SIM800L_IP5306_VERSION_20190610) or defined(SIM800L_AXP192_VERSION_20200327) or defined(SIM800C_AXP192_VERSION_20200609) or defined(SIM800L_IP5306_VERSION_20200811)
         digitalWrite(MODEM_POWER_ON, LOW);
@@ -127,10 +130,20 @@ public:
         reconnectAttempts = 0;
     }
 
+    /**
+    * Returns the ip address.
+    *
+    * @return the ip address
+    */
     std::string getIpAddress() const {
         return ipAddress;
     }
 
+    /**
+    * Returns if GPRS/LTE used.
+    *
+    * @return <code>true</code> if used
+    */
     bool isUseGPRS() {
 #if TINY_GSM_USE_GPRS
         return true;
@@ -139,6 +152,9 @@ public:
 #endif
     }
 
+    /**
+    * Connects to the configured APN.
+    */
     void connectToNetwork() {
         Serial.println("Start modem...");
 
@@ -249,6 +265,11 @@ public:
         }
     }
 
+    /**
+    * Checks if network is connected else wise a reconnect is done.
+    *
+    * @return <code>true</code> if network is active or <code>false</code> on a failure
+    */
     bool checkNetwork() {
         // Make sure we're still registered on the network
         if (!modem.isNetworkConnected()) {
@@ -299,10 +320,20 @@ public:
         return true;
     }
 
+    /**
+    * Returns is network is connected.
+    *
+    * @return <code>true</code> if connected
+    */
     bool isNetworkConnected() {
         return modem.isNetworkConnected();
     }
 
+    /**
+    * Returns the signal quality.
+    *
+    * @return the signal quality
+    */
     short int getSignalQuality() {
         if (isUseGPRS()) {
             return modem.getSignalQuality();
@@ -310,6 +341,11 @@ public:
         return 0;
     }
 
+    /**
+    * Returns if GSM location is supported.
+    *
+    * @return <code>true</code> if supported
+    */
     bool hasGSMLocation() {
 #if defined TINY_GSM_MODEM_HAS_GSM_LOCATION
         return true;
@@ -318,6 +354,11 @@ public:
 #endif
     }
 
+    /**
+    * Returns if GPS location is supported.
+    *
+    * @return <code>true</code> if supported
+    */
     bool hasGPSLocation() {
 #if defined TINY_GSM_MODEM_HAS_GPS
         return true;
@@ -326,7 +367,10 @@ public:
 #endif
     }
 
-    void connectGPS() {
+    /**
+    * Enable GPS, if is supported.
+    */
+    void enableGPS() {
 #if defined TINY_GSM_MODEM_HAS_GPS
 #if !defined(TINY_GSM_MODEM_SARAR5)  // not needed for this module
         Serial.print("Enabling GPS/GNSS/GLONASS...");
@@ -340,6 +384,11 @@ public:
 #endif
     }
 
+    /**
+    * Checks if GPS is enabled.
+    *
+    * @return <code>true</code> if is enabled or <code>false</code> on a failure
+    */
     bool checkGPS() {
 #if defined TINY_GSM_MODEM_HAS_GPS
         if (!modem.isEnableGPS()) {
@@ -355,28 +404,42 @@ public:
         return true;
     }
 
+    /**
+    * Reads the GSM location.
+    *
+    * @param gsmLatitude the latitude
+    * @param gsmLongitude the longitude
+    * @param gsmAccuracy the accuracy
+    */
     bool readGSMLocation(float &gsmLatitude, float &gsmLongitude, float &gsmAccuracy) {
-        if (hasGSMLocation()) {
-            float gsm_latitude = 0;
-            float gsm_longitude = 0;
-            float gsm_accuracy = 0;
+#if defined TINY_GSM_MODEM_HAS_GSM_LOCATION
+        float gsm_latitude = 0;
+        float gsm_longitude = 0;
+        float gsm_accuracy = 0;
 
 #if defined(SIM800L_IP5306_VERSION_20190610) or defined(SIM800L_AXP192_VERSION_20200327) or defined(SIM800C_AXP192_VERSION_20200609) or defined(SIM800L_IP5306_VERSION_20200811)
             // lat/lng seams to be swapped
             if (modem.getGsmLocation(&gsm_longitude, &gsm_latitude, &gsm_accuracy)) {
 #else
-            if (modem.getGsmLocation(&gsm_latitude, &gsm_longitude, &gsm_accuracy)) {
+        if (modem.getGsmLocation(&gsm_latitude, &gsm_longitude, &gsm_accuracy)) {
 #endif
-                gsmLatitude = gsm_latitude;
-                gsmLongitude = gsm_longitude;
-                gsmAccuracy = gsm_accuracy;
-            } else {
-                return false;
-            }
+            gsmLatitude = gsm_latitude;
+            gsmLongitude = gsm_longitude;
+            gsmAccuracy = gsm_accuracy;
+        } else {
+            return false;
         }
+#endif
         return true;
     }
 
+    /**
+    * Reads the GPS location.
+    *
+    * @param gpsLatitude the latitude
+    * @param gpsLongitude the longitude
+    * @param gpsAccuracy the accuracy
+    */
     bool readGPSLocation(float &gpsLatitude, float &gpsLongitude, float &gpsAccuracy) {
 #if defined TINY_GSM_MODEM_HAS_GPS
         uint8_t status = 0;
