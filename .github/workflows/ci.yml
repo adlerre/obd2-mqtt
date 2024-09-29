@@ -22,5 +22,8 @@ jobs:
       - name: Install PlatformIO Core
         run: pip install --upgrade platformio
 
-      - name: Build PlatformIO Project
-        run: pio run
+      - name: Build PlatformIO Project for SIM800L
+        run: pio run -e SIM800L_IP5306_VERSION_20200811
+
+      - name: Build PlatformIO Project for A7670X
+        run: pio run -e T-Call-A7670X-V1-0
