@@ -86,8 +86,11 @@ typedef enum {
     FUEL_RATE,
     FUEL_T,
     BAT_VOLTAGE,
-    PEDAL_POS
-} obd_pid_states;
+    PEDAL_POS,
+    MILSTATUS
+}
+
+obd_pid_states;
 
 obd_pid_states obd_state = ENG_LOAD;
 
@@ -352,41 +355,15 @@ connect:
 }
 
 /**
-* Set (int) value and next state.
+* Set value and next state.
 *
 * @param var the variable to set
 * @param nextState the next state
 * @param value the value to set
 * @return <code>true</code> on success
 */
-inline bool setStateIntValue(std::atomic<int> &var, obd_pid_states nextState, int value) {
-    if (myELM327.nb_rx_state == ELM_SUCCESS) {
-        var = value;
-        obd_state = nextState;
-        return true;
-    }
-
-    if (myELM327.nb_rx_state != ELM_GETTING_MSG && myELM327.nb_rx_state != ELM_SUCCESS) {
-        myELM327.printError();
-    }
-
-    if (myELM327.nb_rx_state == ELM_NO_DATA) {
-        var = 0;
-        obd_state = nextState;
-    }
-
-    return false;
-}
-
-/**
-* Set (float) value and next state.
-*
-* @param var the variable to set
-* @param nextState the next state
-* @param value the value to set
-* @return <code>true</code> on success
-*/
-inline bool setStateFloatValue(std::atomic<float> &var, obd_pid_states nextState, float value) {
+template<typename T>
+bool setStateValue(std::atomic<T> &var, obd_pid_states nextState, T value) {
     if (myELM327.nb_rx_state == ELM_SUCCESS) {
         var = value;
         obd_state = nextState;

@@ -86,14 +86,16 @@ std::atomic<float> ambientAirTemp{0};
 std::atomic<int> kph{0};
 std::atomic<float> fuelLevel{0};
 std::atomic<float> fuelRate{0};
-std::atomic<int> fuelType{0};
+std::atomic<uint8_t> fuelType{0};
 std::atomic_bool fuelTypeRead{false};
 std::atomic<float> mafRate{0};
 std::atomic<float> batVoltage{0};
 std::atomic<float> intakeAirTemp{0};
-std::atomic<int> manifoldPressure{0};
+std::atomic<uint8_t> manifoldPressure{0};
 std::atomic<float> timingAdvance{0};
 std::atomic<float> pedalPosition{0};
+std::atomic<u32_t> monitorStatus{0};
+std::atomic_bool milState{false};
 
 std::atomic<unsigned long> lastReadSpeed{0};
 std::atomic<unsigned long> runStartTime{0};
@@ -143,7 +145,7 @@ void readStates() {
         switch (obd_state) {
             case ENG_LOAD: {
                 if (isPidSupported(ENGINE_LOAD)) {
-                    setStateIntValue(load, THROTTLE, static_cast<int>(myELM327.engineLoad()));
+                    setStateValue(load, THROTTLE, static_cast<int>(myELM327.engineLoad()));
                 } else {
                     obd_state = THROTTLE;
                 }
@@ -151,14 +153,14 @@ void readStates() {
             }
             case THROTTLE:
                 if (isPidSupported(THROTTLE_POSITION)) {
-                    setStateIntValue(throttle, RPM, static_cast<int>(myELM327.throttle()));
+                    setStateValue(throttle, RPM, static_cast<int>(myELM327.throttle()));
                 } else {
                     obd_state = RPM;
                 }
                 break;
             case RPM: {
                 if (isPidSupported(ENGINE_RPM)) {
-                    setStateFloatValue(rpm, COOLANT_TEMP, myELM327.rpm());
+                    setStateValue(rpm, COOLANT_TEMP, myELM327.rpm());
                 } else {
                     obd_state = COOLANT_TEMP;
                 }
@@ -166,7 +168,7 @@ void readStates() {
             }
             case COOLANT_TEMP: {
                 if (isPidSupported(ENGINE_COOLANT_TEMP)) {
-                    setStateFloatValue(coolantTemp, OIL_TEMP, myELM327.engineCoolantTemp());
+                    setStateValue(coolantTemp, OIL_TEMP, myELM327.engineCoolantTemp());
                 } else {
                     obd_state = OIL_TEMP;
                 }
@@ -174,7 +176,7 @@ void readStates() {
             }
             case OIL_TEMP: {
                 if (isPidSupported(ENGINE_OIL_TEMP)) {
-                    setStateFloatValue(oilTemp, AMBIENT_TEMP, myELM327.oilTemp());
+                    setStateValue(oilTemp, AMBIENT_TEMP, myELM327.oilTemp());
                 } else {
                     obd_state = AMBIENT_TEMP;
                 }
@@ -182,7 +184,7 @@ void readStates() {
             }
             case AMBIENT_TEMP: {
                 if (isPidSupported(AMBIENT_AIR_TEMP)) {
-                    setStateFloatValue(ambientAirTemp, SPEED, myELM327.ambientAirTemp());
+                    setStateValue(ambientAirTemp, SPEED, myELM327.ambientAirTemp());
                 } else {
                     obd_state = SPEED;
                 }
@@ -191,7 +193,7 @@ void readStates() {
             case SPEED: {
                 if (isPidSupported(VEHICLE_SPEED)) {
                     int kphBefore = kph;
-                    setStateIntValue(kph, MAF_RATE, myELM327.kph());
+                    setStateValue(kph, MAF_RATE, myELM327.kph());
 
                     if (runStartTime == 0 & kph > 0) {
                         runStartTime = millis();
@@ -213,7 +215,7 @@ void readStates() {
             }
             case MAF_RATE: {
                 if (isPidSupported(MAF_FLOW_RATE)) {
-                    setStateFloatValue(mafRate, FUEL_LEVEL, myELM327.mafRate());
+                    setStateValue(mafRate, FUEL_LEVEL, myELM327.mafRate());
                 } else {
                     obd_state = FUEL_LEVEL;
                 }
@@ -221,7 +223,7 @@ void readStates() {
             }
             case FUEL_LEVEL: {
                 if (isPidSupported(FUEL_TANK_LEVEL_INPUT)) {
-                    setStateFloatValue(fuelLevel, FUEL_RATE, myELM327.fuelLevel());
+                    setStateValue(fuelLevel, FUEL_RATE, myELM327.fuelLevel());
                 } else {
                     obd_state = FUEL_RATE;
                 }
@@ -229,7 +231,7 @@ void readStates() {
             }
             case FUEL_RATE: {
                 if (isPidSupported(ENGINE_FUEL_RATE)) {
-                    setStateFloatValue(fuelRate, FUEL_T, myELM327.fuelRate());
+                    setStateValue(fuelRate, FUEL_T, myELM327.fuelRate());
                 } else {
                     obd_state = FUEL_T;
                 }
@@ -237,7 +239,7 @@ void readStates() {
             }
             case FUEL_T: {
                 if (isPidSupported(FUEL_TYPE) && !fuelTypeRead) {
-                    setStateIntValue(fuelType, BAT_VOLTAGE, myELM327.fuelType());
+                    setStateValue(fuelType, BAT_VOLTAGE, myELM327.fuelType());
                     fuelTypeRead = true;
                 } else {
                     obd_state = BAT_VOLTAGE;
@@ -245,12 +247,12 @@ void readStates() {
                 break;
             }
             case BAT_VOLTAGE: {
-                setStateFloatValue(batVoltage, INT_AIR_TEMP, myELM327.batteryVoltage());
+                setStateValue(batVoltage, INT_AIR_TEMP, myELM327.batteryVoltage());
                 break;
             }
             case INT_AIR_TEMP: {
                 if (isPidSupported(INTAKE_AIR_TEMP)) {
-                    setStateFloatValue(intakeAirTemp, MANIFOLD_PRESSURE, myELM327.intakeAirTemp());
+                    setStateValue(intakeAirTemp, MANIFOLD_PRESSURE, myELM327.intakeAirTemp());
                 } else {
                     obd_state = MANIFOLD_PRESSURE;
                 }
@@ -258,7 +260,7 @@ void readStates() {
             }
             case MANIFOLD_PRESSURE: {
                 if (isPidSupported(INTAKE_MANIFOLD_ABS_PRESSURE)) {
-                    setStateIntValue(manifoldPressure, IGN_TIMING, myELM327.manifoldPressure());
+                    setStateValue(manifoldPressure, IGN_TIMING, myELM327.manifoldPressure());
                 } else {
                     obd_state = IGN_TIMING;
                 }
@@ -266,7 +268,7 @@ void readStates() {
             }
             case IGN_TIMING: {
                 if (isPidSupported(TIMING_ADVANCE)) {
-                    setStateFloatValue(timingAdvance, PEDAL_POS, myELM327.timingAdvance());
+                    setStateValue(timingAdvance, PEDAL_POS, myELM327.timingAdvance());
                 } else {
                     obd_state = PEDAL_POS;
                 }
@@ -274,11 +276,19 @@ void readStates() {
             }
             case PEDAL_POS: {
                 if (isPidSupported(RELATIVE_ACCELERATOR_PEDAL_POS)) {
-                    setStateFloatValue(pedalPosition, ENG_LOAD, myELM327.relativePedalPos());
+                    setStateValue(pedalPosition, MILSTATUS, myELM327.relativePedalPos());
+                } else {
+                    obd_state = MILSTATUS;
+                }
+                break;
+            }
+            case MILSTATUS: {
+                if (isPidSupported(MONITOR_STATUS_SINCE_DTC_CLEARED)) {
+                    setStateValue(monitorStatus, ENG_LOAD, myELM327.monitorStatus());
+                    milState = ((monitorStatus >> 16) & 0xFF) & 0x80;
                 } else {
                     obd_state = ENG_LOAD;
                 }
-                break;
             }
         }
 
@@ -322,6 +332,11 @@ bool sendDiscoveryData() {
 
     allSendsSuccessed |= mqtt.sendTopicConfig("", "engineRunning", "Engine Running", "engine", "", "", "", "",
                                               "binary_sensor");
+
+    if (isPidSupported(MONITOR_STATUS_SINCE_DTC_CLEARED)) {
+        allSendsSuccessed |= mqtt.sendTopicConfig("", "mil", "Check Engine Light", "engine-off", "", "", "", "",
+                                                  "binary_sensor");
+    }
 
     if (isPidSupported(ENGINE_LOAD)) {
         allSendsSuccessed |= mqtt.sendTopicConfig("", "load", "Engine Load", "engine", "%", "", "", "");
@@ -486,6 +501,10 @@ bool sendOBDData() {
 
     if (isPidSupported(ENGINE_RPM)) {
         allSendsSuccessed |= mqtt.sendTopicUpdate("engineRunning", rpm > 300 ? "on" : "off");
+    }
+
+    if (isPidSupported(MONITOR_STATUS_SINCE_DTC_CLEARED)) {
+        allSendsSuccessed |= mqtt.sendTopicUpdate("mil", milState ? "on" : "off");
     }
 
     if (isPidSupported(ENGINE_LOAD)) {
