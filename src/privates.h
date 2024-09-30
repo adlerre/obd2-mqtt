@@ -1,3 +1,5 @@
+#pragma once
+
 // should dev mode enabled?
 #define OBD_DEV_MODE    true
 

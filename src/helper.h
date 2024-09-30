@@ -15,29 +15,26 @@
  * 59 Temple Place - Suite 330, Boston, MA  02111-1307 USA
  */
 #pragma once
+#include <Arduino.h>
 #include <vector>
+#include <string>
 
-inline std::vector<std::string> split(const std::string &s, const std::string &delimiter) {
-    size_t pos_start = 0, pos_end, delim_len = delimiter.length();
-    std::vector<std::string> res;
+/**
+ * Spilt string with given delimiter.
+ *
+ * @param s the string
+ * @param delimiter the delimiter
+ * @return a vector of strings
+ */
+std::vector<std::string> split(const std::string &s, const std::string &delimiter);
 
-    while ((pos_end = s.find(delimiter, pos_start)) != std::string::npos) {
-        std::string token = s.substr(pos_start, pos_end - pos_start);
-        pos_start = pos_end + delim_len;
-        res.push_back(token);
-    }
-
-    res.push_back(s.substr(pos_start));
-    return res;
-}
-
-inline void parseBytes(const char *str, const char sep, byte *bytes, const int maxBytes, const int base) {
-    for (int i = 0; i < maxBytes; i++) {
-        bytes[i] = strtoul(str, NULL, base);
-        str = strchr(str, sep);
-        if (str == NULL || *str == '\0') {
-            break;
-        }
-        str++;
-    }
-}
+/**
+* Parse chars to byte array with given separator, length and the base.
+*
+* @param str the chars/string
+* @param sep the separator
+* @param bytes the target byte array
+* @param maxBytes the number of bytes
+* @param base the base for calculation, e.g. 10 for decimal or 16 for hex
+*/
+void parseBytes(const char *str, char sep, byte *bytes, int maxBytes, int base);

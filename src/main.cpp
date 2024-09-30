@@ -44,9 +44,17 @@ boolean wifiConnected = false;
 // WiFiClient wifiClient;
 // PubSubClient mqtt(wifiClient);
 
-GSM gsm;
+// #define DUMP_AT_COMMANDS
 
-PubSubClient mqttClient(client);
+#ifdef DUMP_AT_COMMANDS
+#include <StreamDebugger.h>
+StreamDebugger debugger(SerialAT, Serial);
+GSM gsm(debugger);
+#else
+GSM gsm(SerialAT);
+#endif
+
+PubSubClient mqttClient(gsm.client);
 
 MQTT mqtt(mqttClient, mqttBroker, mqttPort);
 
@@ -442,17 +450,17 @@ bool sendDiagnosticDiscoveryData() {
                                                   "diagnostic");
     }
 
-    if (gsm.isUseGPRS()) {
+    if (GSM::isUseGPRS()) {
         allSendsSuccessed |= mqtt.sendTopicConfig("", "signalQuality", "Signal Quality", "signal", "dBm",
                                                   "signal_strength", "", "diagnostic");
     }
 
-    if (gsm.hasGSMLocation()) {
+    if (GSM::hasGSMLocation()) {
         allSendsSuccessed |= mqtt.sendTopicConfig("", "gsmLocation", "GSM Location", "crosshairs-gps", "", "", "",
                                                   "diagnostic", "device_tracker", "gps", true);
     }
 
-    if (gsm.hasGPSLocation()) {
+    if (GSM::hasGPSLocation()) {
         allSendsSuccessed |= mqtt.sendTopicConfig("", "gpsLocation", "GPS Location", "crosshairs-gps", "", "", "",
                                                   "diagnostic", "device_tracker", "gps", true);
     }
@@ -624,7 +632,7 @@ bool sendDiagnosticData() {
         allSendsSuccessed |= mqtt.sendTopicUpdate("ipAddress", std::string(tmp_char));
     }
 
-    if (gsm.isUseGPRS() && signalQuality != SQ_NOT_KNOWN) {
+    if (GSM::isUseGPRS() && signalQuality != SQ_NOT_KNOWN) {
         sprintf(tmp_char, "%d", GSM::convertSQToRSSI(signalQuality));
         allSendsSuccessed |= mqtt.sendTopicUpdate("signalQuality", std::string(tmp_char));
     }
@@ -632,7 +640,7 @@ bool sendDiagnosticData() {
     std::string payload;
     JsonDocument attribs;
 
-    if (gsm.hasGSMLocation()) {
+    if (GSM::hasGSMLocation()) {
         attribs["latitude"] = static_cast<float>(gsmLatitude);
         attribs["longitude"] = static_cast<float>(gsmLongitude);
         attribs["gps_accuracy"] = static_cast<float>(gsmAccuracy);
@@ -640,7 +648,7 @@ bool sendDiagnosticData() {
 
         allSendsSuccessed |= mqtt.sendTopicUpdate("gsmLocation", payload, true);
     }
-    if (gsm.hasGPSLocation()) {
+    if (GSM::hasGPSLocation()) {
         attribs["latitude"] = static_cast<float>(gpsLatitude);
         attribs["longitude"] = static_cast<float>(gpsLongitude);
         attribs["gps_accuracy"] = static_cast<float>(gpsAccuracy);
@@ -768,7 +776,7 @@ void outputTask(void *parameters) {
         }
         // debugOutputStates();
 
-        if (gsm.isUseGPRS()) {
+        if (GSM::isUseGPRS()) {
             signalQuality = gsm.getSignalQuality();
         }
 
@@ -805,7 +813,7 @@ void locationTask(void *parameters) {
                 }
             }
 
-            if (gsm.hasGPSLocation()) {
+            if (GSM::hasGPSLocation()) {
                 float gps_latitude = 0;
                 float gps_longitude = 0;
                 float gps_accuracy = 0;
@@ -845,7 +853,7 @@ void setup() {
 
     xTaskCreatePinnedToCore(readStatesTask, "ReadStatesTask", 8192, nullptr, 1, &stateTaskHdl, 1);
 
-    if (gsm.hasGSMLocation() || gsm.hasGPSLocation()) {
+    if (GSM::hasGSMLocation() || GSM::hasGPSLocation()) {
         xTaskCreatePinnedToCore(locationTask, "LocationTask", 8192, nullptr, 11, &locationTaskHdl, tskNO_AFFINITY);
     }
 }

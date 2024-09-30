@@ -28,12 +28,6 @@
 #define TINY_GSM_USE_GPRS true
 #define TINY_GSM_USE_WIFI false
 
-#if defined(SIM800L_IP5306_VERSION_20190610) or defined(SIM800L_AXP192_VERSION_20200327) or defined(SIM800C_AXP192_VERSION_20200609) or defined(SIM800L_IP5306_VERSION_20200811)
-#include "device_sim800.h"
-#elif defined(LILYGO_T_A7670) or defined(LILYGO_T_CALL_A7670_V1_0) or defined(LILYGO_T_CALL_A7670_V1_1) or defined(LILYGO_T_A7608X)
-#include "device_simA76xx.h"
-#endif
-
 #include <TinyGsmClient.h>
 
 // Just in case someone defined the wrong thing..
@@ -50,18 +44,6 @@
 #define TINY_GSM_USE_WIFI false
 #endif
 
-// #define DUMP_AT_COMMANDS
-
-#ifdef DUMP_AT_COMMANDS
-#include <StreamDebugger.h>
-StreamDebugger debugger(SerialAT, Serial);
-TinyGsm modem(debugger);
-#else
-TinyGsm modem(SerialAT);
-#endif
-
-TinyGsmClient client(modem);
-
 #define SQ_NOT_KNOWN    99
 
 class GSM {
@@ -69,397 +51,108 @@ class GSM {
     unsigned int reconnectAttempts;
 
     /**
-    * Hard reset modem. Seems to crash after long runs.
-    */
-    static void resetModem() {
-#if defined(SIM800L_IP5306_VERSION_20190610) or defined(SIM800L_AXP192_VERSION_20200327) or defined(SIM800C_AXP192_VERSION_20200609) or defined(SIM800L_IP5306_VERSION_20200811)
-        digitalWrite(MODEM_POWER_ON, LOW);
-        delay(1000);
-        digitalWrite(MODEM_POWER_ON, HIGH);
-#elif defined(LILYGO_T_A7670) or defined(LILYGO_T_CALL_A7670_V1_0) or defined(LILYGO_T_CALL_A7670_V1_1) or defined(LILYGO_T_A7608X)
-#ifdef BOARD_POWERON_PIN
-        digitalWrite(BOARD_POWERON_PIN, LOW);
-        delay(1000);
-        digitalWrite(BOARD_POWERON_PIN, HIGH);
-#endif
-#endif
-
-        Serial.print("Reset modem...");
-        int retry = 0;
-        while (!modem.testAT(1000)) {
-            Serial.print(".");
-            if (retry++ > 10) {
-#if defined(SIM800L_IP5306_VERSION_20190610) or defined(SIM800L_AXP192_VERSION_20200327) or defined(SIM800C_AXP192_VERSION_20200609) or defined(SIM800L_IP5306_VERSION_20200811)
-                digitalWrite(MODEM_PWRKEY, LOW);
-                delay(100);
-                digitalWrite(MODEM_PWRKEY, HIGH);
-                delay(1000);
-                digitalWrite(MODEM_PWRKEY, LOW);
-#elif defined(LILYGO_T_A7670) or defined(LILYGO_T_CALL_A7670_V1_0) or defined(LILYGO_T_CALL_A7670_V1_1) or defined(LILYGO_T_A7608X)
-                digitalWrite(BOARD_PWRKEY_PIN, LOW);
-                delay(100);
-                digitalWrite(BOARD_PWRKEY_PIN, HIGH);
-                delay(1000);
-                digitalWrite(BOARD_PWRKEY_PIN, LOW);
-#endif
-                retry = 0;
-            }
-        }
-        Serial.println("...success");
-    }
+     * Hard reset modem. Seems to crash after long runs.
+     */
+    void resetModem();
 
 public:
-    /**
-    * Convert signal quality value to RSSI
-    *
-    * @param signalQuality the signal quality
-    * @return the signal quality as RSSI value
-    *
-    * @see https://m2msupport.net/m2msupport/atcsq-signal-quality/
-    */
-    static int convertSQToRSSI(int signalQuality) {
-        if (signalQuality > 0 && signalQuality <= 30) {
-            return (111 - signalQuality * 2 - 2) * -1;
-        }
-
-        return signalQuality;
-    }
-
-    GSM() {
-        ipAddress = "";
-        reconnectAttempts = 0;
-    }
+    Stream &stream;
+    TinyGsm modem;
+    TinyGsmClient client;
 
     /**
-    * Returns the ip address.
-    *
-    * @return the ip address
-    */
-    std::string getIpAddress() const {
-        return ipAddress;
-    }
+     * Convert signal quality value to RSSI
+     *
+     * @param signalQuality the signal quality
+     * @return the signal quality as RSSI value
+     *
+     * @see https://m2msupport.net/m2msupport/atcsq-signal-quality/
+     */
+    static int convertSQToRSSI(int signalQuality);
+
+    explicit GSM(Stream &stream);
 
     /**
-    * Returns if GPRS/LTE used.
-    *
-    * @return <code>true</code> if used
-    */
-    bool isUseGPRS() {
-#if TINY_GSM_USE_GPRS
-        return true;
-#else
-        return false;
-#endif
-    }
+     * Returns the ip address.
+     *
+     * @return the ip address
+     */
+    std::string getIpAddress();
 
     /**
-    * Connects to the configured APN.
-    */
-    void connectToNetwork() {
-        Serial.println("Start modem...");
-
-#if defined(SIM800L_IP5306_VERSION_20190610) or defined(SIM800L_AXP192_VERSION_20200327) or defined(SIM800C_AXP192_VERSION_20200609) or defined(SIM800L_IP5306_VERSION_20200811)
-        setupModem();
-
-        // Set GSM module baud rate and UART pins
-        SerialAT.begin(115200, SERIAL_8N1, MODEM_RX, MODEM_TX);
-
-#elif defined(LILYGO_T_A7670) or defined(LILYGO_T_CALL_A7670_V1_0) or defined(LILYGO_T_CALL_A7670_V1_1) or defined(LILYGO_T_A7608X)
-        // Turn on DC boost to power on the modem
-#ifdef BOARD_POWERON_PIN
-        pinMode(BOARD_POWERON_PIN, OUTPUT);
-        digitalWrite(BOARD_POWERON_PIN, HIGH);
-#endif
-
-        // Set modem reset pin ,reset modem
-        pinMode(MODEM_RESET_PIN, OUTPUT);
-        digitalWrite(MODEM_RESET_PIN, !MODEM_RESET_LEVEL);
-        delay(100);
-        digitalWrite(MODEM_RESET_PIN, MODEM_RESET_LEVEL);
-        delay(2600);
-        digitalWrite(MODEM_RESET_PIN, !MODEM_RESET_LEVEL);
-
-        // Turn on modem
-        pinMode(BOARD_PWRKEY_PIN, OUTPUT);
-        digitalWrite(BOARD_PWRKEY_PIN, LOW);
-        delay(100);
-        digitalWrite(BOARD_PWRKEY_PIN, HIGH);
-        delay(1000);
-        digitalWrite(BOARD_PWRKEY_PIN, LOW);
-
-        // Set modem baud
-        SerialAT.begin(115200, SERIAL_8N1, MODEM_RX_PIN, MODEM_TX_PIN);
-#endif
-
-        delay(3000);
-    restart:
-        // Restart takes quite some time
-        // To skip it, call init() instead of restart()
-        Serial.println("Initializing modem...");
-        if (!modem.init()) {
-            Serial.println("Failed to restart modem, delaying 10s and retrying");
-            ESP.restart();
-            return;
-        }
-        // modem.restart();
-
-        String name = modem.getModemName();
-        Serial.printf("Modem Name: %s\n", name.c_str());
-
-        String modemInfo = modem.getModemInfo();
-        Serial.printf("Modem Info: %s\n", modemInfo.c_str());
-
-        if (isUseGPRS()) {
-            // Unlock your SIM card with a PIN if needed
-            if (GSM_PIN && modem.getSimStatus() != 3) {
-                modem.simUnlock(GSM_PIN);
-            }
-        }
-
-#if TINY_GSM_USE_WIFI
-    // Wifi connection parameters must be set before waiting for the network
-    Serial.print(F("Setting SSID/password..."));
-    if (!modem.networkConnect(wifiSSID, wifiPass)) {
-        Serial.println("...fail");
-        delay(10000);
-        goto restart;
-    }
-    Serial.println("...success");
-#endif
-
-#if TINY_GSM_USE_GPRS && defined TINY_GSM_MODEM_XBEE
-    // The XBee must run the gprsConnect function BEFORE waiting for network!
-    Serial.print("Waiting for GPRS connect...");
-    modem.gprsConnect(apn, gprsUser, gprsPass);
-#endif
-
-        Serial.print("Waiting for network...");
-        if (!modem.waitForNetwork()) {
-            Serial.println("...fail");
-            delay(3000);
-            goto restart;
-        }
-        Serial.println("...success");
-
-        if (modem.isNetworkConnected()) {
-            Serial.println("Network connected");
-        }
-
-        if (isUseGPRS()) {
-            // GPRS connection parameters are usually set after network registration
-            Serial.printf("Connecting to %s...", apn);
-            if (!modem.gprsConnect(apn, gprsUser, gprsPass)) {
-                Serial.println("...fail");
-                delay(3000);
-                goto restart;
-            }
-            Serial.println("...success");
-
-            if (modem.isGprsConnected()) {
-                Serial.println("GPRS connected");
-            }
-
-            ipAddress = modem.getLocalIP().c_str();
-            Serial.printf("IP Address: %s\n", ipAddress.c_str());
-            delay(1000);
-        }
-    }
+     * Returns if GPRS/LTE used.
+     *
+     * @return <code>true</code> if used
+     */
+    static bool isUseGPRS();
 
     /**
-    * Checks if network is connected else wise a reconnect is done.
-    *
-    * @return <code>true</code> if network is active or <code>false</code> on a failure
-    */
-    bool checkNetwork() {
-        // Make sure we're still registered on the network
-        if (!modem.isNetworkConnected()) {
-            Serial.println("Network disconnected");
-
-            if (reconnectAttempts > 10) {
-                resetModem();
-                Serial.print("Restart modem...");
-                if (!modem.init()) {
-                    Serial.println("...fail");
-                    return false;
-                }
-                Serial.println("...success");
-                reconnectAttempts = 0;
-            }
-
-            Serial.print("Waiting for network...");
-            if (!modem.waitForNetwork(20000L, true)) {
-                Serial.println("...fail");
-                delay(3000);
-                ++reconnectAttempts;
-                return false;
-            }
-            if (modem.isNetworkConnected()) {
-                reconnectAttempts = 0;
-                Serial.println("Network reconnected");
-            }
-
-            if (isUseGPRS()) {
-                // and make sure GPRS/EPS is still connected
-                if (!modem.isGprsConnected()) {
-                    Serial.println("GPRS disconnected");
-                    Serial.printf("Connecting to %s...", apn);
-                    if (!modem.gprsConnect(apn, gprsUser, gprsPass)) {
-                        Serial.println("...fail");
-                        delay(3000);
-                        return false;
-                    }
-                    if (modem.isGprsConnected()) {
-                        Serial.println("GPRS reconnected");
-
-                        ipAddress = modem.getLocalIP().c_str();
-                        Serial.printf("IP Address: %s\n", ipAddress.c_str());
-                    }
-                }
-            }
-        }
-        return true;
-    }
+     * Connects to the configured APN.
+     */
+    void connectToNetwork();
 
     /**
-    * Returns is network is connected.
-    *
-    * @return <code>true</code> if connected
-    */
-    bool isNetworkConnected() {
-        return modem.isNetworkConnected();
-    }
+     * Checks if network is connected else wise a reconnect is done.
+     *
+     * @return <code>true</code> if network is active or <code>false</code> on a failure
+     */
+    bool checkNetwork();
 
     /**
-    * Returns the signal quality.
-    *
-    * @return the signal quality
-    */
-    short int getSignalQuality() {
-        if (isUseGPRS()) {
-            return modem.getSignalQuality();
-        }
-        return 0;
-    }
+     * Returns is network is connected.
+     *
+     * @return <code>true</code> if connected
+     */
+    bool isNetworkConnected();
 
     /**
-    * Returns if GSM location is supported.
-    *
-    * @return <code>true</code> if supported
-    */
-    bool hasGSMLocation() {
-#if defined TINY_GSM_MODEM_HAS_GSM_LOCATION
-        return true;
-#else
-        return false;
-#endif
-    }
+     * Returns the signal quality.
+     *
+     * @return the signal quality
+     */
+    short int getSignalQuality();
 
     /**
-    * Returns if GPS location is supported.
-    *
-    * @return <code>true</code> if supported
-    */
-    bool hasGPSLocation() {
-#if defined TINY_GSM_MODEM_HAS_GPS
-        return true;
-#else
-        return false;
-#endif
-    }
+     * Returns if GSM location is supported.
+     *
+     * @return <code>true</code> if supported
+     */
+    static bool hasGSMLocation();
 
     /**
-    * Enable GPS, if is supported.
-    */
-    void enableGPS() {
-#if defined TINY_GSM_MODEM_HAS_GPS
-#if !defined(TINY_GSM_MODEM_SARAR5)  // not needed for this module
-        Serial.print("Enabling GPS/GNSS/GLONASS...");
-        while (!modem.enableGPS(MODEM_GPS_ENABLE_GPIO)) {
-            Serial.print(".");
-        }
-        Serial.println("...success");
-
-        modem.setGPSBaud(115200);
-#endif
-#endif
-    }
+     * Returns if GPS location is supported.
+     *
+     * @return <code>true</code> if supported
+     */
+    static bool hasGPSLocation();
 
     /**
-    * Checks if GPS is enabled.
-    *
-    * @return <code>true</code> if is enabled or <code>false</code> on a failure
-    */
-    bool checkGPS() {
-#if defined TINY_GSM_MODEM_HAS_GPS
-        if (!modem.isEnableGPS()) {
-            Serial.println("GPS/GNSS/GLONASS disabled");
-            Serial.print("Enabling GPS/GNSS/GLONASS...");
-            if (!modem.enableGPS()) {
-                Serial.println("...fail");
-                return false;
-            }
-            Serial.println("...success");
-        }
-#endif
-        return true;
-    }
+     * Enable GPS, if is supported.
+     */
+    void enableGPS();
 
     /**
-    * Reads the GSM location.
-    *
-    * @param gsmLatitude the latitude
-    * @param gsmLongitude the longitude
-    * @param gsmAccuracy the accuracy
-    */
-    bool readGSMLocation(float &gsmLatitude, float &gsmLongitude, float &gsmAccuracy) {
-#if defined TINY_GSM_MODEM_HAS_GSM_LOCATION
-        float gsm_latitude = 0;
-        float gsm_longitude = 0;
-        float gsm_accuracy = 0;
-
-#if defined(SIM800L_IP5306_VERSION_20190610) or defined(SIM800L_AXP192_VERSION_20200327) or defined(SIM800C_AXP192_VERSION_20200609) or defined(SIM800L_IP5306_VERSION_20200811)
-            // lat/lng seams to be swapped
-            if (modem.getGsmLocation(&gsm_longitude, &gsm_latitude, &gsm_accuracy)) {
-#else
-        if (modem.getGsmLocation(&gsm_latitude, &gsm_longitude, &gsm_accuracy)) {
-#endif
-            gsmLatitude = gsm_latitude;
-            gsmLongitude = gsm_longitude;
-            gsmAccuracy = gsm_accuracy;
-        } else {
-            return false;
-        }
-#endif
-        return true;
-    }
+     * Checks if GPS is enabled.
+     *
+     * @return <code>true</code> if is enabled or <code>false</code> on a failure
+     */
+    bool checkGPS();
 
     /**
-    * Reads the GPS location.
-    *
-    * @param gpsLatitude the latitude
-    * @param gpsLongitude the longitude
-    * @param gpsAccuracy the accuracy
-    */
-    bool readGPSLocation(float &gpsLatitude, float &gpsLongitude, float &gpsAccuracy) {
-#if defined TINY_GSM_MODEM_HAS_GPS
-        uint8_t status = 0;
-        float gps_latitude = 0;
-        float gps_longitude = 0;
-        float gps_speed = 0;
-        float gps_altitude = 0;
-        int gps_vsat = 0;
-        int gps_usat = 0;
-        float gps_accuracy = 0;
+     * Reads the GSM location.
+     *
+     * @param gsmLatitude the latitude
+     * @param gsmLongitude the longitude
+     * @param gsmAccuracy the accuracy
+     */
+    bool readGSMLocation(float &gsmLatitude, float &gsmLongitude, float &gsmAccuracy);
 
-        if (modem.getGPS(&status, &gps_latitude, &gps_longitude, &gps_speed, &gps_altitude, &gps_vsat, &gps_usat,
-                         &gps_accuracy)) {
-            gpsLatitude = gps_latitude;
-            gpsLongitude = gps_longitude;
-            gpsAccuracy = gps_accuracy;
-        } else {
-            return false;
-        }
-#endif
-        return true;
-    }
+    /**
+     * Reads the GPS location.
+     *
+     * @param gpsLatitude the latitude
+     * @param gpsLongitude the longitude
+     * @param gpsAccuracy the accuracy
+     */
+    bool readGPSLocation(float &gpsLatitude, float &gpsLongitude, float &gpsAccuracy);
 };
