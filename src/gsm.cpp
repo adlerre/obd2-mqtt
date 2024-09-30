@@ -14,14 +14,14 @@
  *  If not, write to the Free Software Foundation Inc.,
  *  59 Temple Place - Suite 330, Boston, MA  02111-1307 USA
  */
+#include "gsm.h"
+#include "privates.h"
+
 #if defined(SIM800L_IP5306_VERSION_20190610) or defined(SIM800L_AXP192_VERSION_20200327) or defined(SIM800C_AXP192_VERSION_20200609) or defined(SIM800L_IP5306_VERSION_20200811)
 #include "device_sim800.h"
 #elif defined(LILYGO_T_A7670) or defined(LILYGO_T_CALL_A7670_V1_0) or defined(LILYGO_T_CALL_A7670_V1_1) or defined(LILYGO_T_A7608X)
 #include "device_simA76xx.h"
 #endif
-
-#include "gsm.h"
-#include "privates.h"
 
 int GSM::convertSQToRSSI(int signalQuality) {
     if (signalQuality > 0 && signalQuality <= 30) {
