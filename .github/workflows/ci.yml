@@ -5,6 +5,19 @@ on: [ push ]
 jobs:
   build:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        envs:
+          [
+            SIM800L_IP5306_VERSION_20190610,
+            SIM800L_AXP192_VERSION_20200327,
+            SIM800C_AXP192_VERSION_20200609,
+            SIM800L_IP5306_VERSION_20200811,
+            T-A7670X,
+            T-Call-A7670X-V1-0,
+            T-Call-A7670X-V1-1,
+            T-A7608X
+          ]
 
     steps:
       - uses: actions/checkout@v4
@@ -22,8 +35,5 @@ jobs:
       - name: Install PlatformIO Core
         run: pip install --upgrade platformio
 
-      - name: Build PlatformIO Project for SIM800L
-        run: pio run -e SIM800L_IP5306_VERSION_20200811
-
-      - name: Build PlatformIO Project for A7670X
-        run: pio run -e T-Call-A7670X-V1-0
+      - name: Build PlatformIO Project
+        run: pio run -e ${{ matrix.envs }}
