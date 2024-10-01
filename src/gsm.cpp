@@ -24,7 +24,7 @@
 #endif
 
 int GSM::convertSQToRSSI(int signalQuality) {
-    if (signalQuality > 0 && signalQuality <= 30) {
+    if (signalQuality > 0 && signalQuality <= 32) {
         return (111 - signalQuality * 2 - 2) * -1;
     }
 
