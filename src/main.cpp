@@ -62,6 +62,7 @@ MQTT mqtt(mqttClient, mqttBroker, mqttPort);
 #define MQTT_DATA_INTERVAL                  1000;
 #define MQTT_DIAGNOSTIC_INTERVAL            30000L
 #define MQTT_STATIC_DIAGNOSTIC_INTERVAL     60000L
+#define LOCATION_INTERVAL                   30000L
 
 std::atomic<unsigned long> startTime{0};
 
@@ -765,7 +766,7 @@ void mqttSendData() {
 void readStatesTask(void *parameters) {
     for (;;) {
         readStates();
-        delay(1);
+        delay(10);
     }
 }
 
@@ -786,14 +787,14 @@ void outputTask(void *parameters) {
         } else {
             mqttSendData();
         }
-        delay(1);
+        delay(100);
     }
 }
 
 void mqttTask(void *parameters) {
     for (;;) {
         mqtt.loop();
-        delay(1);
+        delay(100);
     }
 }
 
@@ -827,9 +828,9 @@ void locationTask(void *parameters) {
                 }
             }
 
-            checkInterval = millis() + 30000L;
+            checkInterval = millis() + LOCATION_INTERVAL;
         }
-        delay(1);
+        delay(100);
     }
 }
 
