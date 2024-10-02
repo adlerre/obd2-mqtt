@@ -139,6 +139,10 @@ restart:
     String modemInfo = modem.getModemInfo();
     Serial.printf("Modem Info: %s\n", modemInfo.c_str());
 
+#if defined(LILYGO_T_A7670) or defined(LILYGO_T_CALL_A7670_V1_0) or defined(LILYGO_T_CALL_A7670_V1_1) or defined(LILYGO_T_A7608X)
+    modem.setNetworkMode(MODEM_NETWORK_AUTO);
+#endif
+
     if (isUseGPRS()) {
         // Unlock your SIM card with a PIN if needed
         if (GSM_PIN && modem.getSimStatus() != 3) {
