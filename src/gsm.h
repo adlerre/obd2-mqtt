@@ -27,7 +27,6 @@
 
 // Define how you're planning to connect to the internet
 #define TINY_GSM_USE_GPRS true
-#define TINY_GSM_USE_WIFI false
 
 #include <TinyGsmClient.h>
 
@@ -37,12 +36,6 @@
 #undef TINY_GSM_USE_WIFI
 #define TINY_GSM_USE_GPRS false
 #define TINY_GSM_USE_WIFI true
-#endif
-#if TINY_GSM_USE_WIFI && not defined TINY_GSM_MODEM_HAS_WIFI
-#undef TINY_GSM_USE_GPRS
-#undef TINY_GSM_USE_WIFI
-#define TINY_GSM_USE_GPRS true
-#define TINY_GSM_USE_WIFI false
 #endif
 
 #define SQ_NOT_KNOWN    99

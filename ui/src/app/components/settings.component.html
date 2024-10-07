@@ -1,0 +1,156 @@
+<div id="settings">
+    <form novalidate (ngSubmit)="onSubmit(form)" [formGroup]="form">
+        <fieldset [formGroup]="wifi">
+            <legend>WiFi Access Point</legend>
+            <div class="row mb-2">
+                <label for="ssid" class="col-sm-2 control-label">SSID</label>
+                <div class="col-sm-10">
+                    <input formControlName="ssid" type="text" id="ssid" autocapitalize="off" autocorrect="off"
+                           placeholder="SSID"
+                           class="form-control"
+                           [ngClass]="{'is-invalid': wifi.controls.ssid.dirty && wifi.controls.ssid.errors}"
+                    >
+                </div>
+            </div>
+            <div class="row mb-2">
+                <label for="wifiPass" class="col-sm-2 control-label">Password</label>
+                <div class="col-sm-10">
+                    <input formControlName="password" type="password" id="wifiPass" autocapitalize="off"
+                           autocorrect="off"
+                           placeholder="Password"
+                           class="form-control"
+                           [ngClass]="{'is-invalid': wifi.controls.password.dirty && wifi.controls.password.errors}"
+                    >
+                </div>
+            </div>
+        </fieldset>
+        <fieldset [formGroup]="mobile">
+            <legend>Mobile</legend>
+            <div class="row mb-2">
+                <label for="pin" class="col-sm-2 control-label">Sim PIN</label>
+                <div class="col-sm-10">
+                    <input formControlName="pin" type="text" id="pin" autocapitalize="off" autocorrect="off"
+                           placeholder="PIN"
+                           class="form-control"
+                           [ngClass]="{'is-invalid': mobile.controls.pin.dirty && mobile.controls.pin.errors}"
+                    >
+                </div>
+            </div>
+            <div class="row mb-2">
+                <label for="apn" class="col-sm-2 control-label">Access Point Name</label>
+                <div class="col-sm-10">
+                    <input formControlName="apn" type="text" id="apn" autocapitalize="off" autocorrect="off"
+                           placeholder="APN"
+                           class="form-control"
+                           [ngClass]="{'is-invalid': mobile.controls.apn.dirty && mobile.controls.apn.errors}"
+                    >
+                </div>
+            </div>
+            <div class="row mb-2">
+                <label for="mobileUser" class="col-sm-2 control-label">Username</label>
+                <div class="col-sm-10">
+                    <input formControlName="username" type="text" id="mobileUser" autocapitalize="off" autocorrect="off"
+                           placeholder="Username"
+                           class="form-control"
+                           [ngClass]="{'is-invalid': mobile.controls.username.dirty && mobile.controls.username.errors}"
+                    >
+                </div>
+            </div>
+            <div class="row mb-2">
+                <label for="mobilePass" class="col-sm-2 control-label">Password</label>
+                <div class="col-sm-10">
+                    <input formControlName="password" type="password" id="mobilePass" autocapitalize="off"
+                           autocorrect="off"
+                           placeholder="Password"
+                           class="form-control"
+                           [ngClass]="{'is-invalid': mobile.controls.password.dirty && mobile.controls.password.errors}"
+                    >
+                </div>
+            </div>
+        </fieldset>
+        <fieldset [formGroup]="obd2">
+            <legend>OBD2/ELM 327 Device</legend>
+            <div class="row mb-2">
+                <label for="obd2Name" class="col-sm-2 control-label">Name</label>
+                <div class="col-sm-10">
+                    <input formControlName="name" type="text" id="obd2Name" autocapitalize="off" autocorrect="off"
+                           placeholder="OBDII"
+                           class="form-control"
+                           [ngClass]="{'is-invalid': obd2.controls.name.dirty && obd2.controls.name.errors}"
+                    >
+                </div>
+            </div>
+            <div class="row mb-2">
+                <label for="obd2Mac" class="col-sm-2 control-label">MAC Address</label>
+                <div class="col-sm-10">
+                    <input formControlName="mac" type="text" id="obd2Mac" autocapitalize="off" autocorrect="off"
+                           placeholder="11:22:33:44:af:fe"
+                           class="form-control"
+                           [ngClass]="{'is-invalid': obd2.controls.mac.dirty && obd2.controls.mac.errors}"
+                    >
+                </div>
+            </div>
+            <div class="row mb-2">
+                <label for="protocol" class="col-sm-2 col-form-label">Protocol</label>
+                <div class="col-sm-10">
+                    <select class="form-control form-select" id="protocol" formControlName="protocol"
+                            [ngClass]="{'is-invalid':obd2.controls.protocol.dirty && obd2.controls.protocol.errors}">
+                        <option *ngFor="let proto of getProtocols()" [value]="proto.value">{{ proto.key }}</option>
+                    </select>
+                </div>
+            </div>
+            <div class="offset-sm-2 col-sm-10">
+                <div class="form-check">
+                    <input type="checkbox" value="true" id="checkPIDSupport" formControlName="checkPIDSupport"
+                           class="form-check-input">
+                    <label for="checkPIDSupport" class="form-check-label">check if PID is supported</label>
+                </div>
+            </div>
+        </fieldset>
+        <fieldset [formGroup]="mqtt">
+            <legend>MQTT Broker</legend>
+            <div class="row mb-2">
+                <label for="hostname" class="col-sm-2 control-label">Hostname/Port</label>
+                <div class="col-sm-7 pe-md-1">
+                    <input formControlName="hostname" type="text" id="hostname" autocapitalize="off"
+                           autocorrect="off"
+                           placeholder="Hostname"
+                           class="form-control"
+                           [ngClass]="{'is-invalid': mqtt.controls.hostname.dirty && mqtt.controls.hostname.errors}"
+                    >
+                </div>
+                <div class="col-sm-3 ps-md-1">
+                    <input formControlName="port" type="number" id="port" autocapitalize="off"
+                           placeholder="Port"
+                           class="form-control"
+                           [ngClass]="{'is-invalid': mqtt.controls.port.dirty && mqtt.controls.port.errors}"
+                    >
+                </div>
+            </div>
+            <div class="row mb-2">
+                <label for="mqttUser" class="col-sm-2 control-label">Username</label>
+                <div class="col-sm-10">
+                    <input formControlName="username" type="text" id="mqttUser" autocapitalize="off" autocorrect="off"
+                           placeholder="Username"
+                           class="form-control"
+                           [ngClass]="{'is-invalid': mqtt.controls.username.dirty && mqtt.controls.username.errors}"
+                    >
+                </div>
+            </div>
+            <div class="row mb-2">
+                <label for="mqttPass" class="col-sm-2 control-label">Password</label>
+                <div class="col-sm-10">
+                    <input formControlName="password" type="password" id="mqttPass" autocapitalize="off"
+                           autocorrect="off"
+                           placeholder="Password"
+                           class="form-control"
+                           [ngClass]="{'is-invalid': mqtt.controls.password.dirty && mqtt.controls.password.errors}"
+                    >
+                </div>
+            </div>
+        </fieldset>
+        <div class="d-flex justify-content-end mb-2">
+            <input type="submit" class="btn btn-primary me-2" value="Save" [disabled]="!form.valid">
+        </div>
+    </form>
+</div>

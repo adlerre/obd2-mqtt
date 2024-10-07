@@ -1,0 +1,20 @@
+<header>
+    <nav class="navbar">
+        <ul class="navbar-nav">
+            <li routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
+                <a routerLink="">Device Info</a>
+            </li>
+            <li routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
+                <a routerLink="settings">Settings</a>
+            </li>
+        </ul>
+        <ul class="navbar-nav">
+            <li>
+                <a href="javascript:void(0)" (click)="rebootConfirm()"><strong>&#x23FB;</strong></a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main id="content" class="container">
+    <router-outlet></router-outlet>
+</main>

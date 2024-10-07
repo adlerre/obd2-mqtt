@@ -1,0 +1,78 @@
+/*!
+ * This program is free software; you can use it, redistribute it
+ * and / or modify it under the terms of the GNU General Public License
+ * (GPL) as published by the Free Software Foundation; either version 3
+ * of the License or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but
+ *  WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program, in a file called gpl.txt or license.txt.
+ *  If not, write to the Free Software Foundation Inc.,
+ *  59 Temple Place - Suite 330, Boston, MA  02111-1307 USA
+ */
+
+*, *:before, *:after {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background-color: var(--ui-body-bg);
+  color: var(--ui-body-color);
+  font-family: var(--ui-body-font-family);
+  font-size: var(--ui-body-font-size);
+  font-weight: var(--ui-body-font-weight);
+  line-height: var(--ui-body-line-height);
+}
+
+.h1, .h2, .h3, .h4, .h5, .h6, h1, h2, h3, h4, h5, h6 {
+  margin-top: 0;
+  margin-bottom: .5rem;
+  font-weight: 500;
+  line-height: 1.2;
+  color: var(--ui-heading-color);
+}
+
+input, button, select, optgroup, textarea {
+  margin: 0;
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+}
+
+fieldset {
+  border-bottom: 0;
+  border-left: 0;
+  border-right: 0;
+  margin-top: 1rem;
+  padding-right: calc(var(--ui-gutter-x) * .5);
+  padding-left: calc(var(--ui-gutter-x) * .5);
+
+  > legend {
+    margin-top: 0;
+    margin-bottom: .5rem;
+    padding-left: .5rem;
+    padding-right: .5rem;
+    font-weight: 500;
+    line-height: 1.2;
+  }
+}
+
+dl {
+  dt {
+    font-weight: 700;
+  }
+
+  dd {
+    margin-bottom: .5rem;
+    margin-left: 0;
+  }
+}

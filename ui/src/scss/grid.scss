@@ -1,0 +1,76 @@
+/*!
+ * This program is free software; you can use it, redistribute it
+ * and / or modify it under the terms of the GNU General Public License
+ * (GPL) as published by the Free Software Foundation; either version 3
+ * of the License or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but
+ *  WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program, in a file called gpl.txt or license.txt.
+ *  If not, write to the Free Software Foundation Inc.,
+ *  59 Temple Place - Suite 330, Boston, MA  02111-1307 USA
+ */
+
+.container {
+  width: 100%;
+  padding-right: calc(var(--ui-gutter-x) * .5);
+  padding-left: calc(var(--ui-gutter-x) * .5);
+  margin-right: auto;
+  margin-left: auto;
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  margin-top: calc(-1 * var(--ui-gutter-y));
+  margin-right: calc(-.5 * var(--ui-gutter-x));
+  margin-left: calc(-.5 * var(--ui-gutter-x));
+
+  & > * {
+    flex-shrink: 0;
+    width: 100%;
+    max-width: 100%;
+    padding-right: calc(var(--ui-gutter-x) * .5);
+    padding-left: calc(var(--ui-gutter-x) * .5);
+    margin-top: var(--ui-gutter-y);
+  }
+}
+
+.col {
+  flex: 1 0 0%;
+}
+
+@media (min-width: 576px) {
+  .col-sm-2 {
+    flex: 0 0 auto;
+    width: 16.66666667%;
+  }
+
+  .col-sm-3 {
+    flex: 0 0 auto;
+    width: 25%;
+  }
+
+  .col-sm-7 {
+    flex: 0 0 auto;
+    width: 58.33333333%;
+  }
+
+  .col-sm-9 {
+    flex: 0 0 auto;
+    width: 75%;
+  }
+
+  .col-sm-10 {
+    flex: 0 0 auto;
+    width: 83.33333333%;
+  }
+
+  .offset-sm-2 {
+    margin-left: 16.66666667%;
+  }
+}

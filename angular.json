@@ -1,0 +1,110 @@
+{
+  "$schema": "./node_modules/@angular/cli/lib/config/schema.json",
+  "version": 1,
+  "newProjectRoot": "projects",
+  "projects": {
+    "obd2-mqtt-ui": {
+      "root": "ui/src",
+      "sourceRoot": "ui/src",
+      "projectType": "application",
+      "architect": {
+        "build": {
+          "builder": "@angular-devkit/build-angular:browser",
+          "options": {
+            "outputPath": "data/public/",
+            "index": "ui/src/index.html",
+            "main": "ui/src/main.ts",
+            "tsConfig": "ui/src/tsconfig.app.json",
+            "polyfills": "ui/src/polyfills.ts",
+            "assets": [
+              "ui/src/assets"
+            ],
+            "stylePreprocessorOptions": {
+              "includePaths": [
+                "ui/src/scss"
+              ]
+            },
+            "scripts": [
+            ],
+            "aot": false,
+            "vendorChunk": true,
+            "extractLicenses": false,
+            "buildOptimizer": false,
+            "sourceMap": true,
+            "optimization": false,
+            "namedChunks": true
+          },
+          "configurations": {
+            "production": {
+              "budgets": [
+                {
+                  "type": "allScript",
+                  "maximumWarning": "512kb"
+                }
+              ],
+              "optimization": true,
+              "outputHashing": "all",
+              "sourceMap": false,
+              "namedChunks": false,
+              "aot": true,
+              "extractLicenses": true,
+              "vendorChunk": false,
+              "buildOptimizer": true,
+              "fileReplacements": [
+                {
+                  "replace": "ui/src/environments/environment.ts",
+                  "with": "ui/src/environments/environment.prod.ts"
+                }
+              ]
+            },
+            "development": {
+              "buildOptimizer": false,
+              "optimization": false,
+              "vendorChunk": true,
+              "extractLicenses": false,
+              "sourceMap": true,
+              "namedChunks": true
+            }
+          },
+          "defaultConfiguration": "production"
+        },
+        "serve": {
+          "builder": "@angular-devkit/build-angular:dev-server",
+          "configurations": {
+            "production": {
+              "buildTarget": "obd2-mqtt-ui:build:production"
+            },
+            "development": {
+              "buildTarget": "obd2-mqtt-ui:build:development"
+            }
+          },
+          "defaultConfiguration": "development"
+        },
+        "extract-i18n": {
+          "builder": "@angular-devkit/build-angular:extract-i18n",
+          "options": {
+            "buildTarget": "obd2-mqtt-ui:build"
+          }
+        },
+        "lint": {
+          "builder": "@angular-eslint/builder:lint",
+          "options": {
+            "lintFilePatterns": [
+              "ui/src/**/*.ts",
+              "ui/src/**/*.html"
+            ]
+          }
+        }
+      }
+    }
+  },
+  "schematics": {
+    "@schematics/angular:component": {
+      "prefix": "ui",
+      "style": "scss"
+    },
+    "@schematics/angular:directive": {
+      "prefix": "ui"
+    }
+  }
+}

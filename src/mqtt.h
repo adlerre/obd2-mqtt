@@ -51,19 +51,20 @@ public:
      * Constructor of MQTT Helper
      *
      * @param client the PubSubClient
-     * @param broker the broker hostname
-     * @param port the broker port, defaults to 1883
      */
-    MQTT(const PubSubClient &client, const char *broker, int port = 1883);
+    MQTT(const PubSubClient &client);
 
     /**
      * Connect to broker
      *
      * @param clientId the client id
+     * @param broker the broker hostname
      * @param username the username
      * @param password the password
+     * @param port the broker port, defaults to 1883
      */
-    void connect(const char *clientId, const char *username, const char *password);
+    void connect(const char *clientId, const char *broker, const char *username,
+                 const char *password, unsigned int port = 1883);
 
     /**
      * Returns the defined main topic.
