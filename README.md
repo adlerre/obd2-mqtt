@@ -3,7 +3,8 @@
 ## What you need?
 
 * an installed Home Assistant with Mosquitto Broker
-* an installed PlatformIO IDE or other IDE
+* an installed PlatformIO
+* an installed NodeJS and NPM
 * a ESP32 with [SIM800L](https://de.aliexpress.com/item/33045221960.html)
   or [A7670](https://de.aliexpress.com/item/1005006477044118.html)
     * (optional) [RP-SMA to IPX cable](https://www.amazon.de/dp/B0B9RXDLNN)
@@ -16,16 +17,45 @@
 
 ## Getting started
 
-* change [src/privates.h](src/privates.h) to your needs
-    * let __OBD_DEV_MODE__ on true for now
-    * set Bluetooth adapter MAC on __OBD_ADP_MAC__
-        * or let it empty to discover adapter, by default an adapter with name OBDII is used
-    * define your device (see [platformio.ini](platformio.ini))
-    * SIM Pin
-    * APN
-    * MQTT Broker settings
-    * (optional) Wi-Fi - only used for development
-* and compile and upload to device
+### Build
+
+Build firmware.bin
+
+```bash
+pio run [-e OPTIONAL ENV]
+```
+
+Build littlefs.bin
+
+```bash
+pio run --target buildfs [-e OPTIONAL ENV]
+```
+
+### Upload
+
+Build and upload firmware.bin to device
+
+```bash
+pio run --target upload -e T-Call-A7670X-V1-0
+```
+
+Build and upload littlefs.bin to device
+
+```bash
+# connect to AP and save current settings
+curl http://192.168.4.1/api/settings -o settings.json
+
+pio run --target uploadfs -e T-Call-A7670X-V1-0
+
+# after reboot connect to AP
+curl -X PUT -H "Content-Type: application/json" -d @settings.json http://192.168.4.1/api/settings
+```
+
+### Update Settings
+
+* connect to WiFi Access Point starts with name OBD2-MQTT- followed from device MAC
+* open Browser and navigate to http://192.168.4.1
+* change to your needs and reboot afterward
 
 ## Supported Sensors
 

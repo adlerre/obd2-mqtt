@@ -2,3 +2,6 @@
 .idea
 /src/privates.h
 *.FCBak
+/data/public/
+/node_modules/
+/.angular/

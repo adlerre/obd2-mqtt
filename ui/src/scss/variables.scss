@@ -1,0 +1,86 @@
+/*!
+ * This program is free software; you can use it, redistribute it
+ * and / or modify it under the terms of the GNU General Public License
+ * (GPL) as published by the Free Software Foundation; either version 3
+ * of the License or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but
+ *  WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program, in a file called gpl.txt or license.txt.
+ *  If not, write to the Free Software Foundation Inc.,
+ *  59 Temple Place - Suite 330, Boston, MA  02111-1307 USA
+ */
+
+
+$primary: #c64646 !default;
+$form-invalid-color: red !default;
+
+:root {
+  --ui-body-bg: white;
+  --ui-body-color: black;
+  --ui-font-sans-serif: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", "Noto Sans", "Liberation Sans", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  --ui-body-font-family: var(--ui-font-sans-serif);
+  --ui-body-font-size: 1rem;
+  --ui-body-font-weight: 400;
+  --ui-body-line-height: 1.5;
+
+  --ui-border-color: gray;
+  --ui-border-width: 1px;
+  --ui-border-radius: 0.1rem;
+
+  --ui-box-shadow-inset: inset 0 1px 2px rgba(0, 0, 0, 0.075);
+
+  --ui-btn-padding-x: .75rem;
+  --ui-btn-padding-y: .375rem;
+  --ui-btn-font-family: ;
+  --ui-btn-font-size: 1rem;
+  --ui-btn-font-weight: 400;
+  --ui-btn-line-height: 1.5;
+  --ui-btn-color: var(--ui-body-color);
+  --ui-btn-bg: transparent;
+  --ui-btn-border-width: var(--ui-border-width);
+  --ui-btn-border-color: transparent;
+  --ui-btn-border-radius: var(--ui-border-radius);
+  --ui-btn-hover-border-color: transparent;
+  --ui-btn-box-shadow: inset 0 1px 0 rgba(255, 255, 255, .15), 0 1px 1px rgba(0, 0, 0, .075);
+  --ui-btn-disabled-opacity: .65;
+  --ui-btn-focus-box-shadow: 0 0 0 .25rem rgba(var(--ui-form-focus-border-color), .5);
+
+  --ui-gutter-x: 1.5rem;
+  --ui-gutter-y: 0;
+
+  --ui-heading-color: var(--ui-body-color);
+
+  --ui-form-invalid-border-color: #{$form-invalid-color};
+  --ui-form-focus-border-color: #{$primary};
+  --ui-form-focus-box-shadow-inset: inset 0 1px 1px #00000013, 0 0 2px rgba(var(--ui-form-focus-border-color), 0.99);
+
+  --ui-form-check-bg: var(--ui-body-bg);
+  --ui-form-check-checked-bg: #{$primary};
+  --ui-form-check-checked-border-color: #{$primary};
+
+  --ui-nav-bg-color: white;
+  --ui-nav-text-color: black;
+  --ui-nav-active-bg-color: black;
+  --ui-nav-active-text-color: white;
+  --ui-nav-hover-bg-color: gray;
+  --ui-nav-hover-text-color: white;
+
+  @media (prefers-color-scheme: dark) {
+    --ui-body-bg: #212529;
+    --ui-body-color: #dee2e6;
+
+    --ui-border-color: #48545c;
+
+    --ui-nav-bg-color: black;
+    --ui-nav-text-color: white;
+    --ui-nav-active-bg-color: white;
+    --ui-nav-active-text-color: black;
+    --ui-nav-hover-bg-color: #191c20;
+    --ui-nav-hover-text-color: white;
+  }
+}

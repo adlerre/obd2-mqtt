@@ -15,7 +15,8 @@
  *  59 Temple Place - Suite 330, Boston, MA  02111-1307 USA
  */
 #include "gsm.h"
-#include "privates.h"
+
+#include <settings.h>
 
 #if defined(SIM800L_IP5306_VERSION_20190610) or defined(SIM800L_AXP192_VERSION_20200327) or defined(SIM800C_AXP192_VERSION_20200609) or defined(SIM800L_IP5306_VERSION_20200811)
 #include "device_sim800.h"
@@ -145,26 +146,16 @@ restart:
 
     if (isUseGPRS()) {
         // Unlock your SIM card with a PIN if needed
-        if (GSM_PIN && modem.getSimStatus() != 3) {
-            modem.simUnlock(GSM_PIN);
+        if (!Settings.getSimPin().isEmpty() && modem.getSimStatus() != 3) {
+            modem.simUnlock(Settings.getSimPin().c_str());
         }
     }
-
-#if TINY_GSM_USE_WIFI
-    // Wifi connection parameters must be set before waiting for the network
-    Serial.print(F("Setting SSID/password..."));
-    if (!modem.networkConnect(wifiSSID, wifiPass)) {
-        Serial.println("...fail");
-        delay(10000);
-        goto restart;
-    }
-    Serial.println("...success");
-#endif
 
 #if TINY_GSM_USE_GPRS && defined TINY_GSM_MODEM_XBEE
     // The XBee must run the gprsConnect function BEFORE waiting for network!
     Serial.print("Waiting for GPRS connect...");
-    modem.gprsConnect(apn, gprsUser, gprsPass);
+    modem.gprsConnect(Settings.getMobileAPN().c_str(), Settings.getMobileUsername().c_str(),
+        Settings.getMobilePassword().c_str());
 #endif
 
     Serial.print("Waiting for network...");
@@ -180,9 +171,15 @@ restart:
     }
 
     if (isUseGPRS()) {
+        if (Settings.getMobileAPN().isEmpty()) {
+            Serial.println("No APN was configured");
+            return;
+        }
+
         // GPRS connection parameters are usually set after network registration
-        Serial.printf("Connecting to %s...", apn);
-        if (!modem.gprsConnect(apn, gprsUser, gprsPass)) {
+        Serial.printf("Connecting to %s...", Settings.getMobileAPN().c_str());
+        if (!modem.gprsConnect(Settings.getMobileAPN().c_str(), Settings.getMobileUsername().c_str(),
+                               Settings.getMobilePassword().c_str())) {
             Serial.println("...fail");
             delay(3000);
             goto restart;
@@ -231,8 +228,9 @@ bool GSM::checkNetwork() {
             // and make sure GPRS/EPS is still connected
             if (!modem.isGprsConnected()) {
                 Serial.println("GPRS disconnected");
-                Serial.printf("Connecting to %s...", apn);
-                if (!modem.gprsConnect(apn, gprsUser, gprsPass)) {
+                Serial.printf("Connecting to %s...", Settings.getMobileAPN().c_str());
+                if (!modem.gprsConnect(Settings.getMobileAPN().c_str(), Settings.getMobileUsername().c_str(),
+                                       Settings.getMobilePassword().c_str())) {
                     Serial.println("...fail");
                     delay(3000);
                     return false;

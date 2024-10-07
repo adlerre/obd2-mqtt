@@ -34,15 +34,20 @@
 #define BUILD_GIT_COMMIT_HASH ""
 #endif
 
-#include "privates.h"
+#include <LittleFS.h>
+
+#define FORMAT_LITTLEFS_IF_FAILED true
+
+#include "settings.h"
 #include "obd.h"
 #include "gsm.h"
+#include "http.h"
+
+HTTPServer server(80);
 
 #define DEBUG_PORT Serial
 
-boolean wifiConnected = false;
-// WiFiClient wifiClient;
-// PubSubClient mqtt(wifiClient);
+// HTTPServer server(80);
 
 // #define DUMP_AT_COMMANDS
 
@@ -56,13 +61,17 @@ GSM gsm(SerialAT);
 
 PubSubClient mqttClient(gsm.client);
 
-MQTT mqtt(mqttClient, mqttBroker, mqttPort);
+MQTT mqtt(mqttClient);
 
 #define MQTT_DISCOVERY_INTERVAL             300000L
 #define MQTT_DATA_INTERVAL                  1000;
 #define MQTT_DIAGNOSTIC_INTERVAL            30000L
 #define MQTT_STATIC_DIAGNOSTIC_INTERVAL     60000L
 #define LOCATION_INTERVAL                   30000L
+
+std::atomic_bool wifiAPStarted{false};
+std::atomic_bool wifiAPInUse{false};
+std::atomic<unsigned int> wifiAPStaConnected{0};
 
 std::atomic<unsigned long> startTime{0};
 
@@ -117,36 +126,146 @@ std::atomic<float> avgSpeed{0};
 TaskHandle_t outputTaskHdl;
 TaskHandle_t stateTaskHdl;
 TaskHandle_t mqttTaskHdl;
-TaskHandle_t locationTaskHdl;
 
 size_t getESPHeapSize() {
     return heap_caps_get_free_size(MALLOC_CAP_8BIT);
 }
 
-void WiFiEvent(WiFiEvent_t event) {
-    switch (event) {
-        case ARDUINO_EVENT_WIFI_STA_GOT_IP:
-            DEBUG_PORT.print("WiFi connected! IP address: ");
-            DEBUG_PORT.println(WiFi.localIP());
-            wifiConnected = true;
-            break;
-        case ARDUINO_EVENT_WIFI_STA_DISCONNECTED:
-            DEBUG_PORT.println("WiFi lost connection");
-            wifiConnected = false;
-            break;
-        default: break;
+void WiFiAPStart(WiFiEvent_t event, WiFiEventInfo_t info) {
+    wifiAPStarted = true;
+    DEBUG_PORT.println("WiFi AP started.");
+
+    DEBUG_PORT.printf("AP - IP address: %s\n", WiFi.softAPIP().toString().c_str());
+}
+
+void WiFiAPStop(WiFiEvent_t event, WiFiEventInfo_t info) {
+    wifiAPStarted = false;
+    wifiAPInUse = false;
+    wifiAPStaConnected = 0;
+    DEBUG_PORT.println("WiFi AP stopped.");
+}
+
+void WiFiAPStationConnected(WiFiEvent_t event, WiFiEventInfo_t info) {
+    ++wifiAPStaConnected;
+    wifiAPInUse = true;
+
+    if (wifiAPStaConnected == 1) {
+        DEBUG_PORT.println("WiFi AP in use. Stop all other task.");
+        SerialBT.end();
     }
 }
 
-void connectToWiFi(const char *ssid, const char *pwd) {
-    DEBUG_PORT.println("Connecting to WiFi network: " + String(ssid));
+void WiFiAPStationDisconnected(WiFiEvent_t event, WiFiEventInfo_t info) {
+    if (wifiAPStaConnected != 0) {
+        --wifiAPStaConnected;
+    }
+
+    if (wifiAPStaConnected == 0) {
+        DEBUG_PORT.println("WiFi AP all clients disconnected. Start all other task.");
+        connectToOBD(true);
+        wifiAPInUse = false;
+    }
+}
+
+void startWiFiAP() {
+    DEBUG_PORT.print("Start Access Point...");
 
     WiFi.disconnect(true);
-    WiFi.onEvent(WiFiEvent);
 
-    WiFi.begin(ssid, pwd);
+    WiFi.mode(WIFI_AP);
 
-    DEBUG_PORT.println("Waiting for WiFi connection...");
+    WiFi.onEvent(WiFiAPStart, WiFiEvent_t::ARDUINO_EVENT_WIFI_AP_START);
+    WiFi.onEvent(WiFiAPStop, WiFiEvent_t::ARDUINO_EVENT_WIFI_AP_STOP);
+    WiFi.onEvent(WiFiAPStationConnected, WiFiEvent_t::ARDUINO_EVENT_WIFI_AP_STACONNECTED);
+    WiFi.onEvent(WiFiAPStationDisconnected, WiFiEvent_t::ARDUINO_EVENT_WIFI_AP_STADISCONNECTED);
+
+    String ssid = Settings.getWiFiAPSSID();
+    if (ssid.isEmpty()) {
+        ssid = "OBD2-MQTT-" + String(MQTT::stripChars(WiFi.macAddress().c_str()).c_str());
+        Settings.setWiFiAPSSID(ssid.c_str());
+    }
+    WiFi.softAP(
+        ssid.c_str(),
+        Settings.getWiFiAPPassword()
+    );
+}
+
+void startHttpServer() {
+    server.on(
+        "/api/reboot",
+        HTTP_POST,
+        [](AsyncWebServerRequest *request) {
+            if (request->hasParam("reboot")) {
+                request->send(200);
+                DEBUG_PORT.println("Rebooting...");
+                delay(2000);
+                ESP.restart();
+            }
+            request->send(406);
+        }
+    );
+
+    server.on("/api/settings", HTTP_GET, [](AsyncWebServerRequest *request) {
+        request->send(200, "application/json", Settings.buildJson().c_str());
+    });
+
+    server.on(
+        "/api/settings",
+        HTTP_PUT,
+        [](AsyncWebServerRequest *request) {
+        },
+        nullptr,
+        [](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total) {
+            if (request->contentType() == "application/json") {
+                std::string json;
+                for (size_t i = 0; i < len; i++) {
+                    json += static_cast<char>(data[i]);
+                }
+                if (Settings.parseJson(json)) {
+                    if (Settings.writeSettings(LittleFS)) {
+                        request->send(200);
+                        return;
+                    }
+                }
+                request->send(500);
+            }
+            request->send(406);
+        }
+    );
+
+    server.on("/api/wifi", HTTP_GET, [](AsyncWebServerRequest *request) {
+        std::string payload;
+        JsonDocument wifiInfo;
+
+        wifiInfo["hostname"] = WiFi.softAPgetHostname();
+        wifiInfo["SSID"] = WiFi.softAPSSID();
+        wifiInfo["ip"] = WiFi.softAPIP().toString();
+        wifiInfo["mac"] = WiFi.macAddress();
+
+        serializeJson(wifiInfo, payload);
+
+        request->send(200, "application/json", payload.c_str());
+    });
+
+    server.on("/api/modem", HTTP_GET, [](AsyncWebServerRequest *request) {
+        std::string payload;
+        JsonDocument modemInfo;
+
+        modemInfo["name"] = gsm.modem.getModemName();
+        modemInfo["info"] = gsm.modem.getModemInfo();
+        modemInfo["signalQuality"] = gsm.modem.getSignalQuality();
+        modemInfo["ip"] = gsm.modem.getLocalIP();
+        modemInfo["IMEI"] = gsm.modem.getIMEI();
+        modemInfo["IMSI"] = gsm.modem.getIMSI();
+        modemInfo["CCID"] = gsm.modem.getSimCCID();
+        modemInfo["operator"] = gsm.modem.getOperator();
+
+        serializeJson(modemInfo, payload);
+
+        request->send(200, "application/json", payload.c_str());
+    });
+
+    server.begin(LittleFS);
 }
 
 void readStates() {
@@ -765,27 +884,74 @@ void mqttSendData() {
 
 void readStatesTask(void *parameters) {
     for (;;) {
-        readStates();
+        if (!wifiAPInUse) {
+            readStates();
+        }
         delay(10);
     }
 }
 
 void outputTask(void *parameters) {
+    unsigned long checkInterval = 0;
     for (;;) {
-        if (!gsm.checkNetwork()) {
-            continue;
-        }
-        // debugOutputStates();
+        if (!wifiAPInUse) {
+            if (!gsm.checkNetwork()) {
+                continue;
+            }
 
-        if (GSM::isUseGPRS()) {
-            signalQuality = gsm.getSignalQuality();
-        }
+            // debugOutputStates();
 
-        if (!mqtt.connected()) {
-            auto client_id = String(MQTT_CLIENT_ID) + "-" + MQTT::stripChars(connectedBTAddress).c_str();
-            mqtt.connect(client_id.c_str(), mqttUsername, mqttPassword);
-        } else {
-            mqttSendData();
+            if ((GSM::hasGSMLocation() || GSM::hasGPSLocation()) && millis() > checkInterval) {
+                unsigned long start = millis();
+                bool allReadSuccessed = false;
+
+                DEBUG_PORT.print("Read location...");
+                if (gsm.isNetworkConnected()) {
+                    float gsm_latitude = 0;
+                    float gsm_longitude = 0;
+                    float gsm_accuracy = 0;
+
+                    if (allReadSuccessed |= gsm.readGSMLocation(gsm_latitude, gsm_longitude, gsm_accuracy)) {
+                        gsmLatitude = gsm_latitude;
+                        gsmLongitude = gsm_longitude;
+                        gsmAccuracy = gsm_accuracy;
+                    }
+                }
+
+                if (GSM::hasGPSLocation()) {
+                    float gps_latitude = 0;
+                    float gps_longitude = 0;
+                    float gps_accuracy = 0;
+
+                    if (!(allReadSuccessed |= gsm.readGPSLocation(gps_latitude, gps_longitude, gps_accuracy))) {
+                        gsm.checkGPS();
+                    } else {
+                        gpsLatitude = gps_latitude;
+                        gpsLongitude = gps_longitude;
+                        gpsAccuracy = gps_accuracy;
+                    }
+                }
+
+                checkInterval = millis() + LOCATION_INTERVAL;
+                DEBUG_PORT.printf("...%s (%dms)\n", allReadSuccessed ? "done" : "failed", millis() - start);
+            }
+
+            if (GSM::isUseGPRS()) {
+                signalQuality = gsm.getSignalQuality();
+            }
+
+            if (!mqtt.connected()) {
+                auto client_id = String(MQTT_CLIENT_ID) + "-" + MQTT::stripChars(connectedBTAddress).c_str();
+                mqtt.connect(
+                    client_id.c_str(),
+                    Settings.getMQTTHostname().c_str(),
+                    Settings.getMQTTUsername().c_str(),
+                    Settings.getMQTTPassword().c_str(),
+                    Settings.getMQTTPort()
+                );
+            } else {
+                mqttSendData();
+            }
         }
         delay(100);
     }
@@ -793,42 +959,8 @@ void outputTask(void *parameters) {
 
 void mqttTask(void *parameters) {
     for (;;) {
-        mqtt.loop();
-        delay(100);
-    }
-}
-
-void locationTask(void *parameters) {
-    unsigned long checkInterval = 0;
-    for (;;) {
-        if (millis() > checkInterval) {
-            if (gsm.isNetworkConnected()) {
-                float gsm_latitude = 0;
-                float gsm_longitude = 0;
-                float gsm_accuracy = 0;
-
-                if (gsm.readGSMLocation(gsm_latitude, gsm_longitude, gsm_accuracy)) {
-                    gsmLatitude = gsm_latitude;
-                    gsmLongitude = gsm_longitude;
-                    gsmAccuracy = gsm_accuracy;
-                }
-            }
-
-            if (GSM::hasGPSLocation()) {
-                float gps_latitude = 0;
-                float gps_longitude = 0;
-                float gps_accuracy = 0;
-
-                if (!gsm.readGPSLocation(gps_latitude, gps_longitude, gps_accuracy)) {
-                    gsm.checkGPS();
-                } else {
-                    gpsLatitude = gps_latitude;
-                    gpsLongitude = gps_longitude;
-                    gpsAccuracy = gps_accuracy;
-                }
-            }
-
-            checkInterval = millis() + LOCATION_INTERVAL;
+        if (!wifiAPInUse) {
+            mqtt.loop();
         }
         delay(100);
     }
@@ -839,24 +971,31 @@ void setup() {
 
     DEBUG_PORT.begin(115200);
 
+    if (!LittleFS.begin(FORMAT_LITTLEFS_IF_FAILED)) {
+        DEBUG_PORT.println("LittleFS Mount Failed");
+        return;
+    }
+
+    Settings.readSettings(LittleFS);
+
+    startWiFiAP();
+    startHttpServer();
+
     gsm.connectToNetwork();
-    // connectToWiFi(wifiSSID, wifiPass);
     gsm.enableGPS();
     connectToOBD();
 
-    mqtt.setIdentifier(!MQTT::stripChars(VIN).empty() ? VIN : connectedBTAddress);
+    if (!Settings.getMQTTHostname().isEmpty()) {
+        mqtt.setIdentifier(!MQTT::stripChars(VIN).empty() ? VIN : connectedBTAddress);
 
-    // disable Watch Dog for Core 0 - should fix crashes
-    disableCore0WDT();
+        // disable Watch Dog for Core 0 - should fix crashes
+        disableCore0WDT();
 
-    xTaskCreatePinnedToCore(mqttTask, "MQTTTask", 8192, nullptr, 1, &mqttTaskHdl, 0);
-    xTaskCreatePinnedToCore(outputTask, "OutputTask", 8192, nullptr, 10, &outputTaskHdl, 0);
+        xTaskCreatePinnedToCore(mqttTask, "MQTTTask", 8192, nullptr, 1, &mqttTaskHdl, 0);
+        xTaskCreatePinnedToCore(outputTask, "OutputTask", 8192, nullptr, 10, &outputTaskHdl, 0);
+    }
 
     xTaskCreatePinnedToCore(readStatesTask, "ReadStatesTask", 8192, nullptr, 1, &stateTaskHdl, 1);
-
-    if (GSM::hasGSMLocation() || GSM::hasGPSLocation()) {
-        xTaskCreatePinnedToCore(locationTask, "LocationTask", 8192, nullptr, 11, &locationTaskHdl, tskNO_AFFINITY);
-    }
 }
 
 void loop() {

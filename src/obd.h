@@ -187,7 +187,7 @@ inline bool isPidSupported(uint8_t pid) {
             default:
                 break;
         }
-    } else if (!cached && OBD_DEV_MODE) {
+    } else if (!cached && !Settings.getOBD2CheckPIDSupport()) {
         switch (pidInterval) {
             case SUPPORTED_PIDS_1_20:
                 supportedPids_1_20 = 0xFFFFFFFF;
@@ -238,11 +238,10 @@ inline BTScanResults *discoverBtDevices() {
 inline void BTEvent(esp_spp_cb_event_t event, esp_spp_cb_param_t *param) {
     if (event == ESP_SPP_CLOSE_EVT) {
         Serial.println("Bluetooth disconnected.");
-        ESP.restart();
     }
 }
 
-inline void connectToOBD() {
+inline void connectToOBD(bool reconnect = false) {
 connect:
     ELM_PORT.register_callback(BTEvent);
 
@@ -251,65 +250,66 @@ connect:
         ESP.restart();
     }
 
-#if not defined OBD_ADP_MAC
-    BTScanResults *btDeviceList = discoverBtDevices();
+    if (Settings.getOBD2MAC().isEmpty()) {
+        BTScanResults *btDeviceList = discoverBtDevices();
 
-    if (btDeviceList == nullptr) {
-        Serial.println("Didn't find any devices");
-    } else {
-        BTAddress addr;
-        int channel = 0;
+        if (btDeviceList == nullptr) {
+            Serial.println("Didn't find any devices");
+        } else {
+            BTAddress addr;
+            int channel = 0;
 
-        Serial.printf("Search device: %s\n", OBD_ADP_NAME);
-        for (int i = 0; i < btDeviceList->getCount(); i++) {
-            BTAdvertisedDevice *device = btDeviceList->getDevice(i);
-            if (device->getName() == OBD_ADP_NAME) {
-                Serial.printf(" ----- %s  %s %d\n", device->getAddress().toString().c_str(),
-                              device->getName().c_str(), device->getRSSI());
-                std::map<int, std::string> channels = ELM_PORT.getChannels(device->getAddress());
-                Serial.printf("scanned for services, found %d\n", channels.size());
-                for (auto const &entry: channels) {
-                    Serial.printf("     channel %d (%s)\n", entry.first, entry.second.c_str());
-                }
-                if (!channels.empty()) {
-                    addr = device->getAddress();
-                    channel = channels.begin()->first;
+            String devName = Settings.getOBD2Name(OBD_ADP_NAME);
+            Serial.printf("Search device: %s\n", devName);
+            for (int i = 0; i < btDeviceList->getCount(); i++) {
+                BTAdvertisedDevice *device = btDeviceList->getDevice(i);
+                if (device->getName() == devName.c_str()) {
+                    Serial.printf(" ----- %s  %s %d\n", device->getAddress().toString().c_str(),
+                                  device->getName().c_str(), device->getRSSI());
+                    std::map<int, std::string> channels = ELM_PORT.getChannels(device->getAddress());
+                    Serial.printf("scanned for services, found %d\n", channels.size());
+                    for (auto const &entry: channels) {
+                        Serial.printf("     channel %d (%s)\n", entry.first, entry.second.c_str());
+                    }
+                    if (!channels.empty()) {
+                        addr = device->getAddress();
+                        channel = channels.begin()->first;
+                    }
                 }
             }
+
+            if (addr) {
+                Serial.printf("connecting to %s - %d\n", addr.toString().c_str(), channel);
+                ELM_PORT.connect(addr, channel, sec_mask, role);
+            }
+        }
+    } else {
+        byte mac[6];
+        parseBytes(Settings.getOBD2MAC().c_str(), ':', mac, 6, 16);
+        BTAddress addr = mac;
+        int channel = 0;
+
+        std::map<int, std::string> channels = ELM_PORT.getChannels(addr);
+        Serial.printf("scanned for services, found %d\n", channels.size());
+        for (auto const &entry: channels) {
+            Serial.printf("     channel %d (%s)\n", entry.first, entry.second.c_str());
+        }
+
+        if (!channels.empty()) {
+            channel = channels.begin()->first;
         }
 
         if (addr) {
             Serial.printf("connecting to %s - %d\n", addr.toString().c_str(), channel);
-            ELM_PORT.connect(addr, channel, sec_mask, role);
+            if (ELM_PORT.connect(addr, channel, sec_mask, role)) {
+                connectedBTAddress = addr.toString().c_str();
+            }
         }
     }
-#else
-    byte mac[6];
-    parseBytes(OBD_ADP_MAC, ':', mac, 6, 16);
-    BTAddress addr = mac;
-    int channel = 0;
-
-    std::map<int, std::string> channels = ELM_PORT.getChannels(addr);
-    Serial.printf("scanned for services, found %d\n", channels.size());
-    for (auto const &entry: channels) {
-        Serial.printf("     channel %d (%s)\n", entry.first, entry.second.c_str());
-    }
-
-    if (!channels.empty()) {
-        channel = channels.begin()->first;
-    }
-
-    if (addr) {
-        Serial.printf("connecting to %s - %d\n", addr.toString().c_str(), channel);
-        if (ELM_PORT.connect(addr, channel, sec_mask, role)) {
-            connectedBTAddress = addr.toString().c_str();
-        }
-    }
-#endif
 
     if (!ELM_PORT.isClosed() && ELM_PORT.connected()) {
         int retryCount = 0;
-        while (!myELM327.begin(ELM_PORT, false, 2000, OBD_PROTOCOL) && retryCount < 3) {
+        while (!myELM327.begin(ELM_PORT, false, 2000, Settings.getOBD2Protocol()) && retryCount < 3) {
             Serial.println("Couldn't connect to OBD scanner - Phase 2");
             delay(BT_DISCOVER_TIME);
             retryCount++;
@@ -327,29 +327,31 @@ connect:
 
     Serial.println("Connected to ELM327");
 
-    Serial.println("Cache supported PIDs...");
-    isPidSupported(MONITOR_STATUS_SINCE_DTC_CLEARED);
-    isPidSupported(DISTANCE_TRAVELED_WITH_MIL_ON);
-    isPidSupported(MONITOR_STATUS_THIS_DRIVE_CYCLE);
-    isPidSupported(DEMANDED_ENGINE_PERCENT_TORQUE);
-    Serial.println("...done.");
+    if (!reconnect) {
+        Serial.println("Cache supported PIDs...");
+        isPidSupported(MONITOR_STATUS_SINCE_DTC_CLEARED);
+        isPidSupported(DISTANCE_TRAVELED_WITH_MIL_ON);
+        isPidSupported(MONITOR_STATUS_THIS_DRIVE_CYCLE);
+        isPidSupported(DEMANDED_ENGINE_PERCENT_TORQUE);
+        Serial.println("...done.");
 
-    Serial.println("Try to get VIN...");
-    char vin[18];
-    int status;
-    int retryCount = 0;
-    while ((status = myELM327.get_vin_blocking(vin)) != ELM_SUCCESS && retryCount < 3) {
-        Serial.println("...failed to obtain VIN...");
-        delay(500);
-        retryCount++;
-    }
+        Serial.println("Try to get VIN...");
+        char vin[18];
+        int status;
+        int retryCount = 0;
+        while ((status = myELM327.get_vin_blocking(vin)) != ELM_SUCCESS && retryCount < 3) {
+            Serial.println("...failed to obtain VIN...");
+            delay(500);
+            retryCount++;
+        }
 
-    if (status == ELM_SUCCESS) {
-        VIN = std::string(vin);
-        if (!VIN.empty()) {
-            Serial.printf("...VIN %s obtained.\n", VIN.c_str());
-        } else {
-            Serial.println("...VIN is empty.");
+        if (status == ELM_SUCCESS) {
+            VIN = std::string(vin);
+            if (!VIN.empty()) {
+                Serial.printf("...VIN %s obtained.\n", VIN.c_str());
+            } else {
+                Serial.println("...VIN is empty.");
+            }
         }
     }
 }

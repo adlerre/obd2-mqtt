@@ -30,34 +30,21 @@ std::string MQTT::stripChars(const std::string &str) {
     return std::regex_replace(str, reg, "");
 }
 
-/**
- * Constructor of MQTT Helper
- *
- * @param client the PubSubClient
- * @param broker the broker hostname
- * @param port the broker port, defaults to 1883
- */
-MQTT::MQTT(const PubSubClient &client, const char *broker, const int port) {
+MQTT::MQTT(const PubSubClient &client) {
     mqtt = client;
     mqtt.setKeepAlive(60);
     mqtt.setBufferSize(MQTT_MAX_PACKET_SIZE);
-    mqtt.setServer(broker, port);
 }
 
-/**
-* Connect to broker
-*
-* @param clientId the client id
-* @param username the username
-* @param password the password
-*/
-void MQTT::connect(const char *clientId, const char *username, const char *password) {
+void MQTT::connect(const char *clientId, const char *broker, const char *username,
+                   const char *password, const unsigned int port) {
+    mqtt.setServer(broker, port);
     while (!mqtt.connected()) {
         Serial.printf("The client %s connects to the MQTT broker...", clientId);
         std::string lwtTopic = maintopic + "/" + createFieldTopic(LWT_TOPIC);
         if (mqtt.connect(clientId, username, password, lwtTopic.c_str(), 0, false, LWT_DISCONNECTED, true)) {
             Serial.println("...connected.");
-            ++numReconnects;
+            ++this->numReconnects;
             return;
         }
 
@@ -66,101 +53,46 @@ void MQTT::connect(const char *clientId, const char *username, const char *passw
     }
 }
 
-/**
-* Returns the defined main topic.
-*
-* @return the main topic
-*/
 std::string MQTT::getMainTopic() {
     return maintopic;
 }
 
-/**
-* Set main topic.
-*
-* @param topic the main topic to set
-*/
 void MQTT::setMainTopic(const std::string &topic) {
     maintopic = topic;
 }
 
-/**
-* Returns the defined identifier.
-*
-* @return the identifier
-*/
 std::string MQTT::getIdentifier() {
     return identifier;
 }
 
-/**
-* Set the identifier.
-*
-* @param identifier the identifier
-*/
 void MQTT::setIdentifier(const std::string &identifier) {
     this->identifier = identifier;
 }
 
-/**
-* Returns the identifier name.
-*
-* @return the identifier name
-*/
 std::string MQTT::getIdentifierName() {
     return identifierName;
 }
 
-/**
-* Set the identifier name.
-*
-* @param identifierName the identifier name
-*/
 void MQTT::setIdentifierName(const std::string &identifierName) {
     this->identifierName = identifierName;
 }
 
-/**
-* Returns the number of reconnect attemps.
-*
-* @return how many reconnects done
-*/
 int MQTT::reconnectAttemps() const {
-    return numReconnects;
+    return this->numReconnects;
 }
 
-/**
-* Connects to MQTT client.
-*
-* @return <code>true</code> if connected
-*/
 bool MQTT::connected() {
     return mqtt.connected();
 }
 
-/**
-* Disconnects from MQTT client.
-*/
 void MQTT::disconnect() {
     mqtt.disconnect();
 }
 
-/**
-* Run the main loop from MQTT client.
-*/
 void MQTT::loop() {
     mqtt.loop();
 }
 
-/**
-* Public payload to broker.
-*
-* @param topic the topic
-* @param payload the payload
-* @param retained should retain
-* @param maxSize max size of payload length, is split if exceeded
-* @return <code>true</code> on success
-*/
 bool MQTT::publish(const std::string &topic, const std::string &payload, bool retained, int maxSize) {
     if (!mqtt.connected()) {
         return false;
@@ -195,28 +127,6 @@ bool MQTT::publish(const std::string &topic, const std::string &payload, bool re
     return mqtt.publish(topic.c_str(), payload.c_str(), retained);
 }
 
-/**
-* Send topic config.
-*
-* @param group the group
-* @param field the field name
-* @param name the name or description of field
-* @param icon the icon
-* @param unit the unit
-* @param deviceClass the device class
-* @param stateClass the state class
-* @param entityCategory the entity category
-* @param topicType the topic type e.g. sensor or other
-* @param sourceType the source type e.g. gps
-* @param allowOffline <code>true</code> if topic should not removed
-* @return <code>true</code> on success
-*
-* @see
-*   https://www.home-assistant.io/integrations/mqtt/#discovery-examples
-*   https://developers.home-assistant.io/docs/core/entity/sensor/
-*   https://www.home-assistant.io/integrations/device_tracker.mqtt/
-*   icons -> https://mdisearch.com
-*/
 bool MQTT::sendTopicConfig(const std::string &group, const std::string &field,
                            const std::string &name,
                            const std::string &icon, const std::string &unit, const std::string &deviceClass,
@@ -301,13 +211,6 @@ bool MQTT::sendTopicConfig(const std::string &group, const std::string &field,
     return publish(topicFull, payload, true, MQTT_MAX_PACKET_SIZE / 2);
 }
 
-/**
-* Send topic update payload.
-*
-* @param field the field name
-* @param payload the payload
-* @param isAttribJson <code>true</code> if json attribute
-*/
 bool MQTT::sendTopicUpdate(const std::string &field, const std::string &payload, bool isAttribJson) {
     std::string node_id = createNodeId(maintopic);
     std::string topicFull = node_id + "/" + createFieldTopic(field);

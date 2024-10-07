@@ -1,0 +1,73 @@
+/*!
+ * This program is free software; you can use it, redistribute it
+ * and / or modify it under the terms of the GNU General Public License
+ * (GPL) as published by the Free Software Foundation; either version 3
+ * of the License or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but
+ *  WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program, in a file called gpl.txt or license.txt.
+ *  If not, write to the Free Software Foundation Inc.,
+ *  59 Temple Place - Suite 330, Boston, MA  02111-1307 USA
+ */
+
+.navbar {
+  border-bottom: 1px solid var(--ui-nav-active-bg-color);
+  padding-right: calc(var(--ui-gutter-x) * .5);
+  padding-left: calc(var(--ui-gutter-x) * .5);
+  display: flex;
+  justify-content: space-between;
+
+  ul.navbar-nav {
+    list-style: none;
+    flex-direction: row;
+    display: flex;
+    padding-left: 0;
+    margin-bottom: 0;
+
+    > li {
+      display: list-item;
+      padding: 0.25rem;
+
+      > a {
+        padding: 0.5rem;
+        color: var(--ui-nav-text-color);
+        text-decoration: none;
+
+        &:focus, &:hover, &:active, &:visited {
+          color: var(--ui-nav-text-color);
+        }
+      }
+
+      &:hover {
+        background-color: var(--ui-nav-hover-bg-color);
+        color: var(--ui-nav-hover-text-color);
+
+        > a {
+          color: var(--ui-nav-hover-text-color);
+
+          &:focus, &:hover, &:active, &:visited {
+            color: var(--ui-nav-hover-text-color);
+          }
+        }
+      }
+
+      &.active {
+        background-color: var(--ui-nav-active-bg-color);
+        color: var(--ui-nav-active-text-color);
+
+        > a {
+          color: var(--ui-nav-active-text-color);
+
+          &:focus, &:hover, &:active, &:visited {
+            color: var(--ui-nav-active-text-color);
+          }
+        }
+      }
+    }
+  }
+}
