@@ -4,6 +4,7 @@
 
 * an installed Home Assistant with Mosquitto Broker
 * an installed PlatformIO
+* an installed NodeJS and NPM
 * a ESP32 with [SIM800L](https://de.aliexpress.com/item/33045221960.html)
   or [A7670](https://de.aliexpress.com/item/1005006477044118.html)
     * (optional) [RP-SMA to IPX cable](https://www.amazon.de/dp/B0B9RXDLNN)
