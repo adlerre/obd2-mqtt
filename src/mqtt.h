@@ -59,12 +59,12 @@ public:
      *
      * @param clientId the client id
      * @param broker the broker hostname
+     * @param port the broker port
      * @param username the username
      * @param password the password
-     * @param port the broker port, defaults to 1883
      */
-    void connect(const char *clientId, const char *broker, const char *username,
-                 const char *password, unsigned int port = 1883);
+    void connect(const char *clientId, const char *broker, unsigned int port, const char *username,
+                 const char *password);
 
     /**
      * Returns the defined main topic.

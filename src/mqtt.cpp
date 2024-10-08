@@ -36,8 +36,8 @@ MQTT::MQTT(const PubSubClient &client) {
     mqtt.setBufferSize(MQTT_MAX_PACKET_SIZE);
 }
 
-void MQTT::connect(const char *clientId, const char *broker, const char *username,
-                   const char *password, const unsigned int port) {
+void MQTT::connect(const char *clientId, const char *broker, const unsigned int port, const char *username,
+                   const char *password) {
     mqtt.setServer(broker, port);
     while (!mqtt.connected()) {
         Serial.printf("The client %s connects to the MQTT broker...", clientId);

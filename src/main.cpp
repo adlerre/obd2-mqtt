@@ -945,9 +945,9 @@ void outputTask(void *parameters) {
                 mqtt.connect(
                     client_id.c_str(),
                     Settings.getMQTTHostname().c_str(),
+                    Settings.getMQTTPort(),
                     Settings.getMQTTUsername().c_str(),
-                    Settings.getMQTTPassword().c_str(),
-                    Settings.getMQTTPort()
+                    Settings.getMQTTPassword().c_str()
                 );
             } else {
                 mqttSendData();
