@@ -13,6 +13,7 @@
 #   If not, write to the Free Software Foundation Inc.,
 #   59 Temple Place - Suite 330, Boston, MA  02111-1307 USA
 import platform
+import os, re, os.path
 from subprocess import check_output, CalledProcessError
 
 Import("env")
@@ -50,5 +51,15 @@ def build_ui():
             print("Encountered error", type(e).__name__, "building UI:", e)
             print("WARNING: Failed to build UI package. Using pre-built page.")
 
+def remove_ui_files(public_path):
+    pattern = ".*(\\.js$|\\.txt$)"
+
+    print("Remove not gzip files...")
+
+    for root, dirs, files in os.walk(public_path):
+        for file in filter(lambda x: re.match(pattern, x), files):
+            print("..." + file)
+            os.remove(os.path.join(root, file))
 
 build_ui()
+remove_ui_files("./data/public/")

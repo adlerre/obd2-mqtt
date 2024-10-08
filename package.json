@@ -9,13 +9,12 @@
     "lint": "ng lint"
   },
   "browserslist": [
-    "last 1 Chrome version",
+    "last 2 Chrome versions",
     "last 1 Firefox version",
     "last 2 Edge major versions",
     "last 2 Safari major versions",
     "last 2 iOS major versions",
-    "Firefox ESR",
-    "not IE 11"
+    "Firefox ESR"
   ],
   "private": true,
   "dependencies": {
@@ -33,6 +32,7 @@
     "zone.js": "~0.14.10"
   },
   "devDependencies": {
+    "@angular-builders/custom-webpack": "^18.0.0",
     "@angular-devkit/architect": "^0.1802.6",
     "@angular-devkit/build-angular": "18.2.7",
     "@angular-eslint/builder": "18.3.1",
@@ -49,6 +49,7 @@
     "angular-ide": "^0.9.77",
     "browser-sync": "^3.0.3",
     "codelyzer": "^6.0.0",
+    "compression-webpack-plugin": "^11.1.0",
     "domhandler": "^5.0.3",
     "eslint": "^8.57.1",
     "eslint-plugin-import": "^2.30.0",
