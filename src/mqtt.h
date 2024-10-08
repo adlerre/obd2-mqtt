@@ -19,6 +19,7 @@
 #include <PubSubClient.h>
 #include <regex>
 #include <string>
+#include <helper.h>
 
 #ifndef BUILD_GIT_BRANCH
 #define BUILD_GIT_BRANCH ""
@@ -45,8 +46,6 @@ class MQTT {
     std::string createFieldTopic(const std::string &field) const;
 
 public:
-    static std::string stripChars(const std::string &str);
-
     /**
      * Constructor of MQTT Helper
      *

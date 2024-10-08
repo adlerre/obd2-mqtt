@@ -25,11 +25,6 @@ std::string MQTT::createFieldTopic(const std::string &field) const {
     return stripChars((!identifier.empty() ? identifier : maintopic) + "_" + field);
 }
 
-std::string MQTT::stripChars(const std::string &str) {
-    std::regex reg("[^a-zA-Z0-9_-]");
-    return std::regex_replace(str, reg, "");
-}
-
 MQTT::MQTT(const PubSubClient &client) {
     mqtt = client;
     mqtt.setKeepAlive(60);

@@ -18,6 +18,7 @@
 #include <Arduino.h>
 #include <vector>
 #include <string>
+#include <regex>
 
 /**
  * Spilt string with given delimiter.
@@ -29,12 +30,20 @@
 std::vector<std::string> split(const std::string &s, const std::string &delimiter);
 
 /**
-* Parse chars to byte array with given separator, length and the base.
-*
-* @param str the chars/string
-* @param sep the separator
-* @param bytes the target byte array
-* @param maxBytes the number of bytes
-* @param base the base for calculation, e.g. 10 for decimal or 16 for hex
-*/
+ * Parse chars to byte array with given separator, length and the base.
+ *
+ * @param str the chars/string
+ * @param sep the separator
+ * @param bytes the target byte array
+ * @param maxBytes the number of bytes
+ * @param base the base for calculation, e.g. 10 for decimal or 16 for hex
+ */
 void parseBytes(const char *str, char sep, byte *bytes, int maxBytes, int base);
+
+/**
+ * Strips chars with regex from given string.
+ *
+ * @param str the string
+ * @param reg the regex, default <code>[^a-zA-Z0-9_-]</code>
+ */
+std::string stripChars(const std::string &str, std::regex reg = std::regex("[^a-zA-Z0-9_-]"));

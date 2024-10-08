@@ -17,26 +17,30 @@
 #include "helper.h"
 
 std::vector<std::string> split(const std::string &s, const std::string &delimiter) {
- size_t pos_start = 0, pos_end, delim_len = delimiter.length();
- std::vector<std::string> res;
+    size_t pos_start = 0, pos_end, delim_len = delimiter.length();
+    std::vector<std::string> res;
 
- while ((pos_end = s.find(delimiter, pos_start)) != std::string::npos) {
-  std::string token = s.substr(pos_start, pos_end - pos_start);
-  pos_start = pos_end + delim_len;
-  res.push_back(token);
- }
+    while ((pos_end = s.find(delimiter, pos_start)) != std::string::npos) {
+        std::string token = s.substr(pos_start, pos_end - pos_start);
+        pos_start = pos_end + delim_len;
+        res.push_back(token);
+    }
 
- res.push_back(s.substr(pos_start));
- return res;
+    res.push_back(s.substr(pos_start));
+    return res;
 }
 
 void parseBytes(const char *str, const char sep, byte *bytes, const int maxBytes, const int base) {
- for (int i = 0; i < maxBytes; i++) {
-  bytes[i] = strtoul(str, nullptr, base);
-  str = strchr(str, sep);
-  if (str == nullptr || *str == '\0') {
-   break;
-  }
-  str++;
- }
+    for (int i = 0; i < maxBytes; i++) {
+        bytes[i] = strtoul(str, nullptr, base);
+        str = strchr(str, sep);
+        if (str == nullptr || *str == '\0') {
+            break;
+        }
+        str++;
+    }
+}
+
+std::string stripChars(const std::string &str, std::regex reg) {
+    return std::regex_replace(str, reg, "");
 }

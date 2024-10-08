@@ -39,6 +39,7 @@
 #define FORMAT_LITTLEFS_IF_FAILED true
 
 #include "settings.h"
+#include "helper.h"
 #include "obd.h"
 #include "gsm.h"
 #include "http.h"
@@ -181,7 +182,7 @@ void startWiFiAP() {
 
     String ssid = Settings.getWiFiAPSSID();
     if (ssid.isEmpty()) {
-        ssid = "OBD2-MQTT-" + String(MQTT::stripChars(WiFi.macAddress().c_str()).c_str());
+        ssid = "OBD2-MQTT-" + String(stripChars(WiFi.macAddress().c_str()).c_str());
         Settings.setWiFiAPSSID(ssid.c_str());
     }
     WiFi.softAP(
@@ -941,7 +942,7 @@ void outputTask(void *parameters) {
             }
 
             if (!mqtt.connected()) {
-                auto client_id = String(MQTT_CLIENT_ID) + "-" + MQTT::stripChars(connectedBTAddress).c_str();
+                auto client_id = String(MQTT_CLIENT_ID) + "-" + stripChars(connectedBTAddress).c_str();
                 mqtt.connect(
                     client_id.c_str(),
                     Settings.getMQTTHostname().c_str(),
@@ -986,7 +987,7 @@ void setup() {
     connectToOBD();
 
     if (!Settings.getMQTTHostname().isEmpty()) {
-        mqtt.setIdentifier(!MQTT::stripChars(VIN).empty() ? VIN : connectedBTAddress);
+        mqtt.setIdentifier(!stripChars(VIN).empty() ? VIN : connectedBTAddress);
 
         // disable Watch Dog for Core 0 - should fix crashes
         disableCore0WDT();
