@@ -51,6 +51,10 @@ pio run --target uploadfs -e T-Call-A7670X-V1-0
 curl -X PUT -H "Content-Type: application/json" -d @settings.json http://192.168.4.1/api/settings
 ```
 
+### Upload via Web-Interface
+
+Use the Web-Interface to upload new firmware.bin and littlefs.bin.
+
 ### Update Settings
 
 * connect to WiFi Access Point starts with name OBD2-MQTT- followed from device MAC
