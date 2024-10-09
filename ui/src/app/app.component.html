@@ -7,8 +7,20 @@
             <li routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
                 <a routerLink="settings">Settings</a>
             </li>
+            <li routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
+                <a routerLink="ota">OTA</a>
+            </li>
         </ul>
         <ul class="navbar-nav">
+            <li>
+                <a href="javascript:void(0)" (click)="switchColorScheme()">
+                    <strong>@if (colorScheme === "light") {
+                        &#x25D0;
+                    } @else {
+                        &#x25D1;
+                    }</strong>
+                </a>
+            </li>
             <li>
                 <a href="javascript:void(0)" (click)="rebootConfirm()"><strong>&#x23FB;</strong></a>
             </li>
