@@ -23,6 +23,7 @@ class OTAClass {
     boolean autoReboot = false;
     boolean otaStarted = false;
     unsigned long otaProgressMillis = 0;
+    std::function<void()> successCallback = nullptr;
 
     void onOTAStart();
 
@@ -38,6 +39,8 @@ public:
     void setAutoReboot(bool autoReboot);
 
     bool isStarted() const;
+
+    void onSuccess(const std::function<void()> &callable);
 };
 
 extern OTAClass OTA;

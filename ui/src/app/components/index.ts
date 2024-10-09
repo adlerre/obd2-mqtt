@@ -14,29 +14,7 @@
  *  If not, write to the Free Software Foundation Inc.,
  *  59 Temple Place - Suite 330, Boston, MA  02111-1307 USA
  */
-#pragma once
-#include <Arduino.h>
-#include <ESPAsyncWebServer.h>
 
-#ifndef OTA_ENABLED
-#define OTA_ENABLED false
-#endif
-
-class HTTPServer {
-    AsyncWebServer server;
-
-    void init(fs::FS &fs);
-
-public:
-    HTTPServer(int port = 80);
-
-    void begin(fs::FS &fs);
-
-    void end();
-
-    AsyncCallbackWebHandler &on(const char *uri,
-                                WebRequestMethodComposite method,
-                                const ArRequestHandlerFunction &onRequest,
-                                const ArUploadHandlerFunction &onUpload = nullptr,
-                                const ArBodyHandlerFunction &onBody = nullptr);
-};
+export * from "./deviceInfo.component";
+export * from "./ota.component";
+export * from "./settings.component";

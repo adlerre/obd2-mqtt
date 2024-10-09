@@ -19,6 +19,7 @@
 
 #if OTA_ENABLED
 #include <ota.h>
+#include <settings.h>
 #endif
 
 HTTPServer::HTTPServer(const int port): server(port) {
@@ -44,6 +45,11 @@ void HTTPServer::init(fs::FS &fs) {
 #if OTA_ENABLED
     OTA.begin(server);
     OTA.setAutoReboot(false);
+    OTA.onSuccess([&fs]() {
+        Serial.println("Write settings...");
+        Settings.writeSettings(fs);
+        Serial.println("...done");
+    });
 #endif
 }
 

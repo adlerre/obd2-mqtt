@@ -12,9 +12,11 @@
 #   along with this program, in a file called gpl.txt or license.txt.
 #   If not, write to the Free Software Foundation Inc.,
 #   59 Temple Place - Suite 330, Boston, MA  02111-1307 USA
+import os
+import os.path
 import platform
-import os, re, os.path
-from subprocess import check_output, CalledProcessError
+import re
+from subprocess import run, CalledProcessError
 
 Import("env")
 
@@ -22,7 +24,7 @@ Import("env")
 def is_tool(name):
     cmd = "where" if platform.system() == "Windows" else "which"
     try:
-        check_output([cmd, name])
+        run([cmd, name])
         return True
     except:
         return False;
@@ -33,11 +35,11 @@ def build_ui():
         print("Attempting to build UI...")
         try:
             if platform.system() == "Windows":
-                print(check_output(["npm.cmd", "install"]))
-                print(check_output(["npm.cmd", "run", "build"]))
+                print(run(["npm.cmd", "install"], check=True, capture_output=True, text=True).stdout)
+                print(run(["npm.cmd", "run", "build"], check=True, capture_output=True, text=True).stdout)
             else:
-                print(check_output(["npm", "install"]))
-                print(check_output(["npm", "run", "build"]))
+                print(run(["npm", "install"], check=True, capture_output=True, text=True).stdout)
+                print(run(["npm", "run", "build"], check=True, capture_output=True, text=True).stdout)
         except OSError as e:
             print("Encountered error OSError building UI:", e)
             if e.filename:
@@ -51,6 +53,7 @@ def build_ui():
             print("Encountered error", type(e).__name__, "building UI:", e)
             print("WARNING: Failed to build UI package. Using pre-built page.")
 
+
 def remove_ui_files(public_path):
     pattern = ".*(\\.js$|\\.txt$)"
 
@@ -60,6 +63,7 @@ def remove_ui_files(public_path):
         for file in filter(lambda x: re.match(pattern, x), files):
             print("..." + file)
             os.remove(os.path.join(root, file))
+
 
 build_ui()
 remove_ui_files("./data/public/")

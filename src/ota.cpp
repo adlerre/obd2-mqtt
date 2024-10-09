@@ -16,6 +16,9 @@
  */
 #include "ota.h"
 
+#include <LittleFS.h>
+#include <settings.h>
+
 OTAClass::OTAClass() = default;
 
 void OTAClass::begin(AsyncWebServer &server) {
@@ -48,10 +51,15 @@ void OTAClass::onOTAProgress(size_t current, size_t final) {
 void OTAClass::onOTAEnd(bool success) {
     if (success) {
         Serial.println("OTA update finished successfully!");
+        successCallback();
     } else {
         Serial.println("There was an error during OTA update!");
     }
     otaStarted = false;
+}
+
+void OTAClass::onSuccess(const std::function<void()> &callable) {
+    successCallback = callable;
 }
 
 OTAClass OTA;
