@@ -150,14 +150,14 @@ jobs:
       matrix:
         envs:
           [
-            #            SIM800L_IP5306_VERSION_20190610,
-            #            SIM800L_AXP192_VERSION_20200327,
-            #            SIM800C_AXP192_VERSION_20200609,
-            #            SIM800L_IP5306_VERSION_20200811,
-            #            T-A7670X,
+            SIM800L_IP5306_VERSION_20190610,
+            SIM800L_AXP192_VERSION_20200327,
+            SIM800C_AXP192_VERSION_20200609,
+            SIM800L_IP5306_VERSION_20200811,
+            T-A7670X,
             T-Call-A7670X-V1-0,
-            #            T-Call-A7670X-V1-1,
-            #            T-A7608X
+            T-Call-A7670X-V1-1,
+            T-A7608X
           ]
 
     # Sets permissions of the GITHUB_TOKEN to allow updating the branches
@@ -188,3 +188,21 @@ jobs:
           mkdir -p release
           cd ../package
           zip -r ../release/OBD2-MQTT-${{ matrix.envs }}-${{ steps.vars.outputs.branch }}.zip .
+
+      # extract the version used in next step
+      - id: get_version
+        uses: drewg13/get-version-action@98dda2a47a257e202c2e6c2ed2e6072ec23f448e
+
+      # Releases should only be created on main by tagging the last commit.
+      # all artifacts in firmware folder pushed to the release
+      - name: Release
+        uses: softprops/action-gh-release@v2.0.8
+        # Note:
+        # If you get the error "Resource not accessible by integration",
+        # The access rights are not sufficient, see
+        # https://github.com/softprops/action-gh-release/issues/232#issuecomment-1131379440
+        with:
+          name: ${{ steps.get_version.outputs.version-without-v }}
+          body: ${{ steps.extract-release-notes.outputs.release_notes }}
+          files: |
+            release/*
