@@ -51,11 +51,11 @@ pio run --target uploadfs -e T-Call-A7670X-V1-0
 curl -X PUT -H "Content-Type: application/json" -d @settings.json http://192.168.4.1/api/settings
 ```
 
-### Update Settings
+### Update Settings or Firmware & Filesystem
 
 * connect to WiFi Access Point starts with name OBD2-MQTT- followed from device MAC
 * open Browser and navigate to http://192.168.4.1
-* change to your needs and reboot afterward
+* change settings to your needs and reboot afterward __OR__ update to new firmware and filesystem
 
 ## Supported Sensors
 

@@ -33,11 +33,6 @@ esp_spp_role_t role = ESP_SPP_ROLE_SLAVE; // or ESP_SPP_ROLE_SLAVE | ESP_SPP_ROL
 #define OBD_ADP_NAME        "OBDII"
 #endif
 
-// set default OBD protocol
-#ifndef OBD_PROTOCOL
-#define OBD_PROTOCOL        AUTOMATIC
-#endif
-
 #define BT_DISCOVER_TIME    10000
 
 ELM327 myELM327;
