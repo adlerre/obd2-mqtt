@@ -145,7 +145,7 @@ jobs:
           cp -f ".pio/build/${{ matrix.envs }}/firmware.bin" "package/firmware.bin"
           cp -f ".pio/build/${{ matrix.envs }}/bootloader.bin" "package/bootloader.bin"
           cp -f ".pio/build/${{ matrix.envs }}/partitions.bin" "package/partitions.bin"
-          cp -f ".pio/build/${{ matrix.envs }}/littlefs.bin" "package/partitions.bin"
+          cp -f ".pio/build/${{ matrix.envs }}/littlefs.bin" "package/littlefs.bin"
           cd ./package
 
       - name: Upload package.zip artifact (Firmware + Bootloader + Partitions + LittleFS)
