@@ -141,6 +141,7 @@ jobs:
           rm -rf package
           mkdir -p package
           rm -rf package/*.zip
+          find ~/.platformio -type f -name "*.bin"
           cp -f "~/.platformio/packages/framework-arduinoespressif32/tools/partitions/boot_app0.bin" "package/boot_app0.bin"
           cp -f ".pio/build/${{ matrix.envs }}/firmware.bin" "package/firmware.bin"
           cp -f ".pio/build/${{ matrix.envs }}/bootloader.bin" "package/bootloader.bin"
