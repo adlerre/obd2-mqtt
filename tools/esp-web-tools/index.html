@@ -1,0 +1,63 @@
+<!--
+  ~ This program is free software; you can use it, redistribute it
+  ~ and / or modify it under the terms of the GNU General Public License
+  ~ (GPL) as published by the Free Software Foundation; either version 3
+  ~ of the License or (at your option) any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful, but
+  ~  WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~  GNU General Public License for more details.
+  ~
+  ~  You should have received a copy of the GNU General Public License
+  ~  along with this program, in a file called gpl.txt or license.txt.
+  ~  If not, write to the Free Software Foundation Inc.,
+  ~  59 Temple Place - Suite 330, Boston, MA  02111-1307 USA
+  -->
+
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>OBD2 to MQTT for Home Assistant - Webinstaller</title>
+    <script type="module" src="https://unpkg.com/esp-web-tools@10/dist/web/install-button.js?module"></script>
+</head>
+<body>
+<main id="content" class="container">
+    <h1>OBD2 to MQTT for Home Assistant</h1>
+    <h2>Webinstaller and Console</h2>
+
+    <hr>
+
+    <p>
+        This page provides the Webinstaller and a live USB Console.
+        <br>
+        For further information about OBD2 to MQTT please go to
+        <a href=https://github.com/adlerre/obd2-mqtt target=_blank>https://github.com/adlerre/obd2-mqtt</a>.
+    </p>
+
+    <h2>Notes:</h2>
+    <ul>
+        <li>The Webinstall will install the latest firmware (Version <b>$VERSION</b>).</li>
+        <li>For the installation, make sure to switch the ESP32 to Bootloader mode by keeping the <b>FLASH</b> button
+            pressed while the <b>RESET</b> button gets relesed. if there is no <b>FLASH</b> button, you need to pull <b>GPIO0</b>
+            low!
+        </li>
+        <li>After the installation, a manual reset might be required!</li>
+        <li>Please note that not all web browsers and operating systems support the necessary USB access needed for this
+            Webinstaller!
+        </li>
+    </ul>
+
+    <hr>
+
+    <div id="device-select" class="row justify-content-center"></div>
+
+    <hr>
+
+    <p style="font-size: small;">Installer and Console powered by
+        <a href=https://esphome.github.io/esp-web-tools/ target=_blank>ESP Web Tools</a></p>
+</main>
+</body>
+</html>

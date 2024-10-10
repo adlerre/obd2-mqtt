@@ -33,6 +33,13 @@ body {
   line-height: var(--ui-body-line-height);
 }
 
+a {
+  color: var(--ui-link-text-color);
+  &:hover {
+    color: var(--ui-link-hover-text-color);
+  }
+}
+
 .h1, .h2, .h3, .h4, .h5, .h6, h1, h2, h3, h4, h5, h6 {
   margin-top: 0;
   margin-bottom: .5rem;
