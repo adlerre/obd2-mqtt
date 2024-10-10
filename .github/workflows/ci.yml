@@ -186,7 +186,8 @@ jobs:
         run: |
           rm -rf release
           mkdir -p release
-          cd ../package
+          ls -la .
+          cd ./package
           zip -r ../release/OBD2-MQTT-${{ matrix.envs }}-${{ steps.vars.outputs.branch }}.zip .
 
       # extract the version used in next step
