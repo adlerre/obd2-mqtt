@@ -45,6 +45,13 @@ jobs:
           key: build-${{ github.run_id }}-${{ matrix.envs }}
           restore-keys: build # This matches above key as it is only used as a prefix. it the restores the nearest cache, see https://github.com/restore-keys:/blob/main/tips-and-workarounds.md#update-a-cache
 
+      - name: Update NodeJS cache on every commit
+        uses: actions/cache@v4
+        with:
+          path: node_modules/
+          key: node_modules-${{ github.run_id }}-${{ matrix.envs }}
+          restore-keys: node_modules # This matches above key as it is only used as a prefix. it the restores the nearest cache, see https://github.com/restore-keys:/blob/main/tips-and-workarounds.md#
+
       - name: Update generated-files cache on every commit
         uses: actions/cache@v4
         with:
@@ -127,6 +134,7 @@ jobs:
           rm -rf package
           mkdir -p package
           rm -rf package/*.zip
+          cp -f "~/.platformio/packages/framework-arduinoespressif32/tools/partitions/boot_app0.bin" "package/boot_app0.bin"
           cp -f ".pio/build/${{ matrix.envs }}/firmware.bin" "package/firmware.bin"
           cp -f ".pio/build/${{ matrix.envs }}/bootloader.bin" "package/bootloader.bin"
           cp -f ".pio/build/${{ matrix.envs }}/partitions.bin" "package/partitions.bin"
@@ -207,3 +215,65 @@ jobs:
           body: ${{ steps.extract-release-notes.outputs.release_notes }}
           files: |
             release/*
+
+  #########################################################################################
+  ## Update the Web Installer on a release
+  #########################################################################################
+  update-web-installer:
+    if: github.event_name == 'release' && github.event.action == 'published' # Only run on release but not on prerelease
+    needs: [ prepare-release ]
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+
+    # Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Get version of last release
+        id: last_release
+        uses: mindojo/get-latest-release@0b8ef1434d7468d6bffcc8263baff5c777f72321
+        with:
+          myToken: ${{ github.token }}
+          exclude_types: "draft|prerelease"
+          view_top: 1
+
+      - name: Add binary to Web Installer and update manifest
+        run: |
+          devices=(SIM800L_IP5306_VERSION_20190610 SIM800L_AXP192_VERSION_20200327 SIM800C_AXP192_VERSION_20200609 SIM800L_IP5306_VERSION_20200811 T-A7670X T-Call-A7670X-V1-0 T-Call-A7670X-V1-1 T-A7608X)
+          echo "Build Web Installer and manifest files..."
+          npm i
+          npm run build:esp-wt
+          npm run build:manifest
+          sed -i 's/$VERSION/${{ steps.last_release.outputs.tag_name }}/g' docs/index.html
+          echo "Updating Web installer to use firmware from ${{ steps.last_release.outputs.tag_name }}..."
+          for device in "${devices[@]}" ; do
+            rm -rf docs/binary/$device
+            wget ${{ github.server_url }}/${{ github.repository }}/releases/download/${{ steps.last_release.outputs.tag_name }}/OBD2-MQTT-$device-${{ steps.last_release.outputs.tag_name }}.zip
+            mkdir -p docs/binary/$device
+            unzip -o OBD2-MQTT-$device-${{ steps.last_release.outputs.tag_name }}.zip -d docs/binary/$device
+            sed -i 's/$VERSION/${{ steps.last_release.outputs.tag_name }}/g' docs/manifest-$device.json
+          done
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v2
+        with:
+          path: 'docs'
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v3  # Note: v4 does not work!

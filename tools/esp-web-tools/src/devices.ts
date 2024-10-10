@@ -1,4 +1,4 @@
-/*!
+/*
  * This program is free software; you can use it, redistribute it
  * and / or modify it under the terms of the GNU General Public License
  * (GPL) as published by the Free Software Foundation; either version 3
@@ -15,14 +15,13 @@
  *  59 Temple Place - Suite 330, Boston, MA  02111-1307 USA
  */
 
-.d-flex {
-  display: flex !important;
-}
-
-.justify-content-center {
-  justify-content: center !important;
-}
-
-.justify-content-end {
-  justify-content: flex-end !important;
-}
+export const DEVICES = [
+    "SIM800L_IP5306_VERSION_20190610",
+    "SIM800L_AXP192_VERSION_20200327",
+    "SIM800C_AXP192_VERSION_20200609",
+    "SIM800L_IP5306_VERSION_20200811",
+    "T-A7670X",
+    "T-Call-A7670X-V1-0",
+    "T-Call-A7670X-V1-1",
+    "T-A7608X"
+];
