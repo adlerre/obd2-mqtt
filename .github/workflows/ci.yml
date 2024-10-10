@@ -105,6 +105,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Update PlatformIO cache on every commit
+        uses: actions/cache@v4
+        with:
+          path: ~/.platformio
+          key: platformio-${{ github.run_id }}-${{ matrix.envs }}
+          restore-keys: platformio # This matches above key as it is only used as a prefix. it the restores the nearest cache, see https://github.com/restore-keys:/blob/main/tips-and-workarounds.md#update-a-cache
+
       - name: Update generated-files cache on every commit
         uses: actions/cache@v4
         with:
