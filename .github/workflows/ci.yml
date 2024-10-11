@@ -26,15 +26,16 @@ jobs:
         with:
           node-version: 20
 
-      - name: Test UI with stable Chrome
+      - name: Install dependencies
         run: |
+          rm -rf node_modules
           npm install
-          npm run test:ci
+
+      - name: Test UI with stable Chrome
+        run: npm run test:ci
 
       - name: Check for lint errors
-        run: |
-          npm install
-          npm run lint
+        run: npm run lint
 
   build:
     runs-on: ubuntu-latest
