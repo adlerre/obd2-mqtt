@@ -26,7 +26,7 @@ const setColorScheme = (scheme: string) => {
     document.documentElement.setAttribute("data-ui-theme", scheme);
 }
 
-const buildDeviceButtons = (parent: HTMLElement) => {
+const buildDeviceButtons = (parent: HTMLElement | null) => {
     if (parent) {
         DEVICES.forEach(device => {
             const espBtn = document.createElement("esp-web-install-button");
