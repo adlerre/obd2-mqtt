@@ -14,12 +14,12 @@
  *  If not, write to the Free Software Foundation Inc.,
  *  59 Temple Place - Suite 330, Boston, MA  02111-1307 USA
  */
-export class WiFiSettings {
+export interface WiFiSettings {
     ssid?: string;
     password?: string;
 }
 
-export class MobileSettings {
+export interface MobileSettings {
     pin?: string;
     apn: string;
     username?: string;
@@ -40,14 +40,14 @@ export enum OBD2Protocol {
     SAE_J1939_29_BIT_250_KBAUD = "A"
 }
 
-export class OBD2Settings {
+export interface OBD2Settings {
     name?: string;
     mac?: string;
     checkPIDSupport?: boolean;
     protocol?: OBD2Protocol;
 }
 
-export class MQTTSettings {
+export interface MQTTSettings {
     hostname: string;
     port?: number;
     username?: string;
@@ -55,8 +55,8 @@ export class MQTTSettings {
 }
 
 export interface Settings {
-    wifi: WiFiSettings;
-    mobile: MobileSettings;
-    obd2: OBD2Settings;
-    mqtt: MQTTSettings;
+    wifi?: WiFiSettings;
+    mobile?: MobileSettings;
+    obd2?: OBD2Settings;
+    mqtt?: MQTTSettings;
 }

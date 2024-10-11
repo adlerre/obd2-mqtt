@@ -81,7 +81,10 @@ export class SettingsComponent implements OnInit {
     }
 
     getProtocols(): Array<{ key: string, value: string }> {
-        return Object.keys(OBD2Protocol).map(key => ({key: key.replaceAll("_", " "), value: OBD2Protocol[key]}));
+        return Object.keys(OBD2Protocol).map(key => ({
+            key: key.replaceAll("_", " "),
+            value: OBD2Protocol[key as keyof typeof OBD2Protocol]
+        }));
     }
 
     onSubmit({value, valid}: { value: Settings, valid: boolean }) {
