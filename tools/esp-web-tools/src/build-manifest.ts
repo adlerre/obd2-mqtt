@@ -14,13 +14,29 @@
  *  If not, write to the Free Software Foundation Inc.,
  *  59 Temple Place - Suite 330, Boston, MA  02111-1307 USA
  */
-
 import { DEVICES } from "./devices";
-import { argv } from "node:process";
 
 const os = require("os")
 const fs = require("node:fs");
 const path = require("node:path");
+
+interface Part {
+    path: string;
+    offset: number;
+}
+
+interface Build {
+    chipFamily: string;
+    parts: Array<Part>;
+}
+
+interface Manifest {
+    name?: string;
+    version?: string;
+    funding_url?: string;
+    new_install_prompt_erase?: string;
+    builds?: Array<Build>;
+}
 
 const pioDir = path.resolve(__dirname, "../../../.pio/build");
 const webToolsDir = path.resolve(__dirname, "..");
@@ -33,86 +49,89 @@ const deviceBins = [
 ];
 
 try {
-    const distIndex = argv.indexOf("--dist");
-    const localDev = argv.indexOf("--dev") !== -1;
+    const distIndex = process.argv.indexOf("--dist");
+    const localDev = process.argv.indexOf("--dev") !== -1;
     let distDir: string;
 
     if (distIndex === -1) {
         throw new Error("No dist directory specified");
     } else {
-        distDir = path.resolve(argv[distIndex + 1]);
+        distDir = path.resolve(process.argv[distIndex + 1]);
         if (!fs.existsSync(distDir)) {
             fs.mkdirSync(distDir);
         }
     }
 
-    const manifest = JSON.parse(fs.readFileSync(`${webToolsDir}/manifest.json`, "utf8"));
-    const devTmpl = manifest.builds[0];
+    const manifest: Manifest = JSON.parse(fs.readFileSync(`${webToolsDir}/manifest.json`, "utf8"));
 
-    DEVICES.forEach(device => {
-        const build = {
-            chipFamily: "ESP32",
-            parts: []
-        };
+    if (manifest && manifest.builds && manifest.builds.length > 0) {
+        const devTmpl = manifest.builds[0];
 
-        devTmpl.parts.forEach(part => {
-            let binDir: string;
-            const dirname = path.dirname(part.path);
-            const basename = path.basename(part.path);
+        DEVICES.forEach(device => {
+            const build: Build = {
+                chipFamily: "ESP32",
+                parts: []
+            };
 
-            if (localDev) {
-                binDir = path.join(distDir, dirname, device);
-
-                if (!fs.existsSync(binDir)) {
-                    fs.mkdirSync(binDir, {recursive: true});
-                }
-            }
-
-            if (deviceBins.indexOf(basename.replace(".bin", "")) !== -1) {
-                const p = {
-                    path: `${dirname}/${device}/${basename}`,
-                    offset: part.offset
-                };
-                build.parts.push(p);
+            devTmpl.parts.forEach(part => {
+                let binDir: string = "";
+                const dirname = path.dirname(part.path);
+                const basename = path.basename(part.path);
 
                 if (localDev) {
-                    fs.copyFile(
-                        path.resolve(pioDir, device, basename),
-                        path.resolve(binDir, basename),
-                        (err) => {
-                            if (err) throw err;
-                        }
-                    );
-                }
-            } else {
-                const p = {
-                    path: `${dirname}/${device}/${basename}`,
-                    offset: part.offset
-                };
-                build.parts.push(p);
+                    binDir = path.join(distDir, dirname, device);
 
-                if (localDev) {
-                    fs.copyFile(
-                        path.resolve(
-                            os.homedir(),
-                            ".platformio/packages/framework-arduinoespressif32/tools/partitions",
-                            basename
-                        ),
-                        path.resolve(binDir, basename),
-                        (err) => {
-                            if (err) throw err;
-                        }
-                    );
+                    if (!fs.existsSync(binDir)) {
+                        fs.mkdirSync(binDir, {recursive: true});
+                    }
                 }
-            }
+
+                if (deviceBins.indexOf(basename.replace(".bin", "")) !== -1) {
+                    const p = {
+                        path: `${dirname}/${device}/${basename}`,
+                        offset: part.offset
+                    };
+                    build.parts.push(p);
+
+                    if (localDev) {
+                        fs.copyFile(
+                            path.resolve(pioDir, device, basename),
+                            path.resolve(binDir, basename),
+                            (err: any) => {
+                                if (err) throw err;
+                            }
+                        );
+                    }
+                } else {
+                    const p: Part = {
+                        path: `${dirname}/${device}/${basename}`,
+                        offset: part.offset
+                    };
+                    build.parts.push(p);
+
+                    if (localDev) {
+                        fs.copyFile(
+                            path.resolve(
+                                os.homedir(),
+                                ".platformio/packages/framework-arduinoespressif32/tools/partitions",
+                                basename
+                            ),
+                            path.resolve(binDir, basename),
+                            (err: any) => {
+                                if (err) throw err;
+                            }
+                        );
+                    }
+                }
+            });
+
+            const m = Object.assign({builds: [{}]}, manifest);
+            m.builds[0] = build;
+
+            fs.writeFileSync(`${distDir}/manifest-${device}.json`, JSON.stringify(m, null, 2));
+
         });
-
-        const m = Object.assign({}, manifest);
-        m.builds[0] = build;
-
-        fs.writeFileSync(`${distDir}/manifest-${device}.json`, JSON.stringify(m, null, 2));
-    });
-
+    }
 } catch (err) {
     console.error(err);
 }

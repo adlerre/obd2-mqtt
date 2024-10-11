@@ -1,0 +1,120 @@
+/*
+ * This program is free software; you can use it, redistribute it
+ * and / or modify it under the terms of the GNU General Public License
+ * (GPL) as published by the Free Software Foundation; either version 3
+ * of the License or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but
+ *  WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program, in a file called gpl.txt or license.txt.
+ *  If not, write to the Free Software Foundation Inc.,
+ *  59 Temple Place - Suite 330, Boston, MA  02111-1307 USA
+ */
+
+import { Settings } from "../definitions";
+import { ApiService } from "../services/api.service";
+import { ComponentFixture, inject, TestBed, waitForAsync } from "@angular/core/testing";
+import { SettingsComponent } from "./settings.component";
+import { of } from "rxjs";
+import { ReactiveFormsModule } from "@angular/forms";
+
+const testSettings: Settings = {
+    wifi: {
+        ssid: "Test AP"
+    }
+};
+
+export class MockApiService {
+
+    settings() {
+        return of(testSettings);
+    }
+
+    updateSettings(settings: Settings) {
+        expect(settings.mobile?.apn).toBe("apn.test.provider");
+        expect(settings.mqtt?.hostname).toBe("broker.obd2-mqtt.test");
+        return of(settings);
+    }
+
+}
+
+describe("SettingsComponent", () => {
+    let component: SettingsComponent, fixture: ComponentFixture<SettingsComponent>, service: ApiService;
+    const getElement: (selector: string) => HTMLElement = (selector) =>
+        fixture.elementRef.nativeElement.querySelector(selector);
+
+    beforeEach(
+        waitForAsync(() => {
+            TestBed.configureTestingModule({
+                declarations: [SettingsComponent],
+                imports: [ReactiveFormsModule],
+                providers: [{provide: ApiService, useClass: MockApiService}],
+                teardown: {destroyAfterEach: true},
+            }).compileComponents();
+        })
+    );
+
+    beforeEach(inject([ApiService], (apiService: ApiService) => {
+        fixture = TestBed.createComponent(SettingsComponent);
+        component = fixture.componentInstance;
+
+        service = apiService;
+
+        fixture.detectChanges();
+    }));
+
+    it("should submit be disabled", () => {
+        expect(getElement("#settings")).toBeTruthy();
+
+        expect((<HTMLInputElement>getElement("input[type='submit']")).disabled).toBeTrue();
+    });
+
+    it("should submit be enabled", () => {
+        expect(getElement("#settings")).toBeTruthy();
+
+        const apnInput = component.mobile.get("apn");
+        expect(apnInput).toBeTruthy();
+        apnInput?.setValue("apn.test.provider");
+
+        const mqttHostnameInput = component.mqtt.get("hostname");
+        expect(mqttHostnameInput).toBeTruthy();
+        mqttHostnameInput?.setValue("broker.obd2-mqtt.test");
+
+        expect(component.form.valid).toBeTruthy();
+
+        fixture.detectChanges();
+
+        expect((<HTMLInputElement>getElement("input[type='submit']")).disabled).toBeFalse();
+    });
+
+    it("should update done", () => {
+        spyOn(window, "alert");
+
+        expect(getElement("#settings")).toBeTruthy();
+
+        const apnInput = component.mobile.get("apn");
+        expect(apnInput).toBeTruthy();
+        apnInput?.setValue("apn.test.provider");
+
+        expect(component.form.valid).toBeFalsy();
+
+        const mqttHostnameInput = component.mqtt.get("hostname");
+        expect(mqttHostnameInput).toBeTruthy();
+        mqttHostnameInput?.setValue("broker.obd2-mqtt.test");
+
+        expect(component.form.valid).toBeTruthy();
+
+        fixture.detectChanges();
+
+        const submitBtn = <HTMLInputElement>getElement("input[type='submit']");
+        expect(submitBtn.disabled).toBeFalse();
+        submitBtn?.click();
+
+        expect(window.alert).toHaveBeenCalledWith("Settings updated successfully.");
+    });
+
+});

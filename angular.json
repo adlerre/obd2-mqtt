@@ -89,6 +89,17 @@
             "buildTarget": "obd2-mqtt-ui:build"
           }
         },
+        "test": {
+          "builder": "@angular-devkit/build-angular:karma",
+          "options": {
+            "polyfills": [
+              "zone.js",
+              "zone.js/testing"
+            ],
+            "tsConfig": "ui/tsconfig.spec.json",
+            "karmaConfig": "ui/karma.conf.js"
+          }
+        },
         "lint": {
           "builder": "@angular-eslint/builder:lint",
           "options": {
