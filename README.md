@@ -85,6 +85,7 @@ This sensors only available if your car support.
 * Pedal Position
 * Rounds per minute
 * Throttle
+* Top Speed ;-)
 
 Diagnostic Output:
 
