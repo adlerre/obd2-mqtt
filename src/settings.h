@@ -67,6 +67,10 @@ struct MQTTSettings {
     unsigned int port;
     char username[32];
     char password[32];
+    unsigned int dataInterval;
+    unsigned int diagnosticInterval;
+    unsigned int discoveryInterval;
+    unsigned int locationInterval;
 };
 
 class SettingsClass {
@@ -145,6 +149,22 @@ public:
     String getMQTTPassword() const;
 
     void setMQTTPassword(const char *password);
+
+    unsigned int getMQTTDataInterval() const;
+
+    void setMQTTDataInterval(unsigned int dataInterval);
+
+    unsigned int getMQTTDiagnosticInterval() const;
+
+    void setMQTTDiagnosticInterval(unsigned int diagnosticInterval);
+
+    unsigned int getMQTTDiscoveryInterval() const;
+
+    void setMQTTDiscoveryInterval(unsigned int discoveryInterval);
+
+    unsigned int getMQTTLocationInterval() const;
+
+    void setMQTTLocationInterval(unsigned int locationInterval);
 };
 
 extern SettingsClass Settings;

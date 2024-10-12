@@ -64,12 +64,6 @@ PubSubClient mqttClient(gsm.client);
 
 MQTT mqtt(mqttClient);
 
-#define MQTT_DISCOVERY_INTERVAL             300000L
-#define MQTT_DATA_INTERVAL                  1000;
-#define MQTT_DIAGNOSTIC_INTERVAL            30000L
-#define MQTT_STATIC_DIAGNOSTIC_INTERVAL     60000L
-#define LOCATION_INTERVAL                   30000L
-
 std::atomic_bool wifiAPStarted{false};
 std::atomic_bool wifiAPInUse{false};
 std::atomic<unsigned int> wifiAPStaConnected{0};
@@ -87,6 +81,7 @@ std::atomic<unsigned long> lastMQTTStaticDiagnosticDiscoveryOutput{0};
 std::atomic<unsigned long> lastMQTTOutput{0};
 std::atomic<unsigned long> lastMQTTDiagnosticOutput{0};
 std::atomic<unsigned long> lastMQTTStaticDiagnosticOutput{0};
+std::atomic<unsigned long> lastMQTTLocationOutput{0};
 
 std::atomic<int> signalQuality{0};
 std::atomic<float> gsmLatitude{0};
@@ -769,26 +764,6 @@ bool sendDiagnosticData() {
         allSendsSuccessed |= mqtt.sendTopicUpdate("signalQuality", std::string(tmp_char));
     }
 
-    std::string payload;
-    JsonDocument attribs;
-
-    if (GSM::hasGSMLocation()) {
-        attribs["latitude"] = static_cast<float>(gsmLatitude);
-        attribs["longitude"] = static_cast<float>(gsmLongitude);
-        attribs["gps_accuracy"] = static_cast<float>(gsmAccuracy);
-        serializeJson(attribs, payload);
-
-        allSendsSuccessed |= mqtt.sendTopicUpdate("gsmLocation", payload, true);
-    }
-    if (GSM::hasGPSLocation()) {
-        attribs["latitude"] = static_cast<float>(gpsLatitude);
-        attribs["longitude"] = static_cast<float>(gpsLongitude);
-        attribs["gps_accuracy"] = static_cast<float>(gpsAccuracy);
-        serializeJson(attribs, payload);
-
-        allSendsSuccessed |= mqtt.sendTopicUpdate("gpsLocation", payload, true);
-    }
-
     DEBUG_PORT.printf("...%s (%dms)\n", allSendsSuccessed ? "done" : "failed", millis() - start);
 
     return allSendsSuccessed;
@@ -828,6 +803,37 @@ bool sendStaticDiagnosticData() {
     return allSendsSuccessed;
 }
 
+bool sendLocationData() {
+    const unsigned long start = millis();
+    bool allSendsSuccessed = false;
+
+    DEBUG_PORT.print("Send location data...");
+
+    std::string payload;
+    JsonDocument attribs;
+
+    if (GSM::hasGSMLocation()) {
+        attribs["latitude"] = static_cast<float>(gsmLatitude);
+        attribs["longitude"] = static_cast<float>(gsmLongitude);
+        attribs["gps_accuracy"] = static_cast<float>(gsmAccuracy);
+        serializeJson(attribs, payload);
+
+        allSendsSuccessed |= mqtt.sendTopicUpdate("gsmLocation", payload, true);
+    }
+    if (GSM::hasGPSLocation()) {
+        attribs["latitude"] = static_cast<float>(gpsLatitude);
+        attribs["longitude"] = static_cast<float>(gpsLongitude);
+        attribs["gps_accuracy"] = static_cast<float>(gpsAccuracy);
+        serializeJson(attribs, payload);
+
+        allSendsSuccessed |= mqtt.sendTopicUpdate("gpsLocation", payload, true);
+    }
+
+    DEBUG_PORT.printf("...%s (%dms)\n", allSendsSuccessed ? "done" : "failed", millis() - start);
+
+    return allSendsSuccessed;
+}
+
 void mqttSendData() {
     if (millis() < lastMQTTOutput) {
         return;
@@ -840,7 +846,7 @@ void mqttSendData() {
 
         if (!allDiscoverySend) {
             if ((allDiscoverySend = sendDiscoveryData())) {
-                lastMQTTDiscoveryOutput = millis() + MQTT_DISCOVERY_INTERVAL;
+                lastMQTTDiscoveryOutput = millis() + Settings.getMQTTDiscoveryInterval() * 1000L;
             } else {
                 return;
             }
@@ -852,7 +858,7 @@ void mqttSendData() {
 
         if (!allDiagnosticDiscoverySend) {
             if ((allDiagnosticDiscoverySend = sendDiagnosticDiscoveryData())) {
-                lastMQTTDiagnosticDiscoveryOutput = millis() + MQTT_DISCOVERY_INTERVAL;
+                lastMQTTDiagnosticDiscoveryOutput = millis() + Settings.getMQTTDiscoveryInterval() * 1000L;
             } else {
                 return;
             }
@@ -864,7 +870,7 @@ void mqttSendData() {
 
         if (!allStaticDiagnosticDiscoverySend) {
             if ((allStaticDiagnosticDiscoverySend = sendStaticDiagnosticDiscoveryData())) {
-                lastMQTTStaticDiagnosticDiscoveryOutput = millis() + MQTT_DISCOVERY_INTERVAL;
+                lastMQTTStaticDiagnosticDiscoveryOutput = millis() + Settings.getMQTTDiscoveryInterval() * 1000L;
             } else {
                 return;
             }
@@ -872,7 +878,7 @@ void mqttSendData() {
 
         if (millis() > lastMQTTDiagnosticOutput) {
             if (sendDiagnosticData()) {
-                lastMQTTDiagnosticOutput = millis() + MQTT_DIAGNOSTIC_INTERVAL;
+                lastMQTTDiagnosticOutput = millis() + Settings.getMQTTDiagnosticInterval() * 1000L;
             } else {
                 return;
             }
@@ -880,14 +886,22 @@ void mqttSendData() {
 
         if (millis() > lastMQTTStaticDiagnosticOutput) {
             if (sendStaticDiagnosticData()) {
-                lastMQTTStaticDiagnosticOutput = millis() + MQTT_STATIC_DIAGNOSTIC_INTERVAL;
+                lastMQTTStaticDiagnosticOutput = millis() + Settings.getMQTTDiagnosticInterval() * 2 * 1000L;
+            } else {
+                return;
+            }
+        }
+
+        if (millis() > lastMQTTLocationOutput) {
+            if (sendLocationData()) {
+                lastMQTTLocationOutput = millis() + Settings.getMQTTLocationInterval() * 1000L;
             } else {
                 return;
             }
         }
 
         if (sendOBDData()) {
-            lastMQTTOutput = millis() + MQTT_DATA_INTERVAL;
+            lastMQTTOutput = millis() + Settings.getMQTTDataInterval() * 1000L;
         }
     } else {
         delay(500);
@@ -944,7 +958,7 @@ void outputTask(void *parameters) {
                     }
                 }
 
-                checkInterval = millis() + LOCATION_INTERVAL;
+                checkInterval = millis() + Settings.getMQTTLocationInterval() * 1000L;
                 DEBUG_PORT.printf("...%s (%dms)\n", allReadSuccessed ? "done" : "failed", millis() - start);
             }
 

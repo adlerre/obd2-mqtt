@@ -59,4 +59,13 @@ export interface Settings {
     mobile?: MobileSettings;
     obd2?: OBD2Settings;
     mqtt?: MQTTSettings;
+    dataInterval?: number;
+    diagnosticInterval?: number;
+    discoveryInterval?: number;
+    locationInterval?: number;
 }
+
+export const dataIntervals = [1, 3, 5];
+export const diagnosticIntervals = [30, 60, 120];
+export const discoveryIntervals = [300, 1800, 3600];
+export const locationIntervals = [10, 30, 60];

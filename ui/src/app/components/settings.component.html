@@ -148,7 +148,55 @@
                     >
                 </div>
             </div>
+
+            <fieldset class="no-space">
+                <legend>Send Interval</legend>
+                <div class="row mb-2">
+                    <label for="discoveryInterval" class="col-sm-2 col-form-label">Resend Discovery</label>
+                    <div class="col-sm-10">
+                        <select class="form-control form-select" id="discoveryInterval"
+                                formControlName="discoveryInterval"
+                                [ngClass]="{'is-invalid':mqtt.controls.discoveryInterval.dirty && mqtt.controls.discoveryInterval.errors}">
+                            <option *ngFor="let interval of discoveryIntervals" [value]="interval">{{ interval }}&nbsp;sec
+                            </option>
+                        </select>
+                    </div>
+                </div>
+                <div class="row mb-2">
+                    <label for="dataInterval" class="col-sm-2 col-form-label">Data</label>
+                    <div class="col-sm-10">
+                        <select class="form-control form-select" id="dataInterval" formControlName="dataInterval"
+                                [ngClass]="{'is-invalid':mqtt.controls.dataInterval.dirty && mqtt.controls.dataInterval.errors}">
+                            <option *ngFor="let interval of dataIntervals" [value]="interval">{{ interval }}&nbsp;sec
+                            </option>
+                        </select>
+                    </div>
+                </div>
+                <div class="row mb-2">
+                    <label for="diagnosticInterval" class="col-sm-2 col-form-label">Diagnostic Data</label>
+                    <div class="col-sm-10">
+                        <select class="form-control form-select" id="diagnosticInterval"
+                                formControlName="diagnosticInterval"
+                                [ngClass]="{'is-invalid':mqtt.controls.diagnosticInterval.dirty && mqtt.controls.diagnosticInterval.errors}">
+                            <option *ngFor="let interval of diagnosticIntervals" [value]="interval">{{ interval }}&nbsp;sec
+                            </option>
+                        </select>
+                    </div>
+                </div>
+                <div class="row mb-2">
+                    <label for="locationInterval" class="col-sm-2 col-form-label">GSM/GPS Position</label>
+                    <div class="col-sm-10">
+                        <select class="form-control form-select" id="locationInterval"
+                                formControlName="locationInterval"
+                                [ngClass]="{'is-invalid':mqtt.controls.locationInterval.dirty && mqtt.controls.locationInterval.errors}">
+                            <option *ngFor="let interval of locationIntervals" [ngValue]="interval">{{ interval }}&nbsp;sec
+                            </option>
+                        </select>
+                    </div>
+                </div>
+            </fieldset>
         </fieldset>
+
         <div class="d-flex justify-content-end mb-2">
             <input type="submit" class="btn btn-primary me-2" value="Save" [disabled]="!form.valid">
         </div>

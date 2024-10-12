@@ -18,11 +18,19 @@
 import { Component, OnInit } from "@angular/core";
 import { ApiService } from "../services/api.service";
 import { FormControl, FormGroup, Validators } from "@angular/forms";
-import { OBD2Protocol, Settings } from "../definitions";
+import {
+    dataIntervals,
+    diagnosticIntervals,
+    discoveryIntervals,
+    locationIntervals,
+    OBD2Protocol,
+    Settings
+} from "../definitions";
 
 @Component({
     selector: "ui-settings",
-    templateUrl: "./settings.component.html"
+    templateUrl: "./settings.component.html",
+    styleUrls: ["./settings.component.scss"]
 })
 export class SettingsComponent implements OnInit {
 
@@ -37,6 +45,14 @@ export class SettingsComponent implements OnInit {
     obd2: FormGroup;
 
     mqtt: FormGroup;
+
+    protected readonly dataIntervals = dataIntervals;
+
+    protected readonly diagnosticIntervals = diagnosticIntervals;
+
+    protected readonly discoveryIntervals = discoveryIntervals;
+
+    protected readonly locationIntervals = locationIntervals;
 
     constructor(private $api: ApiService) {
         this.wifi = new FormGroup({
@@ -65,7 +81,11 @@ export class SettingsComponent implements OnInit {
             ]),
             port: new FormControl("", [Validators.min(1), Validators.max(65384)]),
             username: new FormControl("", Validators.maxLength(32)),
-            password: new FormControl("", Validators.maxLength(32))
+            password: new FormControl("", Validators.maxLength(32)),
+            dataInterval: new FormControl<number>(1),
+            diagnosticInterval: new FormControl<number>(30),
+            discoveryInterval: new FormControl<number>(1800),
+            locationInterval: new FormControl<number>(30)
         });
 
         this.form = new FormGroup({
@@ -98,4 +118,5 @@ export class SettingsComponent implements OnInit {
             });
         }
     }
+
 }

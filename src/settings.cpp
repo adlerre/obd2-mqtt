@@ -39,6 +39,10 @@ void SettingsClass::readJson(JsonDocument &doc) {
     mqtt.port = doc["mqtt"]["port"] | 1883;
     strlcpy(mqtt.username, doc["mqtt"]["username"] | "", sizeof(mqtt.username));
     strlcpy(mqtt.password, doc["mqtt"]["password"] | "", sizeof(mqtt.password));
+    mqtt.dataInterval = doc["mqtt"]["dataInterval"] | 1;
+    mqtt.diagnosticInterval = doc["mqtt"]["diagnosticInterval"] | 30;
+    mqtt.discoveryInterval = doc["mqtt"]["discoveryInterval"] | 300;
+    mqtt.locationInterval = doc["mqtt"]["locationInterval"] | 30;
 }
 
 void SettingsClass::writeJson(JsonDocument &doc) {
@@ -59,6 +63,10 @@ void SettingsClass::writeJson(JsonDocument &doc) {
     doc["mqtt"]["port"] = mqtt.port;
     doc["mqtt"]["username"] = mqtt.username;
     doc["mqtt"]["password"] = mqtt.password;
+    doc["mqtt"]["dataInterval"] = mqtt.dataInterval;
+    doc["mqtt"]["diagnosticInterval"] = mqtt.diagnosticInterval;
+    doc["mqtt"]["discoveryInterval"] = mqtt.discoveryInterval;
+    doc["mqtt"]["locationInterval"] = mqtt.locationInterval;
 }
 
 bool SettingsClass::readSettings(fs::FS &fs) {
@@ -232,6 +240,38 @@ String SettingsClass::getMQTTPassword() const {
 
 void SettingsClass::setMQTTPassword(const char *password) {
     strlcpy(mqtt.password, password, sizeof(mqtt.password));
+}
+
+unsigned int SettingsClass::getMQTTDataInterval() const {
+    return mqtt.dataInterval;
+}
+
+void SettingsClass::setMQTTDataInterval(unsigned int dataInterval) {
+    mqtt.dataInterval = dataInterval;
+}
+
+unsigned int SettingsClass::getMQTTDiagnosticInterval() const {
+    return mqtt.diagnosticInterval;
+}
+
+void SettingsClass::setMQTTDiagnosticInterval(unsigned int diagnosticInterval) {
+    mqtt.diagnosticInterval = diagnosticInterval;
+}
+
+unsigned int SettingsClass::getMQTTDiscoveryInterval() const {
+    return mqtt.discoveryInterval;
+}
+
+void SettingsClass::setMQTTDiscoveryInterval(unsigned int discoveryInterval) {
+    mqtt.discoveryInterval = discoveryInterval;
+}
+
+unsigned int SettingsClass::getMQTTLocationInterval() const {
+    return mqtt.locationInterval;
+}
+
+void SettingsClass::setMQTTLocationInterval(unsigned int locationInterval) {
+    mqtt.locationInterval = locationInterval;
 }
 
 SettingsClass Settings;
