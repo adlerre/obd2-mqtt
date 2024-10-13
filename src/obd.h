@@ -15,18 +15,10 @@
  * 59 Temple Place - Suite 330, Boston, MA  02111-1307 USA
  */
 #pragma once
-#include "helper.h"
 #include <atomic>
 #include <BluetoothSerial.h>
 
 #include "ELMduino.h"
-
-BluetoothSerial SerialBT;
-#define ELM_PORT SerialBT
-
-esp_spp_sec_t sec_mask = ESP_SPP_SEC_NONE;
-// or ESP_SPP_SEC_ENCRYPT|ESP_SPP_SEC_AUTHENTICATE to request pincode confirmation
-esp_spp_role_t role = ESP_SPP_ROLE_SLAVE; // or ESP_SPP_ROLE_SLAVE | ESP_SPP_ROLE_MASTER
 
 // set default adapter name
 #ifndef OBD_ADP_NAME
@@ -34,8 +26,6 @@ esp_spp_role_t role = ESP_SPP_ROLE_SLAVE; // or ESP_SPP_ROLE_SLAVE | ESP_SPP_ROL
 #endif
 
 #define BT_DISCOVER_TIME    10000
-
-ELM327 myELM327;
 
 // https://stackoverflow.com/questions/17170646/what-is-the-best-way-to-get-fuel-consumption-mpg-using-obd2-parameters
 #define AF_RATIO_GAS        17.2
@@ -83,396 +73,189 @@ typedef enum {
     BAT_VOLTAGE,
     PEDAL_POS,
     MILSTATUS
-}
+} obd_pid_states;
 
-obd_pid_states;
+class OBDClass {
+    BluetoothSerial serialBt;
+    ELM327 elm327;
 
-obd_pid_states obd_state = ENG_LOAD;
+    String devName;
+    String devMac;
+    char protocol;
+    bool checkPidSupport = false;
 
-// cached PIDs
-std::atomic_uint32_t supportedPids_1_20{0};
-std::atomic_bool supportedPids_1_20_cached{false};
-std::atomic_uint32_t supportedPids_21_40{0};
-std::atomic_bool supportedPids_21_40_cached{false};
-std::atomic_uint32_t supportedPids_41_60{0};
-std::atomic_bool supportedPids_41_60_cached{false};
-std::atomic_uint32_t supportedPids_61_80{0};
-std::atomic_bool supportedPids_61_80_cached{false};
+    obd_pid_states obd_state = ENG_LOAD;
 
-std::string connectedBTAddress;
-std::string VIN;
+    // cached PIDs
+    uint32_t supportedPids_1_20{0};
+    bool supportedPids_1_20_cached{false};
+    uint32_t supportedPids_21_40{0};
+    bool supportedPids_21_40_cached{false};
+    uint32_t supportedPids_41_60{0};
+    bool supportedPids_41_60_cached{false};
+    uint32_t supportedPids_61_80{0};
+    bool supportedPids_61_80_cached{false};
 
-/**
-* Checks if PID is supported.
-*
-* @param pid the PID
-*/
-inline bool isPidSupported(uint8_t pid) {
-    bool cached = false;
-    uint32_t response = 0;
-    uint8_t pidInterval = (pid / PID_INTERVAL_OFFSET) * PID_INTERVAL_OFFSET;
+    int load{0};
+    int throttle{0};
+    float rpm{0};
+    float coolantTemp{0};
+    float oilTemp{0};
+    float ambientAirTemp{0};
+    int kph{0};
+    float fuelLevel{0};
+    float fuelRate{0};
+    uint8_t fuelType{0};
+    bool fuelTypeRead{false};
+    float mafRate{0};
+    float batVoltage{0};
+    float intakeAirTemp{0};
+    uint8_t manifoldPressure{0};
+    float timingAdvance{0};
+    float pedalPosition{0};
+    uint32_t monitorStatus{0};
+    bool milState{false};
 
-    int retries = 0;
-    do {
-        switch (pidInterval) {
-            case SUPPORTED_PIDS_1_20:
-                response = !supportedPids_1_20_cached
-                               ? myELM327.supportedPIDs_1_20()
-                               : static_cast<uint32_t>(supportedPids_1_20);
-                cached = supportedPids_1_20_cached;
-                break;
-            case SUPPORTED_PIDS_21_40:
-                response = !supportedPids_21_40_cached
-                               ? myELM327.supportedPIDs_21_40()
-                               : static_cast<uint32_t>(supportedPids_21_40);
-                pid = (pid - SUPPORTED_PIDS_21_40);
-                cached = supportedPids_21_40_cached;
-                break;
-            case SUPPORTED_PIDS_41_60:
-                response = !supportedPids_41_60_cached
-                               ? myELM327.supportedPIDs_41_60()
-                               : static_cast<uint32_t>(supportedPids_41_60);
-                pid = (pid - SUPPORTED_PIDS_41_60);
-                cached = supportedPids_41_60_cached;
-                break;
-            case SUPPORTED_PIDS_61_80:
-                response = !supportedPids_61_80_cached
-                               ? myELM327.supportedPIDs_61_80()
-                               : static_cast<uint32_t>(supportedPids_61_80);
-                pid = (pid - SUPPORTED_PIDS_61_80);
-                cached = supportedPids_61_80_cached;
-                break;
-            default:
-                break;
-        }
-        if (!cached) {
-            if (myELM327.nb_rx_state == ELM_GETTING_MSG) {
-                Serial.print(".");
-                delay(500);
-                retries++;
-            } else if (myELM327.nb_rx_state != ELM_SUCCESS) {
-                Serial.print("x");
-                delay(500);
-                retries++;
-            }
-        }
-    } while (!cached && response == 0 && myELM327.nb_rx_state != ELM_SUCCESS && retries < 10);
-    if (!cached) {
-        Serial.println("");
-    }
+    unsigned long lastReadSpeed{0};
+    unsigned long runStartTime{0};
+    float curConsumption{0};
+    float consumption{0};
+    float consumptionPer100{0};
+    float distanceDriven{0};
+    float avgSpeed{0};
+    int topSpeed{0};
 
-    if (!cached && response != 0 && myELM327.nb_rx_state == ELM_SUCCESS) {
-        switch (pidInterval) {
-            case SUPPORTED_PIDS_1_20:
-                supportedPids_1_20 = response;
-                supportedPids_1_20_cached = true;
-                break;
-            case SUPPORTED_PIDS_21_40:
-                supportedPids_21_40 = response;
-                supportedPids_21_40_cached = true;
-                break;
-            case SUPPORTED_PIDS_41_60:
-                supportedPids_41_60 = response;
-                supportedPids_41_60_cached = true;
-                break;
-            case SUPPORTED_PIDS_61_80:
-                supportedPids_61_80 = response;
-                supportedPids_61_80_cached = true;
-                break;
-            default:
-                break;
-        }
-    } else if (!cached && !Settings.getOBD2CheckPIDSupport()) {
-        switch (pidInterval) {
-            case SUPPORTED_PIDS_1_20:
-                supportedPids_1_20 = 0xFFFFFFFF;
-                supportedPids_1_20_cached = true;
-                break;
-            case SUPPORTED_PIDS_21_40:
-                supportedPids_21_40 = 0xFFFFFFFF;
-                supportedPids_21_40_cached = true;
-                break;
-            case SUPPORTED_PIDS_41_60:
-                supportedPids_41_60 = 0xFFFFFFFF;
-                supportedPids_41_60_cached = true;
-                break;
-            case SUPPORTED_PIDS_61_80:
-                supportedPids_61_80 = 0xFFFFFFFF;
-                supportedPids_61_80_cached = true;
-                break;
-            default:
-                break;
-        }
-        response = 0xFFFFFFFF;
-    }
+    std::string connectedBTAddress;
+    std::string VIN;
 
-    return ((response >> (32 - pid)) & 0x1);
-}
+    BTScanResults *discoverBtDevices();
 
-inline BTScanResults *discoverBtDevices() {
-    Serial.println("Discover Bluetooth devices...");
+    static void BTEvent(esp_spp_cb_event_t event, esp_spp_cb_param_t *param);
 
-    BTScanResults *btDeviceList = ELM_PORT.getScanResults(); // maybe accessing from different threads!
-    if (ELM_PORT.discoverAsync([](BTAdvertisedDevice *pDevice) {
-        Serial.printf(">>>>>>>>>>>Found a new device: %s\n", pDevice->toString().c_str());
-    })) {
-        delay(BT_DISCOVER_TIME);
-        Serial.print("Stopping discover...");
-        ELM_PORT.discoverAsyncStop();
-        Serial.println("stopped");
-        delay(5000);
+    /**
+     * Set value and next state.
+     *
+     * @param var the variable to set
+     * @param nextState the next state
+     * @param value the value to set
+     * @return <code>true</code> on success
+     */
+    template<typename T>
+    bool setStateValue(T &var, obd_pid_states nextState, T value);
 
-        if (btDeviceList->getCount() > 0) {
-            return btDeviceList;
-        }
-    }
+public:
+    OBDClass();
 
-    return nullptr;
-}
+    void begin(const String &devName, const String &devMac, char protocol = AUTOMATIC, bool checkPidSupport = false);
 
-inline void BTEvent(esp_spp_cb_event_t event, esp_spp_cb_param_t *param) {
-    if (event == ESP_SPP_CLOSE_EVT) {
-        Serial.println("Bluetooth disconnected.");
-    }
-}
+    void end();
 
-inline void connectToOBD(bool reconnect = false) {
-connect:
-    ELM_PORT.register_callback(BTEvent);
+    void connect(bool reconnect = false);
 
-    if (!ELM_PORT.begin("OBD2MQTT", true)) {
-        Serial.println("========== serialBT failed!");
-        ESP.restart();
-    }
+    void loop();
 
-    if (Settings.getOBD2MAC().isEmpty()) {
-        BTScanResults *btDeviceList = discoverBtDevices();
+    std::string getConnectedBTAddress() const;
 
-        if (btDeviceList == nullptr) {
-            Serial.println("Didn't find any devices");
-        } else {
-            BTAddress addr;
-            int channel = 0;
+    uint32_t getSupportedPids1To20() const;
 
-            String devName = Settings.getOBD2Name(OBD_ADP_NAME);
-            Serial.printf("Search device: %s\n", devName);
-            for (int i = 0; i < btDeviceList->getCount(); i++) {
-                BTAdvertisedDevice *device = btDeviceList->getDevice(i);
-                if (device->getName() == devName.c_str()) {
-                    Serial.printf(" ----- %s  %s %d\n", device->getAddress().toString().c_str(),
-                                  device->getName().c_str(), device->getRSSI());
-                    std::map<int, std::string> channels = ELM_PORT.getChannels(device->getAddress());
-                    Serial.printf("scanned for services, found %d\n", channels.size());
-                    for (auto const &entry: channels) {
-                        Serial.printf("     channel %d (%s)\n", entry.first, entry.second.c_str());
-                    }
-                    if (!channels.empty()) {
-                        addr = device->getAddress();
-                        channel = channels.begin()->first;
-                    }
-                }
-            }
+    uint32_t getSupportedPids21To40() const;
 
-            if (addr) {
-                Serial.printf("connecting to %s - %d\n", addr.toString().c_str(), channel);
-                ELM_PORT.connect(addr, channel, sec_mask, role);
-            }
-        }
-    } else {
-        byte mac[6];
-        parseBytes(Settings.getOBD2MAC().c_str(), ':', mac, 6, 16);
-        BTAddress addr = mac;
-        int channel = 0;
+    uint32_t getSupportedPids41To60() const;
 
-        std::map<int, std::string> channels = ELM_PORT.getChannels(addr);
-        Serial.printf("scanned for services, found %d\n", channels.size());
-        for (auto const &entry: channels) {
-            Serial.printf("     channel %d (%s)\n", entry.first, entry.second.c_str());
-        }
+    uint32_t getSupportedPids61To80() const;
 
-        if (!channels.empty()) {
-            channel = channels.begin()->first;
-        }
+    std::string vin() const;
 
-        if (addr) {
-            Serial.printf("connecting to %s - %d\n", addr.toString().c_str(), channel);
-            if (ELM_PORT.connect(addr, channel, sec_mask, role)) {
-                connectedBTAddress = addr.toString().c_str();
-            }
-        }
-    }
+    int getLoad() const;
 
-    if (!ELM_PORT.isClosed() && ELM_PORT.connected()) {
-        int retryCount = 0;
-        while (!myELM327.begin(ELM_PORT, false, 2000, Settings.getOBD2Protocol()) && retryCount < 3) {
-            Serial.println("Couldn't connect to OBD scanner - Phase 2");
-            delay(BT_DISCOVER_TIME);
-            retryCount++;
-        }
-    } else {
-        Serial.println("Couldn't connect to OBD scanner - Phase 1");
-    }
+    int getThrottle() const;
 
-    if (!myELM327.connected) {
-        delay(BT_DISCOVER_TIME);
-        Serial.println("Restarting OBD connect.");
-        ELM_PORT.end();
-        goto connect;
-    }
+    float getRPM() const;
 
-    Serial.println("Connected to ELM327");
+    float getCoolantTemp() const;
 
-    if (!reconnect) {
-        Serial.println("Cache supported PIDs...");
-        isPidSupported(MONITOR_STATUS_SINCE_DTC_CLEARED);
-        isPidSupported(DISTANCE_TRAVELED_WITH_MIL_ON);
-        isPidSupported(MONITOR_STATUS_THIS_DRIVE_CYCLE);
-        isPidSupported(DEMANDED_ENGINE_PERCENT_TORQUE);
-        Serial.println("...done.");
+    float getOilTemp() const;
 
-        Serial.println("Try to get VIN...");
-        char vin[18];
-        int status;
-        int retryCount = 0;
-        while ((status = myELM327.get_vin_blocking(vin)) != ELM_SUCCESS && retryCount < 3) {
-            Serial.println("...failed to obtain VIN...");
-            delay(500);
-            retryCount++;
-        }
+    float getAmbientAirTemp() const;
 
-        if (status == ELM_SUCCESS) {
-            VIN = std::string(vin);
-            if (!VIN.empty()) {
-                Serial.printf("...VIN %s obtained.\n", VIN.c_str());
-            } else {
-                Serial.println("...VIN is empty.");
-            }
-        }
-    }
-}
+    int getKPH() const;
 
-/**
-* Set value and next state.
-*
-* @param var the variable to set
-* @param nextState the next state
-* @param value the value to set
-* @return <code>true</code> on success
-*/
-template<typename T>
-bool setStateValue(std::atomic<T> &var, obd_pid_states nextState, T value) {
-    if (myELM327.nb_rx_state == ELM_SUCCESS) {
-        var = value;
-        obd_state = nextState;
-        return true;
-    }
+    float getFuelLevel() const;
 
-    if (myELM327.nb_rx_state != ELM_GETTING_MSG && myELM327.nb_rx_state != ELM_SUCCESS) {
-        myELM327.printError();
-    }
+    float getFuelRate() const;
 
-    if (myELM327.nb_rx_state == ELM_NO_DATA) {
-        var = 0;
-        obd_state = nextState;
-    }
+    uint8_t getFuelType() const;
 
-    return false;
-}
+    bool getFuelTypeRead() const;
 
-/**
- * Calculate the current consumption from MAF Rate.
- *
- * @param fuelType the fuel type
- * @param kph the km/h
- * @param mafRate the MAF rate
- * @return the consumption
- */
-inline float calcCurrentConsumption(const int fuelType, const int kph, const float mafRate) {
-    if (kph != 0 && mafRate != 0) {
-        float afRatio = 0;
-        switch (fuelType) {
-            case FUEL_TYPE_METHANOL:
-                afRatio = AF_RATIO_METHANOL;
-                break;
-            case FUEL_TYPE_ETHANOL:
-                afRatio = AF_RATIO_ETHANOL;
-                break;
-            case FUEL_TYPE_DIESEL:
-                afRatio = AF_RATIO_DIESEL;
-                break;
-            case FUEL_TYPE_LPG:
-            case FUEL_TYPE_CNG:
-                afRatio = AF_RATIO_GAS;
-                break;
-            case FUEL_TYPE_PROPANE:
-                afRatio = AF_RATIO_PROPANE;
-                break;
-            case FUEL_TYPE_ELECTRIC:
-                return 0;
-            default:
-                afRatio = AF_RATIO_GASOLINE;
-                break;
-        }
-        return static_cast<float>(kph) / (mafRate / afRatio);
-    }
+    float getMafRate() const;
 
-    return 0.0;
-}
+    float getBatVoltage() const;
 
-/**
- * Calculate the consumption from MAF Rate.
- *
- * @param fuelType the fuel type
- * @param kph the km/h
- * @param mafRate the MAF rate
- * @return the consumption
- */
-inline float calcConsumption(const int fuelType, const int kph, const float mafRate) {
-    if (kph != 0 && mafRate != 0) {
-        float afRatio = 0;
-        float density = 0;
-        switch (fuelType) {
-            case FUEL_TYPE_METHANOL:
-                afRatio = AF_RATIO_METHANOL;
-                density = DENSITY_METHANOL;
-                break;
-            case FUEL_TYPE_ETHANOL:
-                afRatio = AF_RATIO_ETHANOL;
-                density = DENSITY_ETHANOL;
-                break;
-            case FUEL_TYPE_DIESEL:
-                afRatio = AF_RATIO_DIESEL;
-                density = DENSITY_DIESEL;
-                break;
-            case FUEL_TYPE_LPG:
-            case FUEL_TYPE_CNG:
-                afRatio = AF_RATIO_GAS;
-                density = DENSITY_GAS;
-                break;
-            case FUEL_TYPE_PROPANE:
-                afRatio = AF_RATIO_PROPANE;
-                density = DENSITY_PROPANE;
-                break;
-            case FUEL_TYPE_ELECTRIC:
-                return 0;
-            default:
-                afRatio = AF_RATIO_GASOLINE;
-                density = DENSITY_GASOLINE;
-                break;
-        }
-        return (mafRate * 3600.0f) / (afRatio * density);
-    }
+    float getIntakeAirTemp() const;
 
-    return 0.0;
-}
+    uint8_t getManifoldPressure() const;
 
-/**
- * Calculate distance from given km/h and time.
- *
- * @param kph the km/h
- * @param time the time in seconds
- * @return the distance
- */
-inline float calcDistance(const int kph, const float time) {
-    return kph > 0 ? static_cast<float>(kph) / 3600.0f * time : 0.0f;
-}
+    float getTimingAdvance() const;
+
+    float getPedalPosition() const;
+
+    uint32_t getMonitorStatus() const;
+
+    bool getMilState() const;
+
+    unsigned long getLastReadSpeed() const;
+
+    unsigned long getRunStartTime() const;
+
+    float getCurConsumption() const;
+
+    float getConsumption() const;
+
+    float getConsumptionPer100() const;
+
+    float getDistanceDriven() const;
+
+    float getAvgSpeed() const;
+
+    int getTopSpeed() const;
+
+
+    /**
+     * Checks if PID is supported.
+     *
+     * @param pid the PID
+     */
+    bool isPidSupported(uint8_t pid);
+
+    /**
+     * Calculate the current consumption from MAF Rate.
+     *
+     * @param fuelType the fuel type
+     * @param kph the km/h
+     * @param mafRate the MAF rate
+     * @return the consumption
+     */
+    static float calcCurrentConsumption(int fuelType, int kph, float mafRate);
+
+    /**
+     * Calculate the consumption from MAF Rate.
+     *
+     * @param fuelType the fuel type
+     * @param kph the km/h
+     * @param mafRate the MAF rate
+     * @return the consumption
+     */
+    static float calcConsumption(int fuelType, int kph, float mafRate);
+
+    /**
+     * Calculate distance from given km/h and time.
+     *
+     * @param kph the km/h
+     * @param time the time in seconds
+     * @return the distance
+     */
+    static float calcDistance(int kph, float time);
+};
+
+extern OBDClass OBD;
