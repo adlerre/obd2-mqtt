@@ -36,7 +36,7 @@
 
 class MQTT {
     PubSubClient mqtt;
-    int numReconnects = 0;
+    int numReconnects = -1;
     std::string maintopic = "obd2mqtt";
     std::string identifier;
     std::string identifierName;
