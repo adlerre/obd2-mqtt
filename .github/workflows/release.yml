@@ -296,14 +296,14 @@ jobs:
           npm i
           npm run build:esp-wt
           npm run build:manifest
-          sed -i 's/$VERSION/${{ needs.prepare-release.outputs.new_release_git_tag }}/g' docs/index.html
-          echo "Updating Web installer to use firmware from ${{ needs.prepare-release.outputs.new_release_git_tag }}..."
+          sed -i 's/$VERSION/${{ needs.release-artifacts.outputs.new_release_git_tag }}/g' docs/index.html
+          echo "Updating Web installer to use firmware from ${{ needs.release-artifacts.outputs.new_release_git_tag }}..."
           for device in "${devices[@]}" ; do
             rm -rf docs/binary/$device
-            wget ${{ github.server_url }}/${{ github.repository }}/releases/download/${{ needs.prepare-release.outputs.new_release_git_tag }}/OBD2-MQTT-$device-${{ needs.prepare-release.outputs.new_release_git_tag }}.zip
+            wget ${{ github.server_url }}/${{ github.repository }}/releases/download/${{ needs.release-artifacts.outputs.new_release_git_tag }}/OBD2-MQTT-$device-${{ needs.release-artifacts.outputs.new_release_git_tag }}.zip
             mkdir -p docs/binary/$device
-            unzip -o OBD2-MQTT-$device-${{ needs.prepare-release.outputs.new_release_git_tag }}.zip -d docs/binary/$device
-            sed -i 's/$VERSION/${{ needs.prepare-release.outputs.new_release_git_tag }}/g' docs/manifest-$device.json
+            unzip -o OBD2-MQTT-$device-${{ needs.release-artifacts.outputs.new_release_git_tag }}.zip -d docs/binary/$device
+            sed -i 's/$VERSION/${{ needs.release-artifacts.outputs.new_release_git_tag }}/g' docs/manifest-$device.json
           done
 
       - name: Setup Pages
