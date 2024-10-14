@@ -1,6 +1,12 @@
 name: PlatformIO CI
 
-on: push
+on:
+  pull_request:
+  push:
+    branches: [ "main" ]
+    tags: [ "v*.*.*" ]
+  release:
+    types: [ published ]
 
 jobs:
   test:
