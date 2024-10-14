@@ -192,12 +192,35 @@ jobs:
           name: "OBD2-MQTT-${{ matrix.envs }}-${{ steps.vars.outputs.branch }}_(${{ steps.vars.outputs.sha_short }})"
           path: ./package
 
-  #########################################################################################
-  ## Prepare and create release
-  #########################################################################################
-  prepare-release:
+  semantic-release:
     runs-on: ubuntu-latest
     needs: package
+    permissions:
+      contents: write # to be able to publish a GitHub release
+      issues: write # to be able to comment on released issues
+      pull-requests: write # to be able to comment on released pull requests
+      id-token: write # to enable use of OIDC for npm provenance
+    outputs:
+      new_release_git_tag: ${{ steps.semantic.outputs.new_release_git_tag }}
+      new_release_version: ${{ steps.semantic.outputs.new_release_version }}
+      new_release_notes: ${{ steps.semantic.outputs.new_release_notes }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Semantic Release
+        uses: cycjimmy/semantic-release-action@v4
+        id: semantic
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  #########################################################################################
+  ## Prepare and create release artifacts
+  #########################################################################################
+  release-artifacts:
+    runs-on: ubuntu-latest
+    needs: semantic-release
     strategy:
       matrix:
         envs:
@@ -212,11 +235,12 @@ jobs:
             T-A7608X
           ]
 
-    # Sets permissions of the GITHUB_TOKEN to allow updating the branches
     permissions:
       contents: write
       pages: write
       id-token: write
+    outputs:
+      new_release_git_tag: ${{ needs.semantic-release.outputs.new_release_git_tag }}
 
     steps:
       - uses: actions/checkout@v4
@@ -228,29 +252,25 @@ jobs:
           key: package-${{ github.run_id }}-${{ matrix.envs }}
           restore-keys: package # This matches above key as it is only used as a prefix. it the restores the nearest cache, see https://github.com/restore-keys:/blob/main/tips-and-workarounds.md#update-a-cache
 
-      - name: Update release package cache on every commit
-        uses: actions/cache@v4
-        with:
-          path: release
-          key: release-${{ github.run_id }}-${{ matrix.envs }}
-          restore-keys: release # This matches above key as it is only used as a prefix. it the restores the nearest cache, see https://github.com/restore-keys:/blob/main/tips-and-workarounds.md#update-a-cache
-
-      - name: Set Variables
-        id: vars
-        run: |
-          echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
-          echo "branch=$(echo ${{ github.ref_name }} | tr / __)" >> $GITHUB_OUTPUT
-
       - name: Prepare artifacts for release
         run: |
           rm -rf release
           mkdir -p release
           ls -la .
           cd ./package
-          zip -r ../release/OBD2-MQTT-${{ matrix.envs }}-${{ steps.vars.outputs.branch }}.zip .
+          zip -r ../release/OBD2-MQTT-${{ matrix.envs }}-${{ needs.semantic-release.outputs.new_release_git_tag }}.zip .
 
-  release:
-    needs: prepare-release
+      - name: Release artifacts
+        uses: softprops/action-gh-release@v2.0.8
+        with:
+          tag_name: ${{ needs.semantic-release.outputs.new_release_git_tag }}
+          name: ${{ needs.semantic-release.outputs.new_release_version }}
+          body: ${{ needs.semantic-release.outputs.new_release_notes }}
+          files: |
+            release/*
+
+  update-web-installer:
+    needs: release-artifacts
     permissions:
       contents: write # to be able to publish a GitHub release
       issues: write # to be able to comment on released issues
@@ -260,31 +280,6 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Update release package cache on every commit
-        uses: actions/cache@v4
-        with:
-          path: release
-          key: release-${{ github.run_id }}-${{ matrix.envs }}
-          restore-keys: release # This matches above key as it is only used as a prefix. it the restores the nearest cache, see https://github.com/restore-keys:/blob/main/tips-and-workarounds.md#update-a-cache
-
-      - name: Semantic Release
-        uses: cycjimmy/semantic-release-action@v4
-        id: semantic
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Release
-        uses: softprops/action-gh-release@v2.0.8
-        with:
-          tag_name: ${{ steps.semantic.outputs.new_release_git_tag }}
-          name: ${{ steps.semantic.outputs.new_release_version }}
-          body: ${{ steps.semantic.outputs.new_release_notes }}
-          files: |
-            release/*
-
       - name: Add binary to Web Installer and update manifest
         run: |
           devices=(SIM800L_IP5306_VERSION_20190610 SIM800L_AXP192_VERSION_20200327 SIM800C_AXP192_VERSION_20200609 SIM800L_IP5306_VERSION_20200811 T-A7670X T-Call-A7670X-V1-0 T-Call-A7670X-V1-1 T-A7608X)
@@ -292,14 +287,14 @@ jobs:
           npm i
           npm run build:esp-wt
           npm run build:manifest
-          sed -i 's/$VERSION/${{ steps.semantic.outputs.new_release_git_tag }}/g' docs/index.html
-          echo "Updating Web installer to use firmware from ${{ steps.semantic.outputs.new_release_git_tag }}..."
+          sed -i 's/$VERSION/${{ needs.prepare-release.outputs.new_release_git_tag }}/g' docs/index.html
+          echo "Updating Web installer to use firmware from ${{ needs.prepare-release.outputs.new_release_git_tag }}..."
           for device in "${devices[@]}" ; do
             rm -rf docs/binary/$device
-            wget ${{ github.server_url }}/${{ github.repository }}/releases/download/${{ steps.semantic.outputs.new_release_git_tag }}/OBD2-MQTT-$device-${{ steps.semantic.outputs.new_release_git_tag }}.zip
+            wget ${{ github.server_url }}/${{ github.repository }}/releases/download/${{ needs.prepare-release.outputs.new_release_git_tag }}/OBD2-MQTT-$device-${{ needs.prepare-release.outputs.new_release_git_tag }}.zip
             mkdir -p docs/binary/$device
-            unzip -o OBD2-MQTT-$device-${{ steps.semantic.outputs.new_release_git_tag }}.zip -d docs/binary/$device
-            sed -i 's/$VERSION/${{ steps.semantic.outputs.new_release_git_tag }}/g' docs/manifest-$device.json
+            unzip -o OBD2-MQTT-$device-${{ needs.prepare-release.outputs.new_release_git_tag }}.zip -d docs/binary/$device
+            sed -i 's/$VERSION/${{ needs.prepare-release.outputs.new_release_git_tag }}/g' docs/manifest-$device.json
           done
 
       - name: Setup Pages
