@@ -6,24 +6,15 @@ on:
 jobs:
   release:
     runs-on: ubuntu-latest
-    environment:
-      name: Semver
-
-    # Sets permissions of the GITHUB_TOKEN to allow updating the branches
-    permissions:
-      contents: write
-      pages: write
-      id-token: write
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          persist-credentials: false
+
 
       - name: Semantic Release
         uses: cycjimmy/semantic-release-action@v4
         env:
-          GH_TOKEN: ${{ github.token }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           ci: true
