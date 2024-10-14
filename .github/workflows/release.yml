@@ -280,6 +280,15 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - uses: actions/checkout@v4
+
+      - name: Update NodeJS cache on every commit
+        uses: actions/cache@v4
+        with:
+          path: node_modules/
+          key: node_modules-${{ github.run_id }}
+          restore-keys: node_modules # This matches above key as it is only used as a prefix. it the restores the nearest cache, see https://github.com/restore-keys:/blob/main/tips-and-workarounds.md#
+
       - name: Add binary to Web Installer and update manifest
         run: |
           devices=(SIM800L_IP5306_VERSION_20190610 SIM800L_AXP192_VERSION_20200327 SIM800C_AXP192_VERSION_20200609 SIM800L_IP5306_VERSION_20200811 T-A7670X T-Call-A7670X-V1-0 T-Call-A7670X-V1-1 T-A7608X)
