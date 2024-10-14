@@ -22,3 +22,7 @@ jobs:
         uses: cycjimmy/semantic-release-action@v4
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  call_ci_run:
+    uses: ./.github/workflows/ci.yml
+    secrets: inherit

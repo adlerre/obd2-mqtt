@@ -3,10 +3,11 @@ name: PlatformIO CI
 on:
   pull_request:
   push:
-    branches: [ "main" ]
+    branches: [ "main", "*" ]
     tags: [ "v*.*.*" ]
   release:
     types: [ published ]
+  workflow_call:
 
 jobs:
   test:
