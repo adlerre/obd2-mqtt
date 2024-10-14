@@ -278,39 +278,6 @@ jobs:
           files: |
             release/*
 
-  #########################################################################################
-  ## Update the Web Installer on a release
-  #########################################################################################
-  update-web-installer:
-    if: steps.semantic.outputs.new_release_published == 'true'
-    needs: release
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
-
-    # Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
-    permissions:
-      contents: read
-      pages: write
-      id-token: write
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-
-      - name: Get version of last release
-        id: last_release
-        uses: mindojo/get-latest-release@0b8ef1434d7468d6bffcc8263baff5c777f72321
-        with:
-          myToken: ${{ github.token }}
-          exclude_types: "draft|prerelease"
-          view_top: 1
-
       - name: Add binary to Web Installer and update manifest
         run: |
           devices=(SIM800L_IP5306_VERSION_20190610 SIM800L_AXP192_VERSION_20200327 SIM800C_AXP192_VERSION_20200609 SIM800L_IP5306_VERSION_20200811 T-A7670X T-Call-A7670X-V1-0 T-Call-A7670X-V1-1 T-A7608X)
@@ -318,14 +285,14 @@ jobs:
           npm i
           npm run build:esp-wt
           npm run build:manifest
-          sed -i 's/$VERSION/${{ steps.last_release.outputs.tag_name }}/g' docs/index.html
-          echo "Updating Web installer to use firmware from ${{ steps.last_release.outputs.tag_name }}..."
+          sed -i 's/$VERSION/${{ steps.semantic.outputs.new_release_git_tag }}/g' docs/index.html
+          echo "Updating Web installer to use firmware from ${{ steps.semantic.outputs.new_release_git_tag }}..."
           for device in "${devices[@]}" ; do
             rm -rf docs/binary/$device
-            wget ${{ github.server_url }}/${{ github.repository }}/releases/download/${{ steps.last_release.outputs.tag_name }}/OBD2-MQTT-$device-${{ steps.last_release.outputs.tag_name }}.zip
+            wget ${{ github.server_url }}/${{ github.repository }}/releases/download/${{ steps.semantic.outputs.new_release_git_tag }}/OBD2-MQTT-$device-${{ steps.semantic.outputs.new_release_git_tag }}.zip
             mkdir -p docs/binary/$device
-            unzip -o OBD2-MQTT-$device-${{ steps.last_release.outputs.tag_name }}.zip -d docs/binary/$device
-            sed -i 's/$VERSION/${{ steps.last_release.outputs.tag_name }}/g' docs/manifest-$device.json
+            unzip -o OBD2-MQTT-$device-${{ steps.semantic.outputs.new_release_git_tag }}.zip -d docs/binary/$device
+            sed -i 's/$VERSION/${{ steps.semantic.outputs.new_release_git_tag }}/g' docs/manifest-$device.json
           done
 
       - name: Setup Pages
