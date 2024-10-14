@@ -228,6 +228,13 @@ jobs:
           key: package-${{ github.run_id }}-${{ matrix.envs }}
           restore-keys: package # This matches above key as it is only used as a prefix. it the restores the nearest cache, see https://github.com/restore-keys:/blob/main/tips-and-workarounds.md#update-a-cache
 
+      - name: Update release package cache on every commit
+        uses: actions/cache@v4
+        with:
+          path: release
+          key: release-${{ github.run_id }}-${{ matrix.envs }}
+          restore-keys: release # This matches above key as it is only used as a prefix. it the restores the nearest cache, see https://github.com/restore-keys:/blob/main/tips-and-workarounds.md#update-a-cache
+
       - name: Set Variables
         id: vars
         run: |
@@ -256,12 +263,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Update package cache on every commit
+      - name: Update release package cache on every commit
         uses: actions/cache@v4
         with:
-          path: package
-          key: package-${{ github.run_id }}-${{ matrix.envs }}
-          restore-keys: package # This matches above key as it is only used as a prefix. it the restores the nearest cache, see https://github.com/restore-keys:/blob/main/tips-and-workarounds.md#update-a-cache
+          path: release
+          key: release-${{ github.run_id }}-${{ matrix.envs }}
+          restore-keys: release # This matches above key as it is only used as a prefix. it the restores the nearest cache, see https://github.com/restore-keys:/blob/main/tips-and-workarounds.md#update-a-cache
 
       - name: Semantic Release
         uses: cycjimmy/semantic-release-action@v4
