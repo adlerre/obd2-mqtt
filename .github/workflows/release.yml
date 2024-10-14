@@ -17,13 +17,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-
       - name: Semantic Release
         uses: cycjimmy/semantic-release-action@v4
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  call_ci:
-    needs: release
-    uses: ./.github/workflows/ci.yml
-    secrets: inherit
+#  call_ci:
+#    needs: release
+#    uses: ./.github/workflows/ci.yml
+#    secrets: inherit
