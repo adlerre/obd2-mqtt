@@ -198,7 +198,11 @@ bool MQTT::sendTopicConfig(const std::string &group, const std::string &field,
     config["device"]["manufacturer"] = "René Adler";
 
     if (BUILD_GIT_BRANCH != "" && BUILD_GIT_COMMIT_HASH != "") {
-        config["device"]["sw_version"] = String(BUILD_GIT_BRANCH) + " (" + String(BUILD_GIT_COMMIT_HASH) + ")";
+        String version = String(BUILD_GIT_BRANCH);
+        if (!version.startsWith("v")) {
+            version += " (" + String(BUILD_GIT_COMMIT_HASH) + ")";
+        }
+        config["device"]["sw_version"] = version;
     }
 
     serializeJson(config, payload);

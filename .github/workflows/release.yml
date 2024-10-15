@@ -40,8 +40,31 @@ jobs:
       - name: Check for lint errors
         run: npm run lint
 
-  build:
+  semantic-release:
+    runs-on: ubuntu-latest
     needs: test
+    permissions:
+      contents: write # to be able to publish a GitHub release
+      issues: write # to be able to comment on released issues
+      pull-requests: write # to be able to comment on released pull requests
+      id-token: write # to enable use of OIDC for npm provenance
+    outputs:
+      new_release_git_tag: ${{ steps.semantic.outputs.new_release_git_tag }}
+      new_release_version: ${{ steps.semantic.outputs.new_release_version }}
+      new_release_notes: ${{ steps.semantic.outputs.new_release_notes }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Semantic Release
+        uses: cycjimmy/semantic-release-action@v4
+        id: semantic
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  build:
+    needs: semantic-release
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -56,6 +79,12 @@ jobs:
             T-Call-A7670X-V1-1,
             T-A7608X
           ]
+    outputs:
+      new_release_git_tag: ${{ needs.semantic-release.outputs.new_release_git_tag }}
+      new_release_version: ${{ needs.semantic-release.outputs.new_release_version }}
+      new_release_notes: ${{ needs.semantic-release.outputs.new_release_notes }}
+    env:
+      RELEASE_VERSION: ${{ needs.semantic-release.outputs.new_release_git_tag }}
 
     steps:
       - uses: actions/checkout@v4
@@ -139,6 +168,12 @@ jobs:
             T-Call-A7670X-V1-1,
             T-A7608X
           ]
+    outputs:
+      new_release_git_tag: ${{ needs.build.outputs.new_release_git_tag }}
+      new_release_version: ${{ needs.build.outputs.new_release_version }}
+      new_release_notes: ${{ needs.build.outputs.new_release_notes }}
+    env:
+      RELEASE_VERSION: ${{ needs.build.outputs.new_release_git_tag }}
 
     steps:
       - uses: actions/checkout@v4
@@ -192,35 +227,12 @@ jobs:
           name: "OBD2-MQTT-${{ matrix.envs }}-${{ steps.vars.outputs.branch }}_(${{ steps.vars.outputs.sha_short }})"
           path: ./package
 
-  semantic-release:
-    runs-on: ubuntu-latest
-    needs: package
-    permissions:
-      contents: write # to be able to publish a GitHub release
-      issues: write # to be able to comment on released issues
-      pull-requests: write # to be able to comment on released pull requests
-      id-token: write # to enable use of OIDC for npm provenance
-    outputs:
-      new_release_git_tag: ${{ steps.semantic.outputs.new_release_git_tag }}
-      new_release_version: ${{ steps.semantic.outputs.new_release_version }}
-      new_release_notes: ${{ steps.semantic.outputs.new_release_notes }}
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Semantic Release
-        uses: cycjimmy/semantic-release-action@v4
-        id: semantic
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
   #########################################################################################
   ## Prepare and create release artifacts
   #########################################################################################
   release-artifacts:
     runs-on: ubuntu-latest
-    needs: semantic-release
+    needs: package
     strategy:
       matrix:
         envs:
@@ -240,7 +252,9 @@ jobs:
       pages: write
       id-token: write
     outputs:
-      new_release_git_tag: ${{ needs.semantic-release.outputs.new_release_git_tag }}
+      new_release_git_tag: ${{ needs.package.outputs.new_release_git_tag }}
+      new_release_version: ${{ needs.package.outputs.new_release_version }}
+      new_release_notes: ${{ needs.package.outputs.new_release_notes }}
 
     steps:
       - uses: actions/checkout@v4
@@ -258,14 +272,14 @@ jobs:
           mkdir -p release
           ls -la .
           cd ./package
-          zip -r ../release/OBD2-MQTT-${{ matrix.envs }}-${{ needs.semantic-release.outputs.new_release_git_tag }}.zip .
+          zip -r ../release/OBD2-MQTT-${{ matrix.envs }}-${{ needs.package.outputs.new_release_git_tag }}.zip .
 
       - name: Release artifacts
         uses: softprops/action-gh-release@v2.0.8
         with:
-          tag_name: ${{ needs.semantic-release.outputs.new_release_git_tag }}
-          name: ${{ needs.semantic-release.outputs.new_release_version }}
-          body: ${{ needs.semantic-release.outputs.new_release_notes }}
+          tag_name: ${{ needs.package.outputs.new_release_git_tag }}
+          name: ${{ needs.package.outputs.new_release_version }}
+          body: ${{ needs.package.outputs.new_release_notes }}
           files: |
             release/*
 
