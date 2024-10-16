@@ -129,6 +129,8 @@ restart:
     Serial.println("Initializing modem...");
     if (!modem.init()) {
         Serial.println("Failed to restart modem, delaying 10s and retrying");
+        Serial.println("SIM Card insert?");
+        delay(10000L);
         ESP.restart();
         return;
     }
