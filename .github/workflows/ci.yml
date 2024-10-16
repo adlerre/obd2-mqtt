@@ -109,6 +109,9 @@ jobs:
           python -m pip install --upgrade pip
           pip install --upgrade platformio
 
+      - name: Remove node_modules
+        run: rm -rf node_modules
+
       - name: Build Firmware
         run: pio run -e ${{ matrix.envs }}
 
