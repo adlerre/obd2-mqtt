@@ -34,6 +34,9 @@ jobs:
           rm -f package-lock.json
           npm install
 
+      - name: Build UI
+        run: npm run build
+        
       - name: Test UI with stable Chrome
         run: npm run test:ci
 
