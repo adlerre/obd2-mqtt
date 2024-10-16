@@ -52,7 +52,7 @@ def build_ui():
                 print("Filename is", e.filename)
             print("WARNING: Failed to build UI package Using pre-built page.")
         except CalledProcessError as e:
-            print(e.return_code, e.cmd, e.output)
+            print(e.returncode, e.cmd, e.output)
             print("Encountered error CalledProcessError building UI:", e)
             print("WARNING: Failed to build UI package. Using pre-built page.")
         except Exception as e:
