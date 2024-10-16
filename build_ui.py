@@ -35,11 +35,11 @@ def build_ui():
         print("Attempting to build UI...")
         try:
             if platform.system() == "Windows":
-                print(run(["npm.cmd", "install"], check=True, capture_output=True, text=True).stdout)
-                print(run(["npm.cmd", "run", "build", "--verbose"], check=True, capture_output=False, text=True).stdout)
+                print(run(["npm.cmd", "install"], check=True, capture_output=False, text=True).stdout)
+                print(run(["npm.cmd", "run", "build"], check=True, capture_output=False, text=True).stdout)
             else:
-                print(run(["npm", "install"], check=True, capture_output=True, text=True).stdout)
-                print(run(["npm", "run", "build", "--verbose"], check=True, capture_output=False, text=True).stdout)
+                print(run(["npm", "install"], check=True, capture_output=False, text=True).stdout)
+                print(run(["npm", "run", "build"], check=True, capture_output=False, text=True).stdout)
         except OSError as e:
             print("Encountered error OSError building UI:", e)
             if e.filename:
