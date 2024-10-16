@@ -11,13 +11,6 @@ jobs:
         with:
           submodules: true
 
-      - name: Update NodeJS cache on every commit
-        uses: actions/cache@v4
-        with:
-          path: node_modules/
-          key: node_modules-${{ github.run_id }}
-          restore-keys: node_modules # This matches above key as it is only used as a prefix. it the restores the nearest cache, see https://github.com/restore-keys:/blob/main/tips-and-workarounds.md#
-
       - uses: browser-actions/setup-chrome@v1
         with:
           chrome-version: stable
@@ -89,7 +82,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: node_modules/
-          key: node_modules-${{ github.run_id }}
+          key: node_modules-${{ github.run_id }}-${{ matrix.envs }}
           restore-keys: node_modules # This matches above key as it is only used as a prefix. it the restores the nearest cache, see https://github.com/restore-keys:/blob/main/tips-and-workarounds.md#
 
       - name: Update generated-files cache on every commit
