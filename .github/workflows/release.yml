@@ -27,13 +27,6 @@ jobs:
         with:
           node-version: 20
 
-      # SEE https://github.com/npm/cli/issues/4828
-      - name: Install dependencies
-        run: |
-          rm -rf node_modules
-          rm -f package-lock.json
-          npm install
-
       - name: Build UI
         run: npm run build
 
@@ -145,12 +138,6 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install --upgrade platformio
-
-      # SEE https://github.com/npm/cli/issues/4828
-      - name: Fix build issue
-        run: |
-          rm -rf node_modules
-          rm -f package-lock.json
 
       - name: Build Firmware
         run: pio run -e ${{ matrix.envs }}
