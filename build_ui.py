@@ -36,13 +36,13 @@ def build_ui():
         try:
             if platform.system() == "Windows":
                 print(run(["npm.cmd", "install"], check=True, capture_output=True, text=True).stdout)
-                build = run(["npm.cmd", "run", "build"], check=True, capture_output=True, text=True)
+                build = run(["npm.cmd", "run", "build", "--verbose"], check=True, capture_output=True, text=True)
                 print(build.stdout)
                 if (build.stderr):
                     print(build.stderr);
             else:
                 print(run(["npm", "install"], check=True, capture_output=True, text=True).stdout)
-                build = run(["npm", "run", "build"], check=True, capture_output=True, text=True)
+                build = run(["npm", "run", "build", "--verbose"], check=True, capture_output=True, text=True)
                 print(build.stdout)
                 if (build.stderr):
                     print(build.stderr);
