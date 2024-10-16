@@ -36,23 +36,17 @@ def build_ui():
         try:
             if platform.system() == "Windows":
                 print(run(["npm.cmd", "install"], check=True, capture_output=True, text=True).stdout)
-                build = run(["npm.cmd", "run", "build", "--verbose"], check=True, capture_output=True, text=True)
-                print(build.stdout)
-                if (build.stderr):
-                    print(build.stderr);
+                print(run(["npm.cmd", "run", "build", "--verbose"], check=True, capture_output=False, text=True).stdout)
             else:
                 print(run(["npm", "install"], check=True, capture_output=True, text=True).stdout)
-                build = run(["npm", "run", "build", "--verbose"], check=True, capture_output=True, text=True)
-                print(build.stdout)
-                if (build.stderr):
-                    print(build.stderr);
+                print(run(["npm", "run", "build", "--verbose"], check=True, capture_output=False, text=True).stdout)
         except OSError as e:
             print("Encountered error OSError building UI:", e)
             if e.filename:
                 print("Filename is", e.filename)
             print("WARNING: Failed to build UI package Using pre-built page.")
         except CalledProcessError as e:
-            print(e.returncode, e.cmd, e.output)
+            print(e.output)
             print("Encountered error CalledProcessError building UI:", e)
             print("WARNING: Failed to build UI package. Using pre-built page.")
         except Exception as e:
