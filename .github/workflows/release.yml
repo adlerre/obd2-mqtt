@@ -151,7 +151,7 @@ jobs:
         run: |
           rm -rf node_modules
           rm -f package-lock.json
-          
+
       - name: Build Firmware
         run: pio run -e ${{ matrix.envs }}
 
@@ -294,11 +294,14 @@ jobs:
 
   update-web-installer:
     needs: release-artifacts
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    # Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
     permissions:
-      contents: write # to be able to publish a GitHub release
-      issues: write # to be able to comment on released issues
-      pull-requests: write # to be able to comment on released pull requests
-      id-token: write # to enable use of OIDC for npm provenance
+      contents: read
+      pages: write
+      id-token: write
 
     runs-on: ubuntu-latest
 
