@@ -11,6 +11,13 @@ jobs:
         with:
           submodules: true
 
+      - name: Update NodeJS cache on every commit
+        uses: actions/cache@v4
+        with:
+          path: node_modules/
+          key: node_modules-${{ github.run_id }}
+          restore-keys: node_modules # This matches above key as it is only used as a prefix. it the restores the nearest cache, see https://github.com/restore-keys:/blob/main/tips-and-workarounds.md#
+
       - uses: browser-actions/setup-chrome@v1
         with:
           chrome-version: stable
@@ -82,7 +89,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: node_modules/
-          key: node_modules-${{ github.run_id }}-${{ matrix.envs }}
+          key: node_modules-${{ github.run_id }}
           restore-keys: node_modules # This matches above key as it is only used as a prefix. it the restores the nearest cache, see https://github.com/restore-keys:/blob/main/tips-and-workarounds.md#
 
       - name: Update generated-files cache on every commit
@@ -108,9 +115,6 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install --upgrade platformio
-
-      - name: Remove node_modules
-        run: rm -rf node_modules
 
       - name: Build Firmware
         run: pio run -e ${{ matrix.envs }}
