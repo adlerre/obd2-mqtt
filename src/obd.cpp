@@ -27,9 +27,11 @@ void OBDClass::begin(const String &devName, const String &devMac, const char pro
     this->devMac = devMac;
     this->protocol = protocol;
     this->checkPidSupport = checkPidSupport;
+    stopConnect = false;
 }
 
 void OBDClass::end() {
+    stopConnect = true;
     serialBt.end();
 }
 
@@ -295,8 +297,13 @@ void OBDClass::BTEvent(esp_spp_cb_event_t event, esp_spp_cb_param_t *param) {
 }
 
 void OBDClass::connect(bool reconnect) {
+    stopConnect = false;
 connect:
     serialBt.register_callback(BTEvent);
+
+    if (stopConnect) {
+        return;
+    }
 
     if (!serialBt.begin("OBD2MQTT", true)) {
         Serial.println("========== serialBT failed!");
@@ -330,7 +337,7 @@ connect:
                 }
             }
 
-            if (addr) {
+            if (!stopConnect && addr) {
                 Serial.printf("connecting to %s - %d\n", addr.toString().c_str(), channel);
                 serialBt.connect(addr, channel, ESP_SPP_SEC_NONE, ESP_SPP_ROLE_SLAVE);
             }
@@ -351,7 +358,7 @@ connect:
             channel = channels.begin()->first;
         }
 
-        if (addr) {
+        if (!stopConnect && addr) {
             Serial.printf("connecting to %s - %d\n", addr.toString().c_str(), channel);
             if (serialBt.connect(addr, channel, ESP_SPP_SEC_NONE, ESP_SPP_ROLE_SLAVE)) {
                 connectedBTAddress = addr.toString().c_str();
@@ -359,7 +366,7 @@ connect:
         }
     }
 
-    if (!serialBt.isClosed() && serialBt.connected()) {
+    if (!stopConnect && !serialBt.isClosed() && serialBt.connected()) {
         int retryCount = 0;
         while (!elm327.begin(serialBt, false, 2000, protocol) && retryCount < 3) {
             Serial.println("Couldn't connect to OBD scanner - Phase 2");

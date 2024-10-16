@@ -79,6 +79,8 @@ class OBDClass {
     BluetoothSerial serialBt;
     ELM327 elm327;
 
+    bool stopConnect = false;
+
     String devName;
     String devMac;
     char protocol;
