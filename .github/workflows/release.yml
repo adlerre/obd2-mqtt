@@ -36,7 +36,7 @@ jobs:
 
       - name: Build UI
         run: npm run build
-        
+
       - name: Test UI with stable Chrome
         run: npm run test:ci
 
@@ -146,6 +146,12 @@ jobs:
           python -m pip install --upgrade pip
           pip install --upgrade platformio
 
+      # SEE https://github.com/npm/cli/issues/4828
+      - name: Fix build issue
+        run: |
+          rm -rf node_modules
+          rm -f package-lock.json
+          
       - name: Build Firmware
         run: pio run -e ${{ matrix.envs }}
 
