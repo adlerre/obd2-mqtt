@@ -3,19 +3,33 @@
 ## What you need?
 
 * an installed Home Assistant with Mosquitto Broker
-* an installed PlatformIO
-* an installed NodeJS and NPM
+* (optional) an installed PlatformIO
+* (optional) an installed NodeJS and NPM
 * a ESP32 with [SIM800L](https://de.aliexpress.com/item/33045221960.html)
   or [A7670](https://de.aliexpress.com/item/1005006477044118.html)
     * (optional) [RP-SMA to IPX cable](https://www.amazon.de/dp/B0B9RXDLNN)
-    * (optional) [Antenna](https://www.amazon.de/dp/B0B2DCXL5N) or other (work's for me)
+    * (optional) [Antenna](https://www.amazon.de/dp/B0B2DCXL5N) (work's for me) or other
     * (optional) a 3D Printer for the [case](3d-files)
 * a [ELM327 OBD Bluetooth Adapter](https://de.aliexpress.com/item/1005005775562398.html) or any other
-* a SIM Card - i'm use one
-  from [fraenk](https://fraenk.page.link/?link=https%3A%2F%2Ffraenk.de%2Fdeeplink%2Fmgm%3FfriendCode%3DRENA45&apn=de.congstar.fraenk&amv=1040000&imv=1.4&isi=1493980266&ibi=de.congstar.fraenk&ius=fraenk&ofl=https%3A%2F%2Ffraenk.de)
+* a SIM Card - i use one from [fraenk](https://fraenk.page.link/?link=https%3A%2F%2Ffraenk.de%2Fdeeplink%2Fmgm%3FfriendCode%3DRENA45&apn=de.congstar.fraenk&amv=1040000&imv=1.4&isi=1493980266&ibi=de.congstar.fraenk&ius=fraenk&ofl=https%3A%2F%2Ffraenk.de)
 * and the most important thing, a car
 
 ## Getting started
+
+### Upload via Web Installer (ESP Web Tools)
+
+If you don't want to install PlatformIO and compile by your own, use
+the [Web Installer](https://adlerre.github.io/obd2-mqtt/).
+
+### Update Settings or Firmware & Filesystem
+
+* connect to WiFi Access Point starts with name OBD2-MQTT- followed from device MAC
+* open Browser and navigate to http://192.168.4.1
+* change settings to your needs and reboot afterward __OR__ update to new firmware and filesystem
+
+<img width="300" alt="Info" src="assets/obd2-mqtt-ui-info-01.png">
+<img width="300" alt="Settings1" src="assets/obd2-mqtt-ui-settings-01.png">
+<img width="300" alt="Settings2" src="assets/obd2-mqtt-ui-settings-02.png">
 
 ### Build
 
@@ -51,17 +65,6 @@ pio run --target uploadfs -e T-Call-A7670X-V1-0
 curl -X PUT -H "Content-Type: application/json" -d @settings.json http://192.168.4.1/api/settings
 ```
 
-### Upload via Web Installer (ESP Web Tools)
-
-If you don't want to install PlatformIO and compile by your own, use
-the [Web Installer](https://adlerre.github.io/obd2-mqtt/).
-
-### Update Settings or Firmware & Filesystem
-
-* connect to WiFi Access Point starts with name OBD2-MQTT- followed from device MAC
-* open Browser and navigate to http://192.168.4.1
-* change settings to your needs and reboot afterward __OR__ update to new firmware and filesystem
-
 ## Supported Sensors
 
 This sensors only available if your car support.
@@ -95,6 +98,9 @@ Diagnostic Output:
 * GSM Location
 * Signal Quality
 * Uptime
+
+<img width="300" alt="Sensors1" src="assets/obd2-mqtt-ha-01.png">
+<img width="300" alt="Sensors2" src="assets/obd2-mqtt-ha-02.png">
 
 ## ToDos
 
