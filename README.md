@@ -28,9 +28,9 @@ the [Web Installer](https://adlerre.github.io/obd2-mqtt/).
 * change settings to your needs and reboot afterward __OR__ update to new firmware and filesystem
 
 <p>
-<img width="300" alt="Info" src="assets/obd2-mqtt-ui-info-01.png">
-<img width="300" alt="Settings1" src="assets/obd2-mqtt-ui-settings-01.png">
-<img width="300" alt="Settings2" src="assets/obd2-mqtt-ui-settings-02.png">
+<img width="200" alt="Info" src="assets/obd2-mqtt-ui-info-01.png">
+<img width="200" alt="Settings1" src="assets/obd2-mqtt-ui-settings-01.png">
+<img width="200" alt="Settings2" src="assets/obd2-mqtt-ui-settings-02.png">
 </p>
 
 ### Build
@@ -102,8 +102,8 @@ Diagnostic Output:
 * Uptime
 
 <p>
-<img width="300" alt="Sensors1" src="assets/obd2-mqtt-ha-01.png">
-<img width="300" alt="Sensors2" src="assets/obd2-mqtt-ha-02.png">
+<img width="200" alt="Sensors1" src="assets/obd2-mqtt-ha-01.png">
+<img width="200" alt="Sensors2" src="assets/obd2-mqtt-ha-02.png">
 </p>
 
 ## ToDos
