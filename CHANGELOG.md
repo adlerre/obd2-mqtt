@@ -1,3 +1,10 @@
+# [0.3.0](https://github.com/adlerre/obd2-mqtt/compare/v0.2.1...v0.3.0) (2024-10-18)
+
+
+### Features
+
+* implemented autocomplete of discovered BT devices ([#11](https://github.com/adlerre/obd2-mqtt/issues/11)) ([faa2e6b](https://github.com/adlerre/obd2-mqtt/commit/faa2e6b8a1bfa3dd569a4636b14dd4a7e39bcd00))
+
 ## [0.2.1](https://github.com/adlerre/obd2-mqtt/compare/v0.2.0...v0.2.1) (2024-10-16)
 
 
