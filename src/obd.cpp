@@ -111,7 +111,7 @@ connect:
                 devDiscoveredCallback(btDeviceList);
             }
 
-            Serial.printf("Search device: %s\n", devName);
+            Serial.printf("Search device: %s\n", devName.c_str());
             for (int i = 0; i < btDeviceList->getCount(); i++) {
                 BTAdvertisedDevice *device = btDeviceList->getDevice(i);
                 if (device->getName() == devName.c_str()) {
