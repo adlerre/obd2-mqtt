@@ -21,6 +21,7 @@ import { ComponentFixture, inject, TestBed, waitForAsync } from "@angular/core/t
 import { SettingsComponent } from "./settings.component";
 import { of } from "rxjs";
 import { ReactiveFormsModule } from "@angular/forms";
+import { NgbTypeaheadModule } from "@ng-bootstrap/ng-bootstrap";
 
 const testSettings: Settings = {
     wifi: {
@@ -40,6 +41,10 @@ export class MockApiService {
         return of(settings);
     }
 
+    discoveredDevices() {
+        return of({"device": [{"name": "OBDII", "mac": "11:22:de:ad:be:ef"}]});
+    }
+
 }
 
 describe("SettingsComponent", () => {
@@ -51,7 +56,7 @@ describe("SettingsComponent", () => {
         waitForAsync(() => {
             TestBed.configureTestingModule({
                 declarations: [SettingsComponent],
-                imports: [ReactiveFormsModule],
+                imports: [NgbTypeaheadModule, ReactiveFormsModule],
                 providers: [{provide: ApiService, useClass: MockApiService}],
                 teardown: {destroyAfterEach: true},
             }).compileComponents();
@@ -101,6 +106,12 @@ describe("SettingsComponent", () => {
         apnInput?.setValue("apn.test.provider");
 
         expect(component.form.valid).toBeFalsy();
+
+        const devInput = component.obd2.get("name");
+        expect(devInput).toBeTruthy();
+        devInput?.setValue("OBDII");
+
+        fixture.detectChanges();
 
         const mqttHostnameInput = component.mqtt.get("hostname");
         expect(mqttHostnameInput).toBeTruthy();

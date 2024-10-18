@@ -168,3 +168,7 @@
   --ui-btn-disabled-bg: #{$primary};
   --ui-btn-disabled-border-color: #{$primary};
 }
+
+.visually-hidden {
+  visibility: hidden;
+}

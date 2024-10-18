@@ -38,6 +38,8 @@
 
 #define FORMAT_LITTLEFS_IF_FAILED true
 
+#define DISCOVERED_DEVICES_FILE "/discovered_devices.json"
+
 #include "settings.h"
 #include "helper.h"
 #include "obd.h"
@@ -131,7 +133,7 @@ void WiFiAPStationDisconnected(WiFiEvent_t event, WiFiEventInfo_t info) {
     if (wifiAPStaConnected == 0) {
         DEBUG_PORT.println("WiFi AP all clients disconnected. Start all other task.");
         OBD.begin(Settings.getOBD2Name(OBD_ADP_NAME), Settings.getOBD2MAC(), Settings.getOBD2Protocol(),
-                   Settings.getOBD2CheckPIDSupport());
+                  Settings.getOBD2CheckPIDSupport());
         OBD.connect(true);
         wifiAPInUse = false;
     }
@@ -235,7 +237,46 @@ void startHttpServer() {
         request->send(200, "application/json", payload.c_str());
     });
 
+    server.on("/api/discoveredDevices", HTTP_GET, [](AsyncWebServerRequest *request) {
+        JsonDocument doc;
+
+        File file = LittleFS.open(DISCOVERED_DEVICES_FILE, FILE_READ);
+        if (file && !file.isDirectory()) {
+            if (!deserializeJson(doc, file)) {
+                std::string payload;
+                serializeJson(doc, payload);
+                request->send(200, "application/json", payload.c_str());
+            } else {
+                request->send(500);
+            }
+            file.close();
+        } else {
+            request->send(404);
+        }
+    });
+
     server.begin(LittleFS);
+}
+
+void onBTDevicesDiscovered(BTScanResults *btDeviceList) {
+    JsonDocument devices;
+
+    File file = LittleFS.open(DISCOVERED_DEVICES_FILE, FILE_WRITE);
+    if (!file) {
+        Serial.println("Failed to open file discovered_devices.json for writing.");
+    }
+
+    for (int i = 0; i < btDeviceList->getCount(); i++) {
+        JsonDocument dev;
+        BTAdvertisedDevice *device = btDeviceList->getDevice(i);
+        dev["name"] = device->getName();
+        dev["mac"] = device->getAddress().toString();
+        devices["device"].add(dev);
+    }
+
+    serializeJson(devices, file);
+
+    file.close();
 }
 
 bool sendDiscoveryData() {
@@ -796,7 +837,8 @@ void setup() {
     gsm.enableGPS();
 
     OBD.begin(Settings.getOBD2Name(OBD_ADP_NAME), Settings.getOBD2MAC(), Settings.getOBD2Protocol(),
-               Settings.getOBD2CheckPIDSupport());
+              Settings.getOBD2CheckPIDSupport());
+    OBD.onDevicesDiscovered(onBTDevicesDiscovered);
     OBD.connect();
 
     if (!Settings.getMQTTHostname().isEmpty()) {
