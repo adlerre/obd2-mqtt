@@ -7,6 +7,7 @@ import { AppComponent } from "./app.component";
 import { ApiService } from "./services/api.service";
 import { RouterModule } from "@angular/router";
 import { DeviceInfoComponent, OTAComponent, SettingsComponent } from "./components";
+import { NgbTypeaheadModule } from "@ng-bootstrap/ng-bootstrap";
 
 @NgModule({
     bootstrap: [AppComponent],
@@ -18,6 +19,7 @@ import { DeviceInfoComponent, OTAComponent, SettingsComponent } from "./componen
     ],
     imports: [
         BrowserModule,
+        NgbTypeaheadModule,
         ReactiveFormsModule,
         RouterModule.forRoot(
             [

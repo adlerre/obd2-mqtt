@@ -17,7 +17,7 @@
 
 import { Injectable } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
-import { ModemInfo, Settings, WifiInfo } from "../definitions";
+import { DiscoveredDevices, ModemInfo, Settings, WifiInfo } from "../definitions";
 
 @Injectable()
 export class ApiService {
@@ -43,6 +43,10 @@ export class ApiService {
 
     updateSettings(settings: Settings) {
         return this.$http.put<Settings>("/api/settings", settings);
+    }
+
+    discoveredDevices() {
+        return this.$http.get<DiscoveredDevices>("/api/discoveredDevices");
     }
 
 }

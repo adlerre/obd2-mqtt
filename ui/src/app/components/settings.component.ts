@@ -15,17 +15,32 @@
  *  59 Temple Place - Suite 330, Boston, MA  02111-1307 USA
  */
 
-import { Component, OnInit } from "@angular/core";
+import { Component, OnInit, ViewChild } from "@angular/core";
 import { ApiService } from "../services/api.service";
 import { FormControl, FormGroup, Validators } from "@angular/forms";
 import {
     dataIntervals,
     diagnosticIntervals,
+    DiscoveredDevice,
+    DiscoveredDevices,
     discoveryIntervals,
     locationIntervals,
     OBD2Protocol,
     Settings
 } from "../definitions";
+import { NgbTypeahead, NgbTypeaheadSelectItemEvent } from "@ng-bootstrap/ng-bootstrap";
+import {
+    catchError,
+    debounceTime,
+    distinctUntilChanged,
+    filter,
+    map,
+    merge,
+    Observable,
+    of,
+    OperatorFunction,
+    Subject
+} from "rxjs";
 
 @Component({
     selector: "ui-settings",
@@ -33,6 +48,10 @@ import {
     styleUrls: ["./settings.component.scss"]
 })
 export class SettingsComponent implements OnInit {
+
+    @ViewChild("devTypeahead", {static: true}) devTypeahead: NgbTypeahead;
+
+    discoveredDevices: DiscoveredDevices | undefined;
 
     protocols = Object.values(OBD2Protocol);
 
@@ -45,6 +64,10 @@ export class SettingsComponent implements OnInit {
     obd2: FormGroup;
 
     mqtt: FormGroup;
+
+    focus$ = new Subject<string>();
+
+    click$ = new Subject<string>();
 
     protected readonly dataIntervals = dataIntervals;
 
@@ -98,6 +121,9 @@ export class SettingsComponent implements OnInit {
 
     ngOnInit(): void {
         this.$api.settings().subscribe(settings => this.form.patchValue(settings));
+        this.$api.discoveredDevices()
+            .pipe(catchError(() => of({} as DiscoveredDevices)))
+            .subscribe(dd => this.discoveredDevices = dd);
     }
 
     getProtocols(): Array<{ key: string, value: string }> {
@@ -105,6 +131,34 @@ export class SettingsComponent implements OnInit {
             key: key.replaceAll("_", " "),
             value: OBD2Protocol[key as keyof typeof OBD2Protocol]
         }));
+    }
+
+    searchDevice: OperatorFunction<string, readonly DiscoveredDevice[]> = (text$: Observable<string>) => {
+        const debouncedText$ = text$.pipe(debounceTime(200), distinctUntilChanged());
+        const clicksWithClosedPopup$ = this.click$.pipe(filter(() => !this.devTypeahead.isPopupOpen()));
+        const inputFocus$ = this.focus$;
+
+        return merge(debouncedText$, inputFocus$, clicksWithClosedPopup$).pipe(
+            map((term) =>
+                (
+                    (term === "" ?
+                            this.discoveredDevices?.device :
+                            (this.discoveredDevices?.device || [])
+                                .filter((v) =>
+                                    v.name.toLowerCase().indexOf(term.toLowerCase()) > -1 ||
+                                    v.mac.toLowerCase().indexOf(term.toLowerCase()) > -1
+                                )
+                    ) || []
+                ).slice(0, 10)
+            )
+        );
+    }
+
+    onSelectDevice(event: NgbTypeaheadSelectItemEvent) {
+        event.preventDefault();
+        if (event.item) {
+            this.obd2.patchValue({"name": event.item.name, "mac": event.item.mac});
+        }
     }
 
     onSubmit({value, valid}: { value: Settings, valid: boolean }) {

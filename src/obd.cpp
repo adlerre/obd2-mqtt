@@ -22,254 +22,15 @@ OBDClass::OBDClass(): elm327() {
     protocol = AUTOMATIC;
 }
 
-void OBDClass::begin(const String &devName, const String &devMac, const char protocol, bool checkPidSupport) {
-    this->devName = devName;
-    this->devMac = devMac;
-    this->protocol = protocol;
-    this->checkPidSupport = checkPidSupport;
-    stopConnect = false;
-}
-
-void OBDClass::end() {
-    stopConnect = true;
-    serialBt.end();
-}
-
-uint32_t OBDClass::getSupportedPids1To20() const {
-    return supportedPids_1_20;
-}
-
-uint32_t OBDClass::getSupportedPids21To40() const {
-    return supportedPids_21_40;
-}
-
-uint32_t OBDClass::getSupportedPids41To60() const {
-    return supportedPids_41_60;
-}
-
-uint32_t OBDClass::getSupportedPids61To80() const {
-    return supportedPids_61_80;
-}
-
-int OBDClass::getLoad() const {
-    return load;
-}
-
-int OBDClass::getThrottle() const {
-    return throttle;
-}
-
-float OBDClass::getRPM() const {
-    return rpm;
-}
-
-float OBDClass::getCoolantTemp() const {
-    return coolantTemp;
-}
-
-float OBDClass::getOilTemp() const {
-    return oilTemp;
-}
-
-float OBDClass::getAmbientAirTemp() const {
-    return ambientAirTemp;
-}
-
-int OBDClass::getKPH() const {
-    return kph;
-}
-
-float OBDClass::getFuelLevel() const {
-    return fuelLevel;
-}
-
-float OBDClass::getFuelRate() const {
-    return fuelRate;
-}
-
-uint8_t OBDClass::getFuelType() const {
-    return fuelType;
-}
-
-bool OBDClass::getFuelTypeRead() const {
-    return fuelTypeRead;
-}
-
-float OBDClass::getMafRate() const {
-    return mafRate;
-}
-
-float OBDClass::getBatVoltage() const {
-    return batVoltage;
-}
-
-float OBDClass::getIntakeAirTemp() const {
-    return intakeAirTemp;
-}
-
-uint8_t OBDClass::getManifoldPressure() const {
-    return manifoldPressure;
-}
-
-float OBDClass::getTimingAdvance() const {
-    return timingAdvance;
-}
-
-float OBDClass::getPedalPosition() const {
-    return pedalPosition;
-}
-
-uint32_t OBDClass::getMonitorStatus() const {
-    return monitorStatus;
-}
-
-bool OBDClass::getMilState() const {
-    return milState;
-}
-
-unsigned long OBDClass::getLastReadSpeed() const {
-    return lastReadSpeed;
-}
-
-unsigned long OBDClass::getRunStartTime() const {
-    return runStartTime;
-}
-
-float OBDClass::getCurConsumption() const {
-    return curConsumption;
-}
-
-float OBDClass::getConsumption() const {
-    return consumption;
-}
-
-float OBDClass::getConsumptionPer100() const {
-    return consumptionPer100;
-}
-
-float OBDClass::getDistanceDriven() const {
-    return distanceDriven;
-}
-
-float OBDClass::getAvgSpeed() const {
-    return avgSpeed;
-}
-
-int OBDClass::getTopSpeed() const {
-    return topSpeed;
-}
-
-std::string OBDClass::getConnectedBTAddress() const {
-    return connectedBTAddress;
-}
-
-std::string OBDClass::vin() const {
-    return VIN;
-}
-
-bool OBDClass::isPidSupported(uint8_t pid) {
-    bool cached = false;
-    uint32_t response = 0;
-    uint8_t pidInterval = (pid / PID_INTERVAL_OFFSET) * PID_INTERVAL_OFFSET;
-
-    int retries = 0;
-    do {
-        switch (pidInterval) {
-            case SUPPORTED_PIDS_1_20:
-                response = !supportedPids_1_20_cached
-                               ? elm327.supportedPIDs_1_20()
-                               : supportedPids_1_20;
-                cached = supportedPids_1_20_cached;
-                break;
-            case SUPPORTED_PIDS_21_40:
-                response = !supportedPids_21_40_cached
-                               ? elm327.supportedPIDs_21_40()
-                               : supportedPids_21_40;
-                pid = (pid - SUPPORTED_PIDS_21_40);
-                cached = supportedPids_21_40_cached;
-                break;
-            case SUPPORTED_PIDS_41_60:
-                response = !supportedPids_41_60_cached
-                               ? elm327.supportedPIDs_41_60()
-                               : supportedPids_41_60;
-                pid = (pid - SUPPORTED_PIDS_41_60);
-                cached = supportedPids_41_60_cached;
-                break;
-            case SUPPORTED_PIDS_61_80:
-                response = !supportedPids_61_80_cached
-                               ? elm327.supportedPIDs_61_80()
-                               : supportedPids_61_80;
-                pid = (pid - SUPPORTED_PIDS_61_80);
-                cached = supportedPids_61_80_cached;
-                break;
-            default:
-                break;
-        }
-        if (!cached) {
-            if (elm327.nb_rx_state == ELM_GETTING_MSG) {
-                Serial.print(".");
-                delay(500);
-                retries++;
-            } else if (elm327.nb_rx_state != ELM_SUCCESS) {
-                Serial.print("x");
-                delay(500);
-                retries++;
-            }
-        }
-    } while (!cached && response == 0 && elm327.nb_rx_state != ELM_SUCCESS && retries < 10);
-    if (!cached) {
-        Serial.println("");
+void OBDClass::BTEvent(esp_spp_cb_event_t event, esp_spp_cb_param_t *param) {
+    if (event == ESP_SPP_CLOSE_EVT) {
+        Serial.println("Bluetooth disconnected.");
     }
-
-    if (!cached && response != 0 && elm327.nb_rx_state == ELM_SUCCESS) {
-        switch (pidInterval) {
-            case SUPPORTED_PIDS_1_20:
-                supportedPids_1_20 = response;
-                supportedPids_1_20_cached = true;
-                break;
-            case SUPPORTED_PIDS_21_40:
-                supportedPids_21_40 = response;
-                supportedPids_21_40_cached = true;
-                break;
-            case SUPPORTED_PIDS_41_60:
-                supportedPids_41_60 = response;
-                supportedPids_41_60_cached = true;
-                break;
-            case SUPPORTED_PIDS_61_80:
-                supportedPids_61_80 = response;
-                supportedPids_61_80_cached = true;
-                break;
-            default:
-                break;
-        }
-    } else if (!cached && !checkPidSupport) {
-        switch (pidInterval) {
-            case SUPPORTED_PIDS_1_20:
-                supportedPids_1_20 = 0xFFFFFFFF;
-                supportedPids_1_20_cached = true;
-                break;
-            case SUPPORTED_PIDS_21_40:
-                supportedPids_21_40 = 0xFFFFFFFF;
-                supportedPids_21_40_cached = true;
-                break;
-            case SUPPORTED_PIDS_41_60:
-                supportedPids_41_60 = 0xFFFFFFFF;
-                supportedPids_41_60_cached = true;
-                break;
-            case SUPPORTED_PIDS_61_80:
-                supportedPids_61_80 = 0xFFFFFFFF;
-                supportedPids_61_80_cached = true;
-                break;
-            default:
-                break;
-        }
-        response = 0xFFFFFFFF;
-    }
-
-    return ((response >> (32 - pid)) & 0x1);
 }
 
 BTScanResults *OBDClass::discoverBtDevices() {
+    serialBt.discoverClear();
+
     Serial.println("Discover Bluetooth devices...");
 
     BTScanResults *btDeviceList = serialBt.getScanResults(); // maybe accessing from different threads!
@@ -290,10 +51,37 @@ BTScanResults *OBDClass::discoverBtDevices() {
     return nullptr;
 }
 
-void OBDClass::BTEvent(esp_spp_cb_event_t event, esp_spp_cb_param_t *param) {
-    if (event == ESP_SPP_CLOSE_EVT) {
-        Serial.println("Bluetooth disconnected.");
+template<typename T>
+bool OBDClass::setStateValue(T &var, obd_pid_states nextState, T value) {
+    if (elm327.nb_rx_state == ELM_SUCCESS) {
+        var = value;
+        obd_state = nextState;
+        return true;
     }
+
+    if (elm327.nb_rx_state != ELM_GETTING_MSG && elm327.nb_rx_state != ELM_SUCCESS) {
+        elm327.printError();
+    }
+
+    if (elm327.nb_rx_state == ELM_NO_DATA) {
+        var = 0;
+        obd_state = nextState;
+    }
+
+    return false;
+}
+
+void OBDClass::begin(const String &devName, const String &devMac, const char protocol, bool checkPidSupport) {
+    this->devName = devName;
+    this->devMac = devMac;
+    this->protocol = protocol;
+    this->checkPidSupport = checkPidSupport;
+    stopConnect = false;
+}
+
+void OBDClass::end() {
+    stopConnect = true;
+    serialBt.end();
 }
 
 void OBDClass::connect(bool reconnect) {
@@ -301,7 +89,7 @@ void OBDClass::connect(bool reconnect) {
 connect:
     serialBt.register_callback(BTEvent);
 
-    if (stopConnect) {
+    if (stopConnect || reconnect && !initDone) {
         return;
     }
 
@@ -318,6 +106,10 @@ connect:
         } else {
             BTAddress addr;
             int channel = 0;
+
+            if (devDiscoveredCallback != nullptr && btDeviceList->getCount() != 0) {
+                devDiscoveredCallback(btDeviceList);
+            }
 
             Serial.printf("Search device: %s\n", devName);
             for (int i = 0; i < btDeviceList->getCount(); i++) {
@@ -339,7 +131,9 @@ connect:
 
             if (!stopConnect && addr) {
                 Serial.printf("connecting to %s - %d\n", addr.toString().c_str(), channel);
-                serialBt.connect(addr, channel, ESP_SPP_SEC_NONE, ESP_SPP_ROLE_SLAVE);
+                if (serialBt.connect(addr, channel, ESP_SPP_SEC_NONE, ESP_SPP_ROLE_SLAVE)) {
+                    connectedBTAddress = addr.toString().c_str();
+                }
             }
         }
     } else {
@@ -373,8 +167,13 @@ connect:
             delay(BT_DISCOVER_TIME);
             retryCount++;
         }
-    } else {
+    } else if (!stopConnect) {
         Serial.println("Couldn't connect to OBD scanner - Phase 1");
+    }
+
+    // if connection stopped (AP connected) wait before reconnect
+    while (stopConnect) {
+        delay(BT_DISCOVER_TIME);
     }
 
     if (!elm327.connected) {
@@ -412,27 +211,9 @@ connect:
                 Serial.println("...VIN is empty.");
             }
         }
-    }
-}
 
-template<typename T>
-bool OBDClass::setStateValue(T &var, obd_pid_states nextState, T value) {
-    if (elm327.nb_rx_state == ELM_SUCCESS) {
-        var = value;
-        obd_state = nextState;
-        return true;
+        initDone = true;
     }
-
-    if (elm327.nb_rx_state != ELM_GETTING_MSG && elm327.nb_rx_state != ELM_SUCCESS) {
-        elm327.printError();
-    }
-
-    if (elm327.nb_rx_state == ELM_NO_DATA) {
-        var = 0;
-        obd_state = nextState;
-    }
-
-    return false;
 }
 
 void OBDClass::loop() {
@@ -596,6 +377,244 @@ void OBDClass::loop() {
     } else {
         delay(500);
     }
+}
+
+void OBDClass::onDevicesDiscovered(const std::function<void(BTScanResults *scanResult)> &callable) {
+    devDiscoveredCallback = callable;
+}
+
+bool OBDClass::isPidSupported(uint8_t pid) {
+    bool cached = false;
+    uint32_t response = 0;
+    uint8_t pidInterval = (pid / PID_INTERVAL_OFFSET) * PID_INTERVAL_OFFSET;
+
+    int retries = 0;
+    do {
+        switch (pidInterval) {
+            case SUPPORTED_PIDS_1_20:
+                response = !supportedPids_1_20_cached
+                               ? elm327.supportedPIDs_1_20()
+                               : supportedPids_1_20;
+                cached = supportedPids_1_20_cached;
+                break;
+            case SUPPORTED_PIDS_21_40:
+                response = !supportedPids_21_40_cached
+                               ? elm327.supportedPIDs_21_40()
+                               : supportedPids_21_40;
+                pid = (pid - SUPPORTED_PIDS_21_40);
+                cached = supportedPids_21_40_cached;
+                break;
+            case SUPPORTED_PIDS_41_60:
+                response = !supportedPids_41_60_cached
+                               ? elm327.supportedPIDs_41_60()
+                               : supportedPids_41_60;
+                pid = (pid - SUPPORTED_PIDS_41_60);
+                cached = supportedPids_41_60_cached;
+                break;
+            case SUPPORTED_PIDS_61_80:
+                response = !supportedPids_61_80_cached
+                               ? elm327.supportedPIDs_61_80()
+                               : supportedPids_61_80;
+                pid = (pid - SUPPORTED_PIDS_61_80);
+                cached = supportedPids_61_80_cached;
+                break;
+            default:
+                break;
+        }
+        if (!cached) {
+            if (elm327.nb_rx_state == ELM_GETTING_MSG) {
+                Serial.print(".");
+                delay(500);
+                retries++;
+            } else if (elm327.nb_rx_state != ELM_SUCCESS) {
+                Serial.print("x");
+                delay(500);
+                retries++;
+            }
+        }
+    } while (!cached && response == 0 && elm327.nb_rx_state != ELM_SUCCESS && retries < 10);
+    if (!cached) {
+        Serial.println("");
+    }
+
+    if (!cached && response != 0 && elm327.nb_rx_state == ELM_SUCCESS) {
+        switch (pidInterval) {
+            case SUPPORTED_PIDS_1_20:
+                supportedPids_1_20 = response;
+                supportedPids_1_20_cached = true;
+                break;
+            case SUPPORTED_PIDS_21_40:
+                supportedPids_21_40 = response;
+                supportedPids_21_40_cached = true;
+                break;
+            case SUPPORTED_PIDS_41_60:
+                supportedPids_41_60 = response;
+                supportedPids_41_60_cached = true;
+                break;
+            case SUPPORTED_PIDS_61_80:
+                supportedPids_61_80 = response;
+                supportedPids_61_80_cached = true;
+                break;
+            default:
+                break;
+        }
+    } else if (!cached && !checkPidSupport) {
+        switch (pidInterval) {
+            case SUPPORTED_PIDS_1_20:
+                supportedPids_1_20 = 0xFFFFFFFF;
+                supportedPids_1_20_cached = true;
+                break;
+            case SUPPORTED_PIDS_21_40:
+                supportedPids_21_40 = 0xFFFFFFFF;
+                supportedPids_21_40_cached = true;
+                break;
+            case SUPPORTED_PIDS_41_60:
+                supportedPids_41_60 = 0xFFFFFFFF;
+                supportedPids_41_60_cached = true;
+                break;
+            case SUPPORTED_PIDS_61_80:
+                supportedPids_61_80 = 0xFFFFFFFF;
+                supportedPids_61_80_cached = true;
+                break;
+            default:
+                break;
+        }
+        response = 0xFFFFFFFF;
+    }
+
+    return ((response >> (32 - pid)) & 0x1);
+}
+
+uint32_t OBDClass::getSupportedPids1To20() const {
+    return supportedPids_1_20;
+}
+
+uint32_t OBDClass::getSupportedPids21To40() const {
+    return supportedPids_21_40;
+}
+
+uint32_t OBDClass::getSupportedPids41To60() const {
+    return supportedPids_41_60;
+}
+
+uint32_t OBDClass::getSupportedPids61To80() const {
+    return supportedPids_61_80;
+}
+
+int OBDClass::getLoad() const {
+    return load;
+}
+
+int OBDClass::getThrottle() const {
+    return throttle;
+}
+
+float OBDClass::getRPM() const {
+    return rpm;
+}
+
+float OBDClass::getCoolantTemp() const {
+    return coolantTemp;
+}
+
+float OBDClass::getOilTemp() const {
+    return oilTemp;
+}
+
+float OBDClass::getAmbientAirTemp() const {
+    return ambientAirTemp;
+}
+
+int OBDClass::getKPH() const {
+    return kph;
+}
+
+float OBDClass::getFuelLevel() const {
+    return fuelLevel;
+}
+
+float OBDClass::getFuelRate() const {
+    return fuelRate;
+}
+
+uint8_t OBDClass::getFuelType() const {
+    return fuelType;
+}
+
+bool OBDClass::getFuelTypeRead() const {
+    return fuelTypeRead;
+}
+
+float OBDClass::getMafRate() const {
+    return mafRate;
+}
+
+float OBDClass::getBatVoltage() const {
+    return batVoltage;
+}
+
+float OBDClass::getIntakeAirTemp() const {
+    return intakeAirTemp;
+}
+
+uint8_t OBDClass::getManifoldPressure() const {
+    return manifoldPressure;
+}
+
+float OBDClass::getTimingAdvance() const {
+    return timingAdvance;
+}
+
+float OBDClass::getPedalPosition() const {
+    return pedalPosition;
+}
+
+uint32_t OBDClass::getMonitorStatus() const {
+    return monitorStatus;
+}
+
+bool OBDClass::getMilState() const {
+    return milState;
+}
+
+unsigned long OBDClass::getLastReadSpeed() const {
+    return lastReadSpeed;
+}
+
+unsigned long OBDClass::getRunStartTime() const {
+    return runStartTime;
+}
+
+float OBDClass::getCurConsumption() const {
+    return curConsumption;
+}
+
+float OBDClass::getConsumption() const {
+    return consumption;
+}
+
+float OBDClass::getConsumptionPer100() const {
+    return consumptionPer100;
+}
+
+float OBDClass::getDistanceDriven() const {
+    return distanceDriven;
+}
+
+float OBDClass::getAvgSpeed() const {
+    return avgSpeed;
+}
+
+int OBDClass::getTopSpeed() const {
+    return topSpeed;
+}
+
+std::string OBDClass::getConnectedBTAddress() const {
+    return connectedBTAddress;
+}
+
+std::string OBDClass::vin() const {
+    return VIN;
 }
 
 float OBDClass::calcCurrentConsumption(const int fuelType, const int kph, const float mafRate) {

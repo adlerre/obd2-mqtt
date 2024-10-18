@@ -79,6 +79,7 @@ class OBDClass {
     BluetoothSerial serialBt;
     ELM327 elm327;
 
+    bool initDone = false;
     bool stopConnect = false;
 
     String devName;
@@ -130,6 +131,8 @@ class OBDClass {
     std::string connectedBTAddress;
     std::string VIN;
 
+    std::function<void(BTScanResults *scanResult)> devDiscoveredCallback = nullptr;
+
     BTScanResults *discoverBtDevices();
 
     static void BTEvent(esp_spp_cb_event_t event, esp_spp_cb_param_t *param);
@@ -156,7 +159,14 @@ public:
 
     void loop();
 
-    std::string getConnectedBTAddress() const;
+    void onDevicesDiscovered(const std::function<void(BTScanResults *scanResult)> &callable);
+
+    /**
+     * Checks if PID is supported.
+     *
+     * @param pid the PID
+     */
+    bool isPidSupported(uint8_t pid);
 
     uint32_t getSupportedPids1To20() const;
 
@@ -167,6 +177,8 @@ public:
     uint32_t getSupportedPids61To80() const;
 
     std::string vin() const;
+
+    std::string getConnectedBTAddress() const;
 
     int getLoad() const;
 
@@ -222,13 +234,6 @@ public:
 
     int getTopSpeed() const;
 
-
-    /**
-     * Checks if PID is supported.
-     *
-     * @param pid the PID
-     */
-    bool isPidSupported(uint8_t pid);
 
     /**
      * Calculate the current consumption from MAF Rate.

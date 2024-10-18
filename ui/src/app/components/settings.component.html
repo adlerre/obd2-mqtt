@@ -1,3 +1,7 @@
+<ng-template #deviceName let-r="result" let-t="term">
+    <ngb-highlight [result]="r.name + ' (' + r.mac + ')'" [term]="t"></ngb-highlight>
+</ng-template>
+
 <div id="settings">
     <form novalidate (ngSubmit)="onSubmit(form)" [formGroup]="form">
         <fieldset [formGroup]="wifi">
@@ -77,6 +81,12 @@
                            placeholder="OBDII"
                            class="form-control"
                            [ngClass]="{'is-invalid': obd2.controls.name.dirty && obd2.controls.name.errors}"
+                           [ngbTypeahead]="searchDevice"
+                           [resultTemplate]="deviceName"
+                           (focus)="focus$.next($any($event).target.value)"
+                           (click)="click$.next($any($event).target.value)"
+                           (selectItem)="onSelectDevice($event)"
+                           #devTypeahead="ngbTypeahead"
                     >
                 </div>
             </div>
