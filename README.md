@@ -75,7 +75,7 @@ This sensors only available if your car support.
 * Battery Voltage
 * Calculated average speed
 * Calculated consumption
-* Calculated consumption per 100km
+* Calculated consumption per 100km or MPG
 * Calculated driven distance
 * Check Engine Light
 * Engine Coolant Temperature

@@ -43,6 +43,10 @@ namespace ArduinoJson {
 
 #define SETTINGS_FILE "/settings.json"
 
+struct GeneralSettings {
+    int measurementSystem;
+};
+
 struct WiFiSettings {
     char ssid[64];
     char password[32];
@@ -74,6 +78,7 @@ struct MQTTSettings {
 };
 
 class SettingsClass {
+    GeneralSettings general{};
     WiFiSettings wifi{};
     MobileSettings mobile{};
     OBD2Settings obd2{};
@@ -93,6 +98,10 @@ public:
     std::string buildJson();
 
     bool parseJson(std::string json);
+
+    int getMeasurementSystem() const;
+
+    void setMeasurementSystem(int measurementSystem);
 
     String getWiFiAPSSID(const String &alternate = String()) const;
 

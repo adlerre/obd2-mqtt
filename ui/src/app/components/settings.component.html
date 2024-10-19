@@ -21,6 +21,20 @@
 
 <div id="settings">
     <form novalidate (ngSubmit)="onSubmit(form)" [formGroup]="form">
+        <fieldset [formGroup]="general">
+            <legend>General</legend>
+            <div class="row mb-2">
+                <label for="measurementSystem" class="col-sm-2 col-form-label">System of Measurement</label>
+                <div class="col-sm-10">
+                    <select class="form-control form-select" id="measurementSystem"
+                            formControlName="measurementSystem"
+                            [ngClass]="{'is-invalid':general.controls.measurementSystem.dirty && general.controls.measurementSystem.errors}">
+                        <option *ngFor="let system of getMeasurementSystems()" [value]="system.value">{{ system.key }}
+                        </option>
+                    </select>
+                </div>
+            </div>
+        </fieldset>
         <fieldset [formGroup]="wifi">
             <legend>WiFi Access Point</legend>
             <div class="row mb-2">

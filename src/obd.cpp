@@ -276,7 +276,7 @@ void OBDClass::loop() {
                     }
 
                     if (kph > topSpeed) {
-                        topSpeed = static_cast<int>(kph);
+                        topSpeed = kph;
                     }
 
                     distanceDriven = distanceDriven +
@@ -525,16 +525,16 @@ float OBDClass::getAmbientAirTemp() const {
     return ambientAirTemp;
 }
 
-int OBDClass::getKPH() const {
-    return kph;
+int OBDClass::getSpeed(measurementSystem system) const {
+    return system == METRIC ? kph : kph / KPH_TO_MPH;
 }
 
 float OBDClass::getFuelLevel() const {
     return fuelLevel;
 }
 
-float OBDClass::getFuelRate() const {
-    return fuelRate;
+float OBDClass::getFuelRate(measurementSystem system) const {
+    return system == METRIC ? fuelRate : fuelRate / LITER_TO_GALLON;
 }
 
 uint8_t OBDClass::getFuelType() const {
@@ -585,28 +585,28 @@ unsigned long OBDClass::getRunStartTime() const {
     return runStartTime;
 }
 
-float OBDClass::getCurConsumption() const {
-    return curConsumption;
+float OBDClass::getCurConsumption(measurementSystem system) const {
+    return system == METRIC ? curConsumption : curConsumption / LITER_TO_GALLON;
 }
 
-float OBDClass::getConsumption() const {
-    return consumption;
+float OBDClass::getConsumption(measurementSystem system) const {
+    return system == METRIC ? consumption : consumption / LITER_TO_GALLON;
 }
 
-float OBDClass::getConsumptionPer100() const {
-    return consumptionPer100;
+float OBDClass::getConsumptionForMeasurement(measurementSystem system) const {
+    return system == METRIC ? consumptionPer100 : 235.214583333333f / consumptionPer100;
 }
 
-float OBDClass::getDistanceDriven() const {
-    return distanceDriven;
+float OBDClass::getDistanceDriven(measurementSystem system) const {
+    return system == METRIC ? distanceDriven : distanceDriven / KPH_TO_MPH;
 }
 
-float OBDClass::getAvgSpeed() const {
-    return avgSpeed;
+float OBDClass::getAvgSpeed(measurementSystem system) const {
+    return system == METRIC ? avgSpeed : avgSpeed / KPH_TO_MPH;
 }
 
-int OBDClass::getTopSpeed() const {
-    return topSpeed;
+int OBDClass::getTopSpeed(measurementSystem system) const {
+    return system == METRIC ? topSpeed : topSpeed / KPH_TO_MPH;
 }
 
 std::string OBDClass::getConnectedBTAddress() const {
