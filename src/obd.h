@@ -55,6 +55,9 @@
 #define FUEL_TYPE_PROPANE   7
 #define FUEL_TYPE_ELECTRIC  8
 
+#define KPH_TO_MPH          1.60934;
+#define LITER_TO_GALLON     3.7854;
+
 typedef enum {
     ENG_LOAD,
     RPM,
@@ -74,6 +77,11 @@ typedef enum {
     PEDAL_POS,
     MILSTATUS
 } obd_pid_states;
+
+typedef enum {
+    METRIC,
+    IMPERIAL
+} measurementSystem;
 
 class OBDClass {
     BluetoothSerial serialBt;
@@ -192,11 +200,11 @@ public:
 
     float getAmbientAirTemp() const;
 
-    int getKPH() const;
+    int getSpeed(measurementSystem system = METRIC) const;
 
     float getFuelLevel() const;
 
-    float getFuelRate() const;
+    float getFuelRate(measurementSystem system = METRIC) const;
 
     uint8_t getFuelType() const;
 
@@ -222,18 +230,17 @@ public:
 
     unsigned long getRunStartTime() const;
 
-    float getCurConsumption() const;
+    float getCurConsumption(measurementSystem system = METRIC) const;
 
-    float getConsumption() const;
+    float getConsumption(measurementSystem system = METRIC) const;
 
-    float getConsumptionPer100() const;
+    float getConsumptionForMeasurement(measurementSystem system = METRIC) const;
 
-    float getDistanceDriven() const;
+    float getDistanceDriven(measurementSystem system = METRIC) const;
 
-    float getAvgSpeed() const;
+    float getAvgSpeed(measurementSystem system = METRIC) const;
 
-    int getTopSpeed() const;
-
+    int getTopSpeed(measurementSystem system = METRIC) const;
 
     /**
      * Calculate the current consumption from MAF Rate.

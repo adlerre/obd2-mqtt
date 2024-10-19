@@ -343,10 +343,15 @@ bool sendDiscoveryData() {
     if (OBD.isPidSupported(VEHICLE_SPEED)) {
         allSendsSuccessed |= mqtt.sendTopicConfig("", "kph", "Kilometer per Hour", "speedometer", "km/h", "speed",
                                                   "measurement", "");
+
+        allSendsSuccessed |= mqtt.sendTopicConfig("", "mph", "Miles per Hour", "speedometer", "mph", "speed",
+                                                  "measurement", "");
     }
 
     if (OBD.isPidSupported(ENGINE_FUEL_RATE)) {
-        allSendsSuccessed |= mqtt.sendTopicConfig("", "fuelRate", "Fuel Rate", "fuel", "L/h", "", "measurement", "");
+        allSendsSuccessed |= mqtt.sendTopicConfig("", "fuelRate", "Fuel Rate", "fuel",
+                                                  Settings.getMeasurementSystem() == METRIC ? "L/h" : "gal/h", "",
+                                                  "measurement", "");
     }
 
     if (OBD.isPidSupported(FUEL_TANK_LEVEL_INPUT)) {
@@ -361,19 +366,32 @@ bool sendDiscoveryData() {
                                                   "measurement", "");
     }
 
-    allSendsSuccessed |= mqtt.sendTopicConfig("", "topSpeed", "Top Speed", "speedometer", "km/h", "speed",
+    allSendsSuccessed |= mqtt.sendTopicConfig("", "topSpeed", "Top Speed", "speedometer",
+                                              Settings.getMeasurementSystem() == METRIC ? "km/h" : "mph", "speed",
                                               "measurement", "");
 
     // allSendsSuccessed |= mqtt.sendTopicConfig("", "curConsumption", "Calculated current consumption",
     //                                           "gas-station-outline", "l/100km", "", "measurement", "");
     allSendsSuccessed |= mqtt.sendTopicConfig("", "consumption", "Calculated consumption",
-                                              "gas-station", "L", "volume", "", "");
-    allSendsSuccessed |= mqtt.sendTopicConfig("", "consumptionPer100", "Calculated consumption per 100km",
-                                              "gas-station", "l/100km", "", "measurement", "");
+                                              "gas-station", Settings.getMeasurementSystem() == METRIC ? "L" : "gal",
+                                              "volume", "", "");
+
+    if (Settings.getMeasurementSystem() == METRIC) {
+        allSendsSuccessed |= mqtt.sendTopicConfig("", "consumptionPer100", "Calculated consumption per 100km",
+                                                  "gas-station", "l/100km", "", "measurement", "");
+    } else {
+        allSendsSuccessed |= mqtt.sendTopicConfig("", "mpg", "Calculated Miles per gallon",
+                                                  "gas-station", "mpg", "", "measurement", "");
+    }
+
     allSendsSuccessed |= mqtt.sendTopicConfig("", "distanceDriven", "Calculated driven distance",
-                                              "map-marker-distance", "km", "distance", "measurement", "");
+                                              "map-marker-distance",
+                                              Settings.getMeasurementSystem() == METRIC ? "km" : "mi", "distance",
+                                              "measurement", "");
     allSendsSuccessed |= mqtt.sendTopicConfig("", "avgSpeed", "Calculated average speed",
-                                              "speedometer-medium", "km/h", "speed", "measurement", "");
+                                              "speedometer-medium",
+                                              Settings.getMeasurementSystem() == METRIC ? "km/h" : "mph", "speed",
+                                              "measurement", "");
 
     DEBUG_PORT.printf("...%s (%dms)\n", allSendsSuccessed ? "done" : "failed", millis() - start);
 
@@ -465,12 +483,12 @@ bool sendOBDData() {
     }
 
     if (OBD.isPidSupported(ENGINE_LOAD)) {
-        sprintf(tmp_char, "%d", static_cast<int>(OBD.getLoad()));
+        sprintf(tmp_char, "%d", OBD.getLoad());
         allSendsSuccessed |= mqtt.sendTopicUpdate("load", std::string(tmp_char));
     }
 
     if (OBD.isPidSupported(THROTTLE_POSITION)) {
-        sprintf(tmp_char, "%d", static_cast<int>(OBD.getThrottle()));
+        sprintf(tmp_char, "%d", OBD.getThrottle());
         allSendsSuccessed |= mqtt.sendTopicUpdate("throttle", std::string(tmp_char));
     }
 
@@ -500,7 +518,7 @@ bool sendOBDData() {
     // }
 
     if (OBD.isPidSupported(MAF_FLOW_RATE)) {
-        sprintf(tmp_char, "%4.2f", static_cast<float>(OBD.getMafRate()));
+        sprintf(tmp_char, "%4.2f", OBD.getMafRate());
         allSendsSuccessed |= mqtt.sendTopicUpdate("mafRate", std::string(tmp_char));
     }
 
@@ -515,12 +533,17 @@ bool sendOBDData() {
     }
 
     if (OBD.isPidSupported(VEHICLE_SPEED)) {
-        sprintf(tmp_char, "%d", static_cast<int>(OBD.getKPH()));
-        allSendsSuccessed |= mqtt.sendTopicUpdate("kph", std::string(tmp_char));
+        if (Settings.getMeasurementSystem() == METRIC) {
+            sprintf(tmp_char, "%d", OBD.getSpeed());
+            allSendsSuccessed |= mqtt.sendTopicUpdate("kph", std::string(tmp_char));
+        } else {
+            sprintf(tmp_char, "%d", OBD.getSpeed(IMPERIAL));
+            allSendsSuccessed |= mqtt.sendTopicUpdate("mph", std::string(tmp_char));
+        }
     }
 
     if (OBD.isPidSupported(ENGINE_FUEL_RATE)) {
-        sprintf(tmp_char, "%4.2f", static_cast<float>(OBD.getFuelRate()));
+        sprintf(tmp_char, "%4.2f", OBD.getFuelRate(static_cast<measurementSystem>(Settings.getMeasurementSystem())));
         allSendsSuccessed |= mqtt.sendTopicUpdate("fuelRate", std::string(tmp_char));
     }
 
@@ -529,7 +552,7 @@ bool sendOBDData() {
         allSendsSuccessed |= mqtt.sendTopicUpdate("fuelLevel", std::string(tmp_char));
     }
 
-    sprintf(tmp_char, "%4.2f", static_cast<float>(OBD.getBatVoltage()));
+    sprintf(tmp_char, "%4.2f", OBD.getBatVoltage());
     allSendsSuccessed |= mqtt.sendTopicUpdate("batVoltage", std::string(tmp_char));
 
     if (OBD.isPidSupported(RELATIVE_ACCELERATOR_PEDAL_POS)) {
@@ -537,22 +560,28 @@ bool sendOBDData() {
         allSendsSuccessed |= mqtt.sendTopicUpdate("pedalPosition", std::string(tmp_char));
     }
 
-    sprintf(tmp_char, "%d", static_cast<int>(OBD.getTopSpeed()));
+    sprintf(tmp_char, "%d", OBD.getTopSpeed(static_cast<measurementSystem>(Settings.getMeasurementSystem())));
     allSendsSuccessed |= mqtt.sendTopicUpdate("topSpeed", std::string(tmp_char));
 
     // sprintf(tmp_char, "%4.2f", static_cast<float>(curConsumption));
     // allSendsSuccessed |= mqtt.sendTopicUpdate("curConsumption", std::string(tmp_char));
 
-    sprintf(tmp_char, "%4.2f", static_cast<float>(OBD.getConsumption()));
+    sprintf(tmp_char, "%4.2f", OBD.getConsumption(static_cast<measurementSystem>(Settings.getMeasurementSystem())));
     allSendsSuccessed |= mqtt.sendTopicUpdate("consumption", std::string(tmp_char));
 
-    sprintf(tmp_char, "%4.2f", static_cast<float>(OBD.getConsumptionPer100()));
-    allSendsSuccessed |= mqtt.sendTopicUpdate("consumptionPer100", std::string(tmp_char));
+    if (Settings.getMeasurementSystem() == METRIC) {
+        sprintf(tmp_char, "%4.2f", OBD.getConsumptionForMeasurement());
+        allSendsSuccessed |= mqtt.sendTopicUpdate("consumptionPer100", std::string(tmp_char));
+    } else {
+        sprintf(tmp_char, "%4.2f",
+                OBD.getConsumptionForMeasurement(static_cast<measurementSystem>(Settings.getMeasurementSystem())));
+        allSendsSuccessed |= mqtt.sendTopicUpdate("mpg", std::string(tmp_char));
+    }
 
-    sprintf(tmp_char, "%4.2f", static_cast<float>(OBD.getDistanceDriven()));
+    sprintf(tmp_char, "%4.2f", OBD.getDistanceDriven(static_cast<measurementSystem>(Settings.getMeasurementSystem())));
     allSendsSuccessed |= mqtt.sendTopicUpdate("distanceDriven", std::string(tmp_char));
 
-    sprintf(tmp_char, "%4.2f", static_cast<float>(OBD.getAvgSpeed()));
+    sprintf(tmp_char, "%4.2f", OBD.getAvgSpeed(static_cast<measurementSystem>(Settings.getMeasurementSystem())));
     allSendsSuccessed |= mqtt.sendTopicUpdate("avgSpeed", std::string(tmp_char));
 
     DEBUG_PORT.printf("...%s (%dms)\n", allSendsSuccessed ? "done" : "failed", millis() - start);

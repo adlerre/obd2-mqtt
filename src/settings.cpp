@@ -22,6 +22,8 @@
 SettingsClass::SettingsClass() = default;
 
 void SettingsClass::readJson(JsonDocument &doc) {
+    general.measurementSystem = doc["general"]["measurementSystem"] | 0;
+
     strlcpy(wifi.ssid, doc["wifi"]["ssid"] | "", sizeof(wifi.ssid));
     strlcpy(wifi.password, doc["wifi"]["password"] | "", sizeof(wifi.password));
 
@@ -46,6 +48,8 @@ void SettingsClass::readJson(JsonDocument &doc) {
 }
 
 void SettingsClass::writeJson(JsonDocument &doc) {
+    doc["general"]["measurementSystem"] = general.measurementSystem;
+
     doc["wifi"]["ssid"] = wifi.ssid;
     doc["wifi"]["password"] = wifi.password;
 
@@ -122,6 +126,14 @@ bool SettingsClass::parseJson(std::string json) {
     }
 
     return success;
+}
+
+int SettingsClass::getMeasurementSystem() const {
+    return general.measurementSystem;
+}
+
+void SettingsClass::setMeasurementSystem(int measurementSystem) {
+    general.measurementSystem = measurementSystem;
 }
 
 String SettingsClass::getWiFiAPSSID(const String &alternate) const {
