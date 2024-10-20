@@ -1,3 +1,17 @@
+# [0.4.0](https://github.com/adlerre/obd2-mqtt/compare/v0.3.0...v0.4.0) (2024-10-20)
+
+
+### Bug Fixes
+
+* bluetooth reconnect issue with workaround ([61367d7](https://github.com/adlerre/obd2-mqtt/commit/61367d75f9e00c3f87c5b08db4350011865ad578))
+* reset only if connection wasn't stopped ([30e83e2](https://github.com/adlerre/obd2-mqtt/commit/30e83e28ee242c71a319674fd8f6f9ab2b276ce4))
+* show mph only with imperial system ([b75ef1f](https://github.com/adlerre/obd2-mqtt/commit/b75ef1f50b31c31c9d29a606391cc5007df502f8))
+
+
+### Features
+
+* implemented imperial system, may the force be with you ([#12](https://github.com/adlerre/obd2-mqtt/issues/12)) ([4f9ecfa](https://github.com/adlerre/obd2-mqtt/commit/4f9ecfa50178f3a02749ea979043dc681b2d5e4f))
+
 # [0.3.0](https://github.com/adlerre/obd2-mqtt/compare/v0.2.1...v0.3.0) (2024-10-18)
 
 
