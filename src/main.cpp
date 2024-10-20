@@ -341,11 +341,13 @@ bool sendDiscoveryData() {
     }
 
     if (OBD.isPidSupported(VEHICLE_SPEED)) {
-        allSendsSuccessed |= mqtt.sendTopicConfig("", "kph", "Kilometer per Hour", "speedometer", "km/h", "speed",
-                                                  "measurement", "");
-
-        allSendsSuccessed |= mqtt.sendTopicConfig("", "mph", "Miles per Hour", "speedometer", "mph", "speed",
-                                                  "measurement", "");
+        if (Settings.getMeasurementSystem() == METRIC) {
+            allSendsSuccessed |= mqtt.sendTopicConfig("", "kph", "Kilometer per Hour", "speedometer", "km/h", "speed",
+                                                      "measurement", "");
+        } else {
+            allSendsSuccessed |= mqtt.sendTopicConfig("", "mph", "Miles per Hour", "speedometer", "mph", "speed",
+                                                      "measurement", "");
+        }
     }
 
     if (OBD.isPidSupported(ENGINE_FUEL_RATE)) {
