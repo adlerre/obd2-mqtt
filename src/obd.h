@@ -18,7 +18,7 @@
 #include <atomic>
 #include <BluetoothSerial.h>
 
-#include "ELMduino.h"
+#include "elm327.h"
 
 // set default adapter name
 #ifndef OBD_ADP_NAME
@@ -75,7 +75,8 @@ typedef enum {
     FUEL_T,
     BAT_VOLTAGE,
     PEDAL_POS,
-    MILSTATUS
+    MILSTATUS,
+    ODO,
 } obd_pid_states;
 
 typedef enum {
@@ -85,7 +86,7 @@ typedef enum {
 
 class OBDClass {
     BluetoothSerial serialBt;
-    ELM327 elm327;
+    ELM327Extended elm327;
 
     bool initDone = false;
     bool stopConnect = false;
@@ -106,6 +107,8 @@ class OBDClass {
     bool supportedPids_41_60_cached{false};
     uint32_t supportedPids_61_80{0};
     bool supportedPids_61_80_cached{false};
+    uint32_t supportedPids_161_191{0};
+    bool supportedPids_161_191_cached{false};
 
     int load{0};
     int throttle{0};
@@ -126,6 +129,7 @@ class OBDClass {
     float pedalPosition{0};
     uint32_t monitorStatus{0};
     bool milState{false};
+    float odometer{0};
 
     unsigned long lastReadSpeed{0};
     unsigned long runStartTime{0};
@@ -155,7 +159,7 @@ class OBDClass {
      */
     template<typename T>
     bool setStateValue(T &var, obd_pid_states nextState, T value);
-protected:
+
 public:
     OBDClass();
 
@@ -183,6 +187,8 @@ public:
     uint32_t getSupportedPids41To60() const;
 
     uint32_t getSupportedPids61To80() const;
+
+    uint32_t getSupportedPids161To191() const;
 
     std::string vin() const;
 
@@ -225,6 +231,8 @@ public:
     uint32_t getMonitorStatus() const;
 
     bool getMilState() const;
+
+    float getOdometer(measurementSystem system = METRIC) const;
 
     unsigned long getLastReadSpeed() const;
 
