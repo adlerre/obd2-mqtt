@@ -25,6 +25,12 @@ OBDClass::OBDClass(): elm327() {
 void OBDClass::BTEvent(esp_spp_cb_event_t event, esp_spp_cb_param_t *param) {
     if (event == ESP_SPP_CLOSE_EVT) {
         Serial.println("Bluetooth disconnected.");
+
+        if (OBD.initDone) {
+            // FIXME get reconnect working - failed with "getChannels() failed timeout"
+            // OBD.connect(true);
+            ESP.restart();
+        }
     }
 }
 
@@ -77,6 +83,7 @@ void OBDClass::begin(const String &devName, const String &devMac, const char pro
     this->protocol = protocol;
     this->checkPidSupport = checkPidSupport;
     stopConnect = false;
+    serialBt.register_callback(BTEvent);
 }
 
 void OBDClass::end() {
@@ -86,9 +93,8 @@ void OBDClass::end() {
 
 void OBDClass::connect(bool reconnect) {
     stopConnect = false;
-connect:
-    serialBt.register_callback(BTEvent);
 
+connect:
     if (stopConnect || reconnect && !initDone) {
         return;
     }
@@ -526,7 +532,7 @@ float OBDClass::getAmbientAirTemp() const {
 }
 
 int OBDClass::getSpeed(measurementSystem system) const {
-    return system == METRIC ? kph : kph / KPH_TO_MPH;
+    return system == METRIC ? kph : static_cast<int>(kph / KPH_TO_MPH);
 }
 
 float OBDClass::getFuelLevel() const {
@@ -606,7 +612,7 @@ float OBDClass::getAvgSpeed(measurementSystem system) const {
 }
 
 int OBDClass::getTopSpeed(measurementSystem system) const {
-    return system == METRIC ? topSpeed : topSpeed / KPH_TO_MPH;
+    return system == METRIC ? topSpeed : static_cast<int>(topSpeed / KPH_TO_MPH);
 }
 
 std::string OBDClass::getConnectedBTAddress() const {

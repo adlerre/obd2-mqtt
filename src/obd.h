@@ -55,8 +55,8 @@
 #define FUEL_TYPE_PROPANE   7
 #define FUEL_TYPE_ELECTRIC  8
 
-#define KPH_TO_MPH          1.60934;
-#define LITER_TO_GALLON     3.7854;
+#define KPH_TO_MPH          1.60934f
+#define LITER_TO_GALLON     3.7854f
 
 typedef enum {
     ENG_LOAD,
@@ -155,7 +155,7 @@ class OBDClass {
      */
     template<typename T>
     bool setStateValue(T &var, obd_pid_states nextState, T value);
-
+protected:
 public:
     OBDClass();
 
