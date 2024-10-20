@@ -26,7 +26,7 @@ void OBDClass::BTEvent(esp_spp_cb_event_t event, esp_spp_cb_param_t *param) {
     if (event == ESP_SPP_CLOSE_EVT) {
         Serial.println("Bluetooth disconnected.");
 
-        if (OBD.initDone) {
+        if (OBD.initDone && !OBD.stopConnect) {
             // FIXME get reconnect working - failed with "getChannels() failed timeout"
             // OBD.connect(true);
             ESP.restart();
