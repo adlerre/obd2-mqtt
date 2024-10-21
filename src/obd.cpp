@@ -197,6 +197,7 @@ connect:
         isPidSupported(DISTANCE_TRAVELED_WITH_MIL_ON);
         isPidSupported(MONITOR_STATUS_THIS_DRIVE_CYCLE);
         isPidSupported(DEMANDED_ENGINE_PERCENT_TORQUE);
+        isPidSupported(ODOMETER);
         Serial.println("...done.");
 
         Serial.println("Try to get VIN...");
@@ -369,8 +370,15 @@ void OBDClass::loop() {
             }
             case MILSTATUS: {
                 if (isPidSupported(MONITOR_STATUS_SINCE_DTC_CLEARED)) {
-                    setStateValue(monitorStatus, ENG_LOAD, elm327.monitorStatus());
+                    setStateValue(monitorStatus, ODO, elm327.monitorStatus());
                     milState = ((monitorStatus >> 16) & 0xFF) & 0x80;
+                } else {
+                    obd_state = ODO;
+                }
+            }
+            case ODO: {
+                if (isPidSupported(ODOMETER)) {
+                    setStateValue(odometer, ENG_LOAD, elm327.odometer());
                 } else {
                     obd_state = ENG_LOAD;
                 }
@@ -424,6 +432,13 @@ bool OBDClass::isPidSupported(uint8_t pid) {
                 pid = (pid - SUPPORTED_PIDS_61_80);
                 cached = supportedPids_61_80_cached;
                 break;
+            case SUPPORTED_PIDS_161_191:
+                response = !supportedPids_161_191_cached
+                               ? elm327.supportedPIDs_161_191()
+                               : supportedPids_161_191;
+                pid = (pid - SUPPORTED_PIDS_161_191);
+                cached = supportedPids_161_191_cached;
+                break;
             default:
                 break;
         }
@@ -461,6 +476,10 @@ bool OBDClass::isPidSupported(uint8_t pid) {
                 supportedPids_61_80 = response;
                 supportedPids_61_80_cached = true;
                 break;
+            case SUPPORTED_PIDS_161_191:
+                supportedPids_161_191 = response;
+                supportedPids_161_191_cached = true;
+                break;
             default:
                 break;
         }
@@ -481,6 +500,10 @@ bool OBDClass::isPidSupported(uint8_t pid) {
             case SUPPORTED_PIDS_61_80:
                 supportedPids_61_80 = 0xFFFFFFFF;
                 supportedPids_61_80_cached = true;
+                break;
+            case SUPPORTED_PIDS_161_191:
+                supportedPids_161_191 = 0xFFFFFFFF;
+                supportedPids_161_191_cached = true;
                 break;
             default:
                 break;
@@ -505,6 +528,10 @@ uint32_t OBDClass::getSupportedPids41To60() const {
 
 uint32_t OBDClass::getSupportedPids61To80() const {
     return supportedPids_61_80;
+}
+
+uint32_t OBDClass::getSupportedPids161To191() const {
+    return supportedPids_161_191;
 }
 
 int OBDClass::getLoad() const {
@@ -581,6 +608,10 @@ uint32_t OBDClass::getMonitorStatus() const {
 
 bool OBDClass::getMilState() const {
     return milState;
+}
+
+float OBDClass::getOdometer(measurementSystem system) const {
+    return system == METRIC ? odometer : odometer / KPH_TO_MPH;
 }
 
 unsigned long OBDClass::getLastReadSpeed() const {

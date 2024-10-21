@@ -368,6 +368,12 @@ bool sendDiscoveryData() {
                                                   "measurement", "");
     }
 
+    if (OBD.isPidSupported(ODOMETER)) {
+        allSendsSuccessed |= mqtt.sendTopicConfig("", "odometer", "Odometer", "counter",
+                                                  Settings.getMeasurementSystem() == METRIC ? "km" : "mi", "",
+                                                  "measurement", "");
+    }
+
     allSendsSuccessed |= mqtt.sendTopicConfig("", "topSpeed", "Top Speed", "speedometer",
                                               Settings.getMeasurementSystem() == METRIC ? "km/h" : "mph", "speed",
                                               "measurement", "");
@@ -454,6 +460,8 @@ bool sendStaticDiagnosticDiscoveryData() {
         allSendsSuccessed |= mqtt.sendTopicConfig("", "supportedPids_41_60", "Supported PIDs 41-60", "", "", "", "",
                                                   "diagnostic");
         allSendsSuccessed |= mqtt.sendTopicConfig("", "supportedPids_61_80", "Supported PIDs 61-80", "", "", "", "",
+                                                  "diagnostic");
+        allSendsSuccessed |= mqtt.sendTopicConfig("", "supportedPids_161_191", "Supported PIDs 161-191", "", "", "", "",
                                                   "diagnostic");
     }
 
@@ -562,6 +570,12 @@ bool sendOBDData() {
         allSendsSuccessed |= mqtt.sendTopicUpdate("pedalPosition", std::string(tmp_char));
     }
 
+    if (OBD.isPidSupported(ODOMETER)) {
+        sprintf(tmp_char, "%d",
+                static_cast<int>(OBD.getOdometer(static_cast<measurementSystem>(Settings.getMeasurementSystem()))));
+        allSendsSuccessed |= mqtt.sendTopicUpdate("odometer", std::string(tmp_char));
+    }
+
     sprintf(tmp_char, "%d", OBD.getTopSpeed(static_cast<measurementSystem>(Settings.getMeasurementSystem())));
     allSendsSuccessed |= mqtt.sendTopicUpdate("topSpeed", std::string(tmp_char));
 
@@ -645,6 +659,9 @@ bool sendStaticDiagnosticData() {
 
         sprintf(tmp_char, "%s", std::bitset<32>(OBD.getSupportedPids61To80()).to_string().c_str());
         allSendsSuccessed |= mqtt.sendTopicUpdate("supportedPids_61_80", std::string(tmp_char));
+
+        sprintf(tmp_char, "%s", std::bitset<32>(OBD.getSupportedPids161To191()).to_string().c_str());
+        allSendsSuccessed |= mqtt.sendTopicUpdate("supportedPids_161_191", std::string(tmp_char));
     } else {
         allSendsSuccessed = true;
     }
