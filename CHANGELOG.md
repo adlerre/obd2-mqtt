@@ -1,3 +1,10 @@
+## [0.4.1](https://github.com/adlerre/obd2-mqtt/compare/v0.4.0...v0.4.1) (2024-10-22)
+
+
+### Bug Fixes
+
+* remove dirty flag and show errors direct ([#18](https://github.com/adlerre/obd2-mqtt/issues/18)) ([2961875](https://github.com/adlerre/obd2-mqtt/commit/2961875dae20a582abc987af8e0b2ad8309d153c))
+
 # [0.4.0](https://github.com/adlerre/obd2-mqtt/compare/v0.3.0...v0.4.0) (2024-10-20)
 
 
