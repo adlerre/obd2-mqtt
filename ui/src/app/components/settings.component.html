@@ -28,7 +28,7 @@
                 <div class="col-sm-10">
                     <select class="form-control form-select" id="measurementSystem"
                             formControlName="measurementSystem"
-                            [ngClass]="{'is-invalid':general.controls.measurementSystem.dirty && general.controls.measurementSystem.errors}">
+                            [ngClass]="{'is-invalid': general.controls.measurementSystem.errors}">
                         <option *ngFor="let system of getMeasurementSystems()" [value]="system.value">{{ system.key }}
                         </option>
                     </select>
@@ -43,7 +43,7 @@
                     <input formControlName="ssid" type="text" id="ssid" autocapitalize="off" autocorrect="off"
                            placeholder="SSID"
                            class="form-control"
-                           [ngClass]="{'is-invalid': wifi.controls.ssid.dirty && wifi.controls.ssid.errors}"
+                           [ngClass]="{'is-invalid': wifi.controls.ssid.errors}"
                     >
                 </div>
             </div>
@@ -54,7 +54,7 @@
                            autocorrect="off"
                            placeholder="Password"
                            class="form-control"
-                           [ngClass]="{'is-invalid': wifi.controls.password.dirty && wifi.controls.password.errors}"
+                           [ngClass]="{'is-invalid': wifi.controls.password.errors}"
                     >
                 </div>
             </div>
@@ -67,7 +67,7 @@
                     <input formControlName="pin" type="text" id="pin" autocapitalize="off" autocorrect="off"
                            placeholder="PIN"
                            class="form-control"
-                           [ngClass]="{'is-invalid': mobile.controls.pin.dirty && mobile.controls.pin.errors}"
+                           [ngClass]="{'is-invalid': mobile.controls.pin.errors}"
                     >
                 </div>
             </div>
@@ -77,7 +77,7 @@
                     <input formControlName="apn" type="text" id="apn" autocapitalize="off" autocorrect="off"
                            placeholder="APN"
                            class="form-control"
-                           [ngClass]="{'is-invalid': mobile.controls.apn.dirty && mobile.controls.apn.errors}"
+                           [ngClass]="{'is-invalid': mobile.controls.apn.errors}"
                     >
                 </div>
             </div>
@@ -87,7 +87,7 @@
                     <input formControlName="username" type="text" id="mobileUser" autocapitalize="off" autocorrect="off"
                            placeholder="Username"
                            class="form-control"
-                           [ngClass]="{'is-invalid': mobile.controls.username.dirty && mobile.controls.username.errors}"
+                           [ngClass]="{'is-invalid': mobile.controls.username.errors}"
                     >
                 </div>
             </div>
@@ -98,7 +98,7 @@
                            autocorrect="off"
                            placeholder="Password"
                            class="form-control"
-                           [ngClass]="{'is-invalid': mobile.controls.password.dirty && mobile.controls.password.errors}"
+                           [ngClass]="{'is-invalid': mobile.controls.password.errors}"
                     >
                 </div>
             </div>
@@ -127,7 +127,7 @@
                     <input formControlName="mac" type="text" id="obd2Mac" autocapitalize="off" autocorrect="off"
                            placeholder="11:22:33:44:af:fe"
                            class="form-control"
-                           [ngClass]="{'is-invalid': obd2.controls.mac.dirty && obd2.controls.mac.errors}"
+                           [ngClass]="{'is-invalid': obd2.controls.mac.errors}"
                     >
                 </div>
             </div>
@@ -135,7 +135,7 @@
                 <label for="protocol" class="col-sm-2 col-form-label">Protocol</label>
                 <div class="col-sm-10">
                     <select class="form-control form-select" id="protocol" formControlName="protocol"
-                            [ngClass]="{'is-invalid':obd2.controls.protocol.dirty && obd2.controls.protocol.errors}">
+                            [ngClass]="{'is-invalid': obd2.controls.protocol.errors}">
                         <option *ngFor="let proto of getProtocols()" [value]="proto.value">{{ proto.key }}</option>
                     </select>
                 </div>
@@ -157,14 +157,14 @@
                            autocorrect="off"
                            placeholder="Hostname"
                            class="form-control"
-                           [ngClass]="{'is-invalid': mqtt.controls.hostname.dirty && mqtt.controls.hostname.errors}"
+                           [ngClass]="{'is-invalid': mqtt.controls.hostname.errors}"
                     >
                 </div>
                 <div class="col-sm-3 ps-md-1">
                     <input formControlName="port" type="number" id="port" autocapitalize="off"
                            placeholder="Port"
                            class="form-control"
-                           [ngClass]="{'is-invalid': mqtt.controls.port.dirty && mqtt.controls.port.errors}"
+                           [ngClass]="{'is-invalid': mqtt.controls.port.errors}"
                     >
                 </div>
             </div>
@@ -174,7 +174,7 @@
                     <input formControlName="username" type="text" id="mqttUser" autocapitalize="off" autocorrect="off"
                            placeholder="Username"
                            class="form-control"
-                           [ngClass]="{'is-invalid': mqtt.controls.username.dirty && mqtt.controls.username.errors}"
+                           [ngClass]="{'is-invalid': mqtt.controls.username.errors}"
                     >
                 </div>
             </div>
@@ -185,7 +185,7 @@
                            autocorrect="off"
                            placeholder="Password"
                            class="form-control"
-                           [ngClass]="{'is-invalid': mqtt.controls.password.dirty && mqtt.controls.password.errors}"
+                           [ngClass]="{'is-invalid': mqtt.controls.password.errors}"
                     >
                 </div>
             </div>
@@ -197,7 +197,7 @@
                     <div class="col-sm-10">
                         <select class="form-control form-select" id="discoveryInterval"
                                 formControlName="discoveryInterval"
-                                [ngClass]="{'is-invalid':mqtt.controls.discoveryInterval.dirty && mqtt.controls.discoveryInterval.errors}">
+                                [ngClass]="{'is-invalid': mqtt.controls.discoveryInterval.errors}">
                             <option *ngFor="let interval of discoveryIntervals" [value]="interval">{{ interval }}&nbsp;sec
                             </option>
                         </select>
@@ -207,7 +207,7 @@
                     <label for="dataInterval" class="col-sm-2 col-form-label">Data</label>
                     <div class="col-sm-10">
                         <select class="form-control form-select" id="dataInterval" formControlName="dataInterval"
-                                [ngClass]="{'is-invalid':mqtt.controls.dataInterval.dirty && mqtt.controls.dataInterval.errors}">
+                                [ngClass]="{'is-invalid': mqtt.controls.dataInterval.errors}">
                             <option *ngFor="let interval of dataIntervals" [value]="interval">{{ interval }}&nbsp;sec
                             </option>
                         </select>
@@ -218,7 +218,7 @@
                     <div class="col-sm-10">
                         <select class="form-control form-select" id="diagnosticInterval"
                                 formControlName="diagnosticInterval"
-                                [ngClass]="{'is-invalid':mqtt.controls.diagnosticInterval.dirty && mqtt.controls.diagnosticInterval.errors}">
+                                [ngClass]="{'is-invalid': mqtt.controls.diagnosticInterval.errors}">
                             <option *ngFor="let interval of diagnosticIntervals" [value]="interval">{{ interval }}&nbsp;sec
                             </option>
                         </select>
@@ -229,7 +229,7 @@
                     <div class="col-sm-10">
                         <select class="form-control form-select" id="locationInterval"
                                 formControlName="locationInterval"
-                                [ngClass]="{'is-invalid':mqtt.controls.locationInterval.dirty && mqtt.controls.locationInterval.errors}">
+                                [ngClass]="{'is-invalid': mqtt.controls.locationInterval.errors}">
                             <option *ngFor="let interval of locationIntervals" [ngValue]="interval">{{ interval }}&nbsp;sec
                             </option>
                         </select>

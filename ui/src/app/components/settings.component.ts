@@ -87,7 +87,7 @@ export class SettingsComponent implements OnInit {
             password: new FormControl("", [Validators.minLength(8), Validators.maxLength(32)])
         });
         this.mobile = new FormGroup({
-            pin: new FormControl("", Validators.maxLength(4)),
+            pin: new FormControl("", [Validators.maxLength(4), Validators.pattern("^[0-9]{4}")]),
             apn: new FormControl("", [Validators.required, Validators.maxLength(64)]),
             username: new FormControl("", Validators.maxLength(32)),
             password: new FormControl("", Validators.maxLength(32))
@@ -106,7 +106,7 @@ export class SettingsComponent implements OnInit {
                     /^([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])(\.([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]{0,61}[a-zA-Z0-9]))*$/
                 )
             ]),
-            port: new FormControl("", [Validators.min(1), Validators.max(65384)]),
+            port: new FormControl<number>(1883, [Validators.min(1), Validators.max(65384)]),
             username: new FormControl("", Validators.maxLength(32)),
             password: new FormControl("", Validators.maxLength(32)),
             dataInterval: new FormControl<number>(1),
