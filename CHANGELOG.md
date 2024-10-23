@@ -1,3 +1,10 @@
+# [0.5.0](https://github.com/adlerre/obd2-mqtt/compare/v0.4.1...v0.5.0) (2024-10-23)
+
+
+### Features
+
+* connect to mqtt over websocket ([#19](https://github.com/adlerre/obd2-mqtt/issues/19)) ([a3562b7](https://github.com/adlerre/obd2-mqtt/commit/a3562b74679ca961e40e676119cfda069635cecd))
+
 ## [0.4.1](https://github.com/adlerre/obd2-mqtt/compare/v0.4.0...v0.4.1) (2024-10-22)
 
 
