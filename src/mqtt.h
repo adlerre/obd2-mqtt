@@ -15,11 +15,12 @@
  * 59 Temple Place - Suite 330, Boston, MA  02111-1307 USA
  */
 #pragma once
-#include <ArduinoJson.h>
+
 #include <PubSubClient.h>
 #include <regex>
 #include <string>
-#include <helper.h>
+#include <MQTTWebSocketClient.h>
+#include <MQTTWebSocketStreamClient.h>
 
 #ifndef BUILD_GIT_BRANCH
 #define BUILD_GIT_BRANCH ""
@@ -34,8 +35,17 @@
 
 #define MQTT_CLIENT_ID      "obd2mqtt"
 
+typedef enum {
+    USE_MQTT = 0,
+    USE_WS = 1
+} mqttProtocol;
+
 class MQTT {
+    Client *client;
     PubSubClient mqtt;
+    MQTTWebSocketClient *wsClient;
+    MQTTWebSocketStreamClient *wsStreamClient;
+
     int numReconnects = -1;
     std::string maintopic = "obd2mqtt";
     std::string identifier;
@@ -49,9 +59,9 @@ public:
     /**
      * Constructor of MQTT Helper
      *
-     * @param client the PubSubClient
+     * @param client the client
      */
-    MQTT(const PubSubClient &client);
+    explicit MQTT(Client &client);
 
     /**
      * Connect to broker
@@ -61,9 +71,10 @@ public:
      * @param port the broker port
      * @param username the username
      * @param password the password
+     * @param protocol the protocol
      */
     void connect(const char *clientId, const char *broker, unsigned int port, const char *username,
-                 const char *password);
+                 const char *password, mqttProtocol protocol = USE_MQTT);
 
     /**
      * Returns the defined main topic.
@@ -156,7 +167,7 @@ public:
      * @param entityCategory the entity category
      * @param topicType the topic type e.g. sensor or other
      * @param sourceType the source type e.g. gps
-     * @param allowOffline <code>true</code> if topic should not removed
+     * @param allowOffline <code>true</code> if topic should not remove
      * @return <code>true</code> on success
      *
      * @see

@@ -15,6 +15,9 @@
  *  59 Temple Place - Suite 330, Boston, MA  02111-1307 USA
  */
 #include "mqtt.h"
+#include <ArduinoJson.h>
+#include <helper.h>
+#include <MQTTWebSocketStreamClient.h>
 
 std::string MQTT::createNodeId(const std::string &topic) {
     auto splitPos = topic.find_last_of('/');
@@ -25,15 +28,23 @@ std::string MQTT::createFieldTopic(const std::string &field) const {
     return stripChars((!identifier.empty() ? identifier : maintopic) + "_" + field);
 }
 
-MQTT::MQTT(const PubSubClient &client) {
-    mqtt = client;
+MQTT::MQTT(Client &client): wsClient(nullptr), wsStreamClient(nullptr) {
+    this->client = &client;
     mqtt.setKeepAlive(60);
     mqtt.setBufferSize(MQTT_MAX_PACKET_SIZE);
 }
 
 void MQTT::connect(const char *clientId, const char *broker, const unsigned int port, const char *username,
-                   const char *password) {
-    mqtt.setServer(broker, port);
+                   const char *password, mqttProtocol protocol) {
+    if (protocol == USE_MQTT) {
+        mqtt.setClient(*client);
+        mqtt.setServer(broker, port);
+    } else {
+        wsClient = new MQTTWebSocketClient(*client, broker, port);
+        wsStreamClient = new MQTTWebSocketStreamClient(*wsClient, "mqtt");
+        mqtt.setClient(*wsStreamClient);
+    }
+
     while (!mqtt.connected()) {
         Serial.printf("The client %s connects to the MQTT broker...", clientId);
         std::string lwtTopic = maintopic + "/" + createFieldTopic(LWT_TOPIC);

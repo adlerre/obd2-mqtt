@@ -37,8 +37,9 @@ void SettingsClass::readJson(JsonDocument &doc) {
     obd2.checkPIDSupport = doc["obd2"]["checkPIDSupport"] | false;
     obd2.protocol = doc["obd2"]["protocol"] | '0';
 
+    mqtt.protocol = doc["mqtt"]["protocol"] | 0; // USE_MQTT as default
     strlcpy(mqtt.hostname, doc["mqtt"]["hostname"] | "", sizeof(mqtt.hostname));
-    mqtt.port = doc["mqtt"]["port"] | 1883;
+    mqtt.port = doc["mqtt"]["port"] | (mqtt.protocol == 0 ? 1883 : 1884);
     strlcpy(mqtt.username, doc["mqtt"]["username"] | "", sizeof(mqtt.username));
     strlcpy(mqtt.password, doc["mqtt"]["password"] | "", sizeof(mqtt.password));
     mqtt.dataInterval = doc["mqtt"]["dataInterval"] | 1;
@@ -63,6 +64,7 @@ void SettingsClass::writeJson(JsonDocument &doc) {
     doc["obd2"]["checkPIDSupport"] = obd2.checkPIDSupport;
     doc["obd2"]["protocol"] = obd2.protocol;
 
+    doc["mqtt"]["protocol"] = mqtt.protocol;
     doc["mqtt"]["hostname"] = mqtt.hostname;
     doc["mqtt"]["port"] = mqtt.port;
     doc["mqtt"]["username"] = mqtt.username;
@@ -220,6 +222,14 @@ char SettingsClass::getOBD2Protocol() const {
 
 void SettingsClass::setOBD2Protocol(char protocol) {
     obd2.protocol = protocol;
+}
+
+int SettingsClass::getMQTTProtocol() const {
+    return mqtt.protocol;
+}
+
+void SettingsClass::setMQTTProtocol(int protocol) {
+    mqtt.protocol = protocol;
 }
 
 String SettingsClass::getMQTTHostname() const {

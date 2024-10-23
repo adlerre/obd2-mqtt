@@ -56,7 +56,13 @@ export interface OBD2Settings {
     protocol?: OBD2Protocol;
 }
 
+export enum MQTTProtocol {
+    MQTT = 0,
+    WEBSOCKET = 1,
+}
+
 export interface MQTTSettings {
+    protocol?: MQTTProtocol;
     hostname: string;
     port?: number;
     username?: string;

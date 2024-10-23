@@ -50,8 +50,6 @@ HTTPServer server(80);
 
 #define DEBUG_PORT Serial
 
-// HTTPServer server(80);
-
 // #define DUMP_AT_COMMANDS
 
 #ifdef DUMP_AT_COMMANDS
@@ -62,9 +60,7 @@ GSM gsm(debugger);
 GSM gsm(SerialAT);
 #endif
 
-PubSubClient mqttClient(gsm.client);
-
-MQTT mqtt(mqttClient);
+MQTT mqtt(gsm.client);
 
 std::atomic_bool wifiAPStarted{false};
 std::atomic_bool wifiAPInUse{false};
@@ -830,7 +826,8 @@ void outputTask(void *parameters) {
                     Settings.getMQTTHostname().c_str(),
                     Settings.getMQTTPort(),
                     Settings.getMQTTUsername().c_str(),
-                    Settings.getMQTTPassword().c_str()
+                    Settings.getMQTTPassword().c_str(),
+                    static_cast<mqttProtocol>(Settings.getMQTTProtocol())
                 );
             } else {
                 mqttSendData();
