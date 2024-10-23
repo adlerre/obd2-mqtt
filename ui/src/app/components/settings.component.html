@@ -136,7 +136,7 @@
                 <div class="col-sm-10">
                     <select class="form-control form-select" id="protocol" formControlName="protocol"
                             [ngClass]="{'is-invalid': obd2.controls.protocol.errors}">
-                        <option *ngFor="let proto of getProtocols()" [value]="proto.value">{{ proto.key }}</option>
+                        <option *ngFor="let proto of getOBDProtocols()" [value]="proto.value">{{ proto.key }}</option>
                     </select>
                 </div>
             </div>
@@ -151,8 +151,15 @@
         <fieldset [formGroup]="mqtt">
             <legend>MQTT Broker</legend>
             <div class="row mb-2">
-                <label for="hostname" class="col-sm-2 control-label">Hostname/Port</label>
-                <div class="col-sm-7 pe-md-1">
+                <label for="hostname" class="col-sm-2 control-label">Protocol/Hostname/Port</label>
+                <div class="col-sm-2 pe-md-1">
+                    <select class="form-control form-select" id="mqttProtocol" formControlName="protocol"
+                            [ngClass]="{'is-invalid': mqtt.controls.protocol.errors}">
+                        <option *ngFor="let proto of getMQTTProtocols()" [ngValue]="proto.value">{{ proto.key }}
+                        </option>
+                    </select>
+                </div>
+                <div class="col-sm-6 ps-md-1 pe-md-1">
                     <input formControlName="hostname" type="text" id="hostname" autocapitalize="off"
                            autocorrect="off"
                            placeholder="Hostname"
@@ -160,7 +167,7 @@
                            [ngClass]="{'is-invalid': mqtt.controls.hostname.errors}"
                     >
                 </div>
-                <div class="col-sm-3 ps-md-1">
+                <div class="col-sm-2 ps-md-1">
                     <input formControlName="port" type="number" id="port" autocapitalize="off"
                            placeholder="Port"
                            class="form-control"

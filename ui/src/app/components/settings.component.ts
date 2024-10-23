@@ -26,6 +26,7 @@ import {
     discoveryIntervals,
     locationIntervals,
     MeasurementSystems,
+    MQTTProtocol,
     OBD2Protocol,
     Settings
 } from "../definitions";
@@ -99,6 +100,7 @@ export class SettingsComponent implements OnInit {
             protocol: new FormControl(OBD2Protocol.AUTOMATIC),
         });
         this.mqtt = new FormGroup({
+            protocol: new FormControl<number>(MQTTProtocol.MQTT),
             hostname: new FormControl("", [
                 Validators.required,
                 Validators.maxLength(64),
@@ -140,11 +142,20 @@ export class SettingsComponent implements OnInit {
             }));
     }
 
-    getProtocols(): Array<{ key: string, value: string }> {
+    getOBDProtocols(): Array<{ key: string, value: string }> {
         return Object.keys(OBD2Protocol).map(key => ({
             key: key.replaceAll("_", " "),
             value: OBD2Protocol[key as keyof typeof OBD2Protocol]
         }));
+    }
+
+    getMQTTProtocols(): Array<{ key: string, value: number }> {
+        return Object.keys(MQTTProtocol)
+            .filter((k: any) => typeof k === "string" && isNaN(parseInt(k, 10)))
+            .map(key => ({
+                key: key,
+                value: MQTTProtocol[key as keyof typeof MQTTProtocol]
+            }));
     }
 
     searchDevice: OperatorFunction<string, readonly DiscoveredDevice[]> = (text$: Observable<string>) => {

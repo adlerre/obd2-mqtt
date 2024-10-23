@@ -67,6 +67,7 @@ struct OBD2Settings {
 };
 
 struct MQTTSettings {
+    int protocol;
     char hostname[64];
     unsigned int port;
     char username[32];
@@ -142,6 +143,10 @@ public:
     char getOBD2Protocol() const;
 
     void setOBD2Protocol(char protocol);
+
+    int getMQTTProtocol() const;
+
+    void setMQTTProtocol(int protocol);
 
     String getMQTTHostname() const;
 
