@@ -11,7 +11,8 @@
     * (optional) [Antenna](https://www.amazon.de/dp/B0B2DCXL5N) (work's for me) or other
     * (optional) a 3D Printer for the [case](3d-files)
 * a [ELM327 OBD Bluetooth Adapter](https://de.aliexpress.com/item/1005005775562398.html) or any other
-* a SIM Card - i use one from [fraenk](https://fraenk.page.link/?link=https%3A%2F%2Ffraenk.de%2Fdeeplink%2Fmgm%3FfriendCode%3DRENA45&apn=de.congstar.fraenk&amv=1040000&imv=1.4&isi=1493980266&ibi=de.congstar.fraenk&ius=fraenk&ofl=https%3A%2F%2Ffraenk.de)
+* a SIM Card - i use one
+  from [fraenk](https://fraenk.page.link/?link=https%3A%2F%2Ffraenk.de%2Fdeeplink%2Fmgm%3FfriendCode%3DRENA45&apn=de.congstar.fraenk&amv=1040000&imv=1.4&isi=1493980266&ibi=de.congstar.fraenk&ius=fraenk&ofl=https%3A%2F%2Ffraenk.de)
 * and the most important thing, a car
 
 ## Getting started
@@ -105,6 +106,11 @@ Diagnostic Output:
 <img width="200" alt="Sensors1" src="assets/obd2-mqtt-ha-01.png">
 <img width="200" alt="Sensors2" src="assets/obd2-mqtt-ha-02.png">
 </p>
+
+## If you are afraid of the Internet...
+
+...and don't want to expose your MQTT broker on the Internet, use a free MQTT provider and take a look
+on [mqtt-proxy](tools/mqtt-proxy) tool.
 
 ## ToDos
 
