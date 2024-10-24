@@ -1,0 +1,21 @@
+{
+  "name": "mqtt-proxy",
+  "version": "0.0.1",
+  "description": "MQTT Proxy Service",
+  "main": "./src/index.js",
+  "bin": {
+    "mqtt-proxy": "./src/index.js"
+  },
+  "scripts": {
+  },
+  "type": "module",
+  "keywords": [
+    "mqtt",
+    "proxy"
+  ],
+  "author": "René Adler",
+  "license": "GPL-3.0",
+  "dependencies": {
+    "mqtt": "^5.10.1"
+  }
+}
