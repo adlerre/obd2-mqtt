@@ -1,3 +1,10 @@
+## [0.5.1](https://github.com/adlerre/obd2-mqtt/compare/v0.5.0...v0.5.1) (2024-10-26)
+
+
+### Bug Fixes
+
+* fix connection issue ([#22](https://github.com/adlerre/obd2-mqtt/issues/22)) ([b4ef71d](https://github.com/adlerre/obd2-mqtt/commit/b4ef71d59bdc4c9be7735feba3cbce7425c07fd0))
+
 # [0.5.0](https://github.com/adlerre/obd2-mqtt/compare/v0.4.1...v0.5.0) (2024-10-23)
 
 
