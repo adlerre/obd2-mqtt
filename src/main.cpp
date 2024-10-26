@@ -829,7 +829,7 @@ void outputTask(void *parameters) {
                     Settings.getMQTTPassword().c_str(),
                     static_cast<mqttProtocol>(Settings.getMQTTProtocol())
                 )) {
-                    gsm.resetConnection();
+                    gsm.checkNetwork(true);
                 }
             } else {
                 mqttSendData();

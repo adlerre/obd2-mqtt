@@ -90,12 +90,7 @@ public:
      *
      * @return <code>true</code> if network is active or <code>false</code> on a failure
      */
-    bool checkNetwork();
-
-    /**
-     * Resets the connection.
-     */
-    void resetConnection();
+    bool checkNetwork(bool resetConnection = false);
 
     /**
      * Returns is network is connected.
