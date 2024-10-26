@@ -821,14 +821,16 @@ void outputTask(void *parameters) {
 
             if (!mqtt.connected()) {
                 auto client_id = String(MQTT_CLIENT_ID) + "-" + stripChars(OBD.getConnectedBTAddress()).c_str();
-                mqtt.connect(
+                if (!mqtt.connect(
                     client_id.c_str(),
                     Settings.getMQTTHostname().c_str(),
                     Settings.getMQTTPort(),
                     Settings.getMQTTUsername().c_str(),
                     Settings.getMQTTPassword().c_str(),
                     static_cast<mqttProtocol>(Settings.getMQTTProtocol())
-                );
+                )) {
+                    gsm.resetConnection();
+                }
             } else {
                 mqttSendData();
             }

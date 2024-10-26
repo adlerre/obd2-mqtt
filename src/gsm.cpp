@@ -249,6 +249,12 @@ bool GSM::checkNetwork() {
     return true;
 }
 
+void GSM::resetConnection() {
+    modem.disableNetwork();
+    delay(1000);
+    modem.enableNetwork();
+}
+
 bool GSM::isNetworkConnected() {
     return modem.isNetworkConnected();
 }

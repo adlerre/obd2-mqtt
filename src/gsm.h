@@ -93,6 +93,11 @@ public:
     bool checkNetwork();
 
     /**
+     * Resets the connection.
+     */
+    void resetConnection();
+
+    /**
      * Returns is network is connected.
      *
      * @return <code>true</code> if connected

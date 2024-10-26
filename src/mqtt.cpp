@@ -34,8 +34,8 @@ MQTT::MQTT(Client &client): wsClient(nullptr), wsStreamClient(nullptr) {
     mqtt.setBufferSize(MQTT_MAX_PACKET_SIZE);
 }
 
-void MQTT::connect(const char *clientId, const char *broker, const unsigned int port, const char *username,
-                   const char *password, mqttProtocol protocol) {
+bool MQTT::connect(const char *clientId, const char *broker, const unsigned int port, const char *username,
+                   const char *password, mqttProtocol protocol, int conTimeout) {
     if (protocol == USE_MQTT) {
         mqtt.setClient(*client);
         mqtt.setServer(broker, port);
@@ -45,18 +45,22 @@ void MQTT::connect(const char *clientId, const char *broker, const unsigned int 
         mqtt.setClient(*wsStreamClient);
     }
 
-    while (!mqtt.connected()) {
+    int numFailed = 0;
+    while (!mqtt.connected() && numFailed < MQTT_CON_RETRIES) {
         Serial.printf("The client %s connects to the MQTT broker...", clientId);
         std::string lwtTopic = maintopic + "/" + createFieldTopic(LWT_TOPIC);
         if (mqtt.connect(clientId, username, password, lwtTopic.c_str(), 0, false, LWT_DISCONNECTED, true)) {
             Serial.println("...connected.");
             ++this->numReconnects;
-            return;
+            return true;
         }
 
         Serial.printf("...failed with state %d\n", mqtt.state());
-        delay(2000);
+        delay(conTimeout / MQTT_CON_RETRIES);
+        ++numFailed;
     }
+
+    return false;
 }
 
 std::string MQTT::getMainTopic() {
