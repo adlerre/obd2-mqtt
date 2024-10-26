@@ -35,6 +35,8 @@
 
 #define MQTT_CLIENT_ID      "obd2mqtt"
 
+#define MQTT_CON_RETRIES    10
+
 typedef enum {
     USE_MQTT = 0,
     USE_WS = 1
@@ -72,9 +74,12 @@ public:
      * @param username the username
      * @param password the password
      * @param protocol the protocol
+     * @param conTimeout the connection timeout
+     *
+     * @return <code>true</code> on success
      */
-    void connect(const char *clientId, const char *broker, unsigned int port, const char *username,
-                 const char *password, mqttProtocol protocol = USE_MQTT);
+    bool connect(const char *clientId, const char *broker, unsigned int port, const char *username,
+                 const char *password, mqttProtocol protocol = USE_MQTT, int conTimeout = 20000);
 
     /**
      * Returns the defined main topic.

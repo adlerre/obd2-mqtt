@@ -198,9 +198,9 @@ restart:
     }
 }
 
-bool GSM::checkNetwork() {
+bool GSM::checkNetwork(bool resetConnection) {
     // Make sure we're still registered on the network
-    if (!modem.isNetworkConnected()) {
+    if (!modem.isNetworkConnected() || resetConnection) {
         Serial.println("Network disconnected");
 
         if (reconnectAttempts > 10) {
