@@ -1,3 +1,10 @@
+# [0.6.0](https://github.com/adlerre/obd2-mqtt/compare/v0.5.1...v0.6.0) (2024-10-28)
+
+
+### Features
+
+* allow to change network mode for supported devices ([#23](https://github.com/adlerre/obd2-mqtt/issues/23)) ([c8c1f05](https://github.com/adlerre/obd2-mqtt/commit/c8c1f05b6e07777394bfe6825431ac9862001093))
+
 ## [0.5.1](https://github.com/adlerre/obd2-mqtt/compare/v0.5.0...v0.5.1) (2024-10-26)
 
 
