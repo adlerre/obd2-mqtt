@@ -15,7 +15,7 @@
  *  59 Temple Place - Suite 330, Boston, MA  02111-1307 USA
  */
 
-import { Settings } from "../definitions";
+import { Configuration, Settings } from "../definitions";
 import { ApiService } from "../services/api.service";
 import { ComponentFixture, inject, TestBed, waitForAsync } from "@angular/core/testing";
 import { SettingsComponent } from "./settings.component";
@@ -30,6 +30,10 @@ const testSettings: Settings = {
 };
 
 export class MockApiService {
+
+    configuration() {
+        return of({deviceType: "T-A7670X"} as Configuration)
+    }
 
     settings() {
         return of(testSettings);
