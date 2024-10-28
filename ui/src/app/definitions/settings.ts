@@ -28,7 +28,15 @@ export interface WiFiSettings {
     password?: string;
 }
 
+export enum NetworkMode {
+    AUTO = 2,
+    GSM = 13,
+    WCDMA = 14,
+    LTE = 38,
+}
+
 export interface MobileSettings {
+    networkMode?: NetworkMode;
     pin?: string;
     apn: string;
     username?: string;

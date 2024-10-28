@@ -35,6 +35,9 @@ int GSM::convertSQToRSSI(int signalQuality) {
 GSM::GSM(Stream &stream) : stream(stream), modem(TinyGsm(stream)), client(TinyGsmClient(modem)) {
     ipAddress = "";
     reconnectAttempts = 0;
+#if defined(LILYGO_T_A7670) or defined(LILYGO_T_CALL_A7670_V1_0) or defined(LILYGO_T_CALL_A7670_V1_1) or defined(LILYGO_T_A7608X)
+    networkMode = MODEM_NETWORK_AUTO;
+#endif
 }
 
 void GSM::resetModem() {
@@ -84,6 +87,10 @@ bool GSM::isUseGPRS() {
 #else
         return false;
 #endif
+}
+
+void GSM::setNetworkMode(int mode) {
+    networkMode = mode;
 }
 
 void GSM::connectToNetwork() {
@@ -143,7 +150,7 @@ restart:
     Serial.printf("Modem Info: %s\n", modemInfo.c_str());
 
 #if defined(LILYGO_T_A7670) or defined(LILYGO_T_CALL_A7670_V1_0) or defined(LILYGO_T_CALL_A7670_V1_1) or defined(LILYGO_T_A7608X)
-    modem.setNetworkMode(MODEM_NETWORK_AUTO);
+    modem.setNetworkMode(static_cast<NetworkMode>(networkMode));
 #endif
 
     if (isUseGPRS()) {
@@ -212,6 +219,16 @@ bool GSM::checkNetwork(bool resetConnection) {
             }
             Serial.println("...success");
             reconnectAttempts = 0;
+        }
+
+#if defined(LILYGO_T_A7670) or defined(LILYGO_T_CALL_A7670_V1_0) or defined(LILYGO_T_CALL_A7670_V1_1) or defined(LILYGO_T_A7608X)
+        modem.setNetworkMode(static_cast<NetworkMode>(networkMode));
+#endif
+
+        if (isUseGPRS()) {
+            if (!Settings.getSimPin().isEmpty() && modem.getSimStatus() != 3) {
+                modem.simUnlock(Settings.getSimPin().c_str());
+            }
         }
 
         Serial.print("Waiting for network...");

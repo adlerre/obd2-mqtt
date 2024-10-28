@@ -15,8 +15,6 @@
  *  59 Temple Place - Suite 330, Boston, MA  02111-1307 USA
  */
 
-export * from "./configuration";
-export * from "./discoveredDevices";
-export * from "./modemInfo";
-export * from "./settings";
-export * from "./wifiInfo";
+export interface Configuration {
+    deviceType?: string;
+}

@@ -112,6 +112,9 @@ jobs:
           python -m pip install --upgrade pip
           pip install --upgrade platformio
 
+      - name: Clean old build files
+        run: pio run --target clean -e ${{ matrix.envs }}
+
       - name: Build Firmware
         run: pio run -e ${{ matrix.envs }}
 

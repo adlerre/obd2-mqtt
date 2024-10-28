@@ -43,6 +43,7 @@
 class GSM {
     std::string ipAddress;
     unsigned int reconnectAttempts;
+    int networkMode;
 
     /**
      * Hard reset modem. Seems to crash after long runs.
@@ -79,6 +80,13 @@ public:
      * @return <code>true</code> if used
      */
     static bool isUseGPRS();
+
+    /**
+     * Set network mode.
+     *
+     * @param mode the network mode, default <code>2</code> means AUTO
+     */
+    void setNetworkMode(int mode = 2);
 
     /**
      * Connects to the configured APN.

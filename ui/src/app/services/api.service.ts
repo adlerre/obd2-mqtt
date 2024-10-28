@@ -17,12 +17,16 @@
 
 import { Injectable } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
-import { DiscoveredDevices, ModemInfo, Settings, WifiInfo } from "../definitions";
+import { Configuration, DiscoveredDevices, ModemInfo, Settings, WifiInfo } from "../definitions";
 
 @Injectable()
 export class ApiService {
 
     constructor(public $http: HttpClient) {
+    }
+
+    configuration() {
+        return this.$http.get<Configuration>("configuration.json");
     }
 
     reboot() {

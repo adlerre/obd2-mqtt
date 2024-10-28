@@ -27,6 +27,7 @@ void SettingsClass::readJson(JsonDocument &doc) {
     strlcpy(wifi.ssid, doc["wifi"]["ssid"] | "", sizeof(wifi.ssid));
     strlcpy(wifi.password, doc["wifi"]["password"] | "", sizeof(wifi.password));
 
+    mobile.networkMode = doc["mobile"]["networkMode"] | 2;
     strlcpy(mobile.pin, doc["mobile"]["pin"] | "", sizeof(mobile.pin));
     strlcpy(mobile.apn, doc["mobile"]["apn"] | "", sizeof(mobile.apn));
     strlcpy(mobile.username, doc["mobile"]["username"] | "", sizeof(mobile.username));
@@ -54,6 +55,7 @@ void SettingsClass::writeJson(JsonDocument &doc) {
     doc["wifi"]["ssid"] = wifi.ssid;
     doc["wifi"]["password"] = wifi.password;
 
+    doc["mobile"]["networkMode"] = mobile.networkMode;
     doc["mobile"]["pin"] = mobile.pin;
     doc["mobile"]["apn"] = mobile.apn;
     doc["mobile"]["username"] = mobile.username;
@@ -155,6 +157,14 @@ String SettingsClass::getWiFiAPPassword() const {
 
 void SettingsClass::setWiFiAPPassword(const char *password) {
     strlcpy(wifi.password, password, sizeof(wifi.password));
+}
+
+int SettingsClass::getMobileNetworkMode() const {
+    return mobile.networkMode;
+}
+
+void SettingsClass::setMobileNetworkMode(int networkMode) {
+    mobile.networkMode = networkMode;
 }
 
 String SettingsClass::getSimPin() const {

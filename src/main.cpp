@@ -863,6 +863,8 @@ void setup() {
     startWiFiAP();
     startHttpServer();
 
+    // will be ignored if the device does not support
+    gsm.setNetworkMode(Settings.getMobileNetworkMode());
     gsm.connectToNetwork();
     gsm.enableGPS();
 
