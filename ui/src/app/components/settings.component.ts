@@ -19,6 +19,7 @@ import { Component, OnInit, ViewChild } from "@angular/core";
 import { ApiService } from "../services/api.service";
 import { FormControl, FormGroup, Validators } from "@angular/forms";
 import {
+    Configuration,
     dataIntervals,
     diagnosticIntervals,
     DiscoveredDevice,
@@ -27,6 +28,7 @@ import {
     locationIntervals,
     MeasurementSystems,
     MQTTProtocol,
+    NetworkMode,
     OBD2Protocol,
     Settings
 } from "../definitions";
@@ -51,7 +53,16 @@ import {
 })
 export class SettingsComponent implements OnInit {
 
+    private static DEVICE_WITH_NETWORK_MODE = [
+        "T-A7670X",
+        "T-Call-A7670X-V1-0",
+        "T-Call-A7670X-V1-1",
+        "T-A7608X"
+    ];
+
     @ViewChild("devTypeahead", {static: true}) devTypeahead: NgbTypeahead;
+
+    configuration: Configuration | undefined;
 
     discoveredDevices: DiscoveredDevices | undefined;
 
@@ -88,6 +99,7 @@ export class SettingsComponent implements OnInit {
             password: new FormControl("", [Validators.minLength(8), Validators.maxLength(32)])
         });
         this.mobile = new FormGroup({
+            networkMode: new FormControl<number>(2, Validators.required),
             pin: new FormControl("", [Validators.maxLength(4), Validators.pattern("^[0-9]{4}")]),
             apn: new FormControl("", [Validators.required, Validators.maxLength(64)]),
             username: new FormControl("", Validators.maxLength(32)),
@@ -127,6 +139,7 @@ export class SettingsComponent implements OnInit {
     }
 
     ngOnInit(): void {
+        this.$api.configuration().subscribe((configuration: Configuration) => this.configuration = configuration);
         this.$api.settings().subscribe(settings => this.form.patchValue(settings));
         this.$api.discoveredDevices()
             .pipe(catchError(() => of({} as DiscoveredDevices)))
@@ -139,6 +152,20 @@ export class SettingsComponent implements OnInit {
             .map(key => ({
                 key: key,
                 value: MeasurementSystems[key as keyof typeof MeasurementSystems]
+            }));
+    }
+
+    isNetworkModeAllowed(): boolean {
+        return this.configuration &&
+            SettingsComponent.DEVICE_WITH_NETWORK_MODE.indexOf(this.configuration.deviceType) !== -1 || false;
+    }
+
+    getNetworkModes(): Array<{ key: string, value: number }> {
+        return Object.keys(NetworkMode)
+            .filter((k: any) => typeof k === "string" && isNaN(parseInt(k, 10)))
+            .map(key => ({
+                key: key,
+                value: NetworkMode[key as keyof typeof NetworkMode]
             }));
     }
 

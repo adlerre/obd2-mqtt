@@ -21,7 +21,16 @@ from subprocess import run, CalledProcessError
 Import("env")
 
 
-def is_tool(name):
+def writeUIConfiguration(env):
+    confJson = "./data/public/configuration.json"
+    if os.path.exists(confJson):
+        os.remove(confJson)
+    f = open(confJson, "w+")
+    f.write("{\"deviceType\": \"" + env["PIOENV"] + "\"}")
+    f.close()
+
+
+def isTool(name):
     cmd = "where" if platform.system() == "Windows" else "which"
     try:
         run([cmd, name])
@@ -30,8 +39,8 @@ def is_tool(name):
         return False;
 
 
-def build_ui():
-    if is_tool("npm"):
+def buildUI():
+    if isTool("npm"):
         print("Attempting to build UI...")
         try:
             if platform.system() == "Windows":
@@ -54,7 +63,7 @@ def build_ui():
             print("WARNING: Failed to build UI package. Using pre-built page.")
 
 
-def remove_ui_files(public_path):
+def removeUIFiles(public_path):
     pattern = ".*(\\.js$|\\.txt$)"
 
     print("Remove not gzip files...")
@@ -65,5 +74,10 @@ def remove_ui_files(public_path):
             os.remove(os.path.join(root, file))
 
 
-build_ui()
-remove_ui_files("./data/public/")
+def fsBuild(source, target, env):
+    buildUI()
+    removeUIFiles("./data/public/")
+    writeUIConfiguration(env)
+
+
+env.AddPreAction("$BUILD_DIR/littlefs.bin", fsBuild);

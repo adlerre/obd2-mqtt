@@ -53,6 +53,7 @@ struct WiFiSettings {
 };
 
 struct MobileSettings {
+    int networkMode;
     char pin[4];
     char apn[64];
     char username[32];
@@ -111,6 +112,10 @@ public:
     String getWiFiAPPassword() const;
 
     void setWiFiAPPassword(const char *password);
+
+    int getMobileNetworkMode() const;
+
+    void setMobileNetworkMode(int networkMode);
 
     String getSimPin() const;
 
