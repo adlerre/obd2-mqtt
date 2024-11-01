@@ -32,6 +32,7 @@ the [Web Installer](https://adlerre.github.io/obd2-mqtt/).
 <img width="200" alt="Info" src="assets/obd2-mqtt-ui-info-01.png">
 <img width="200" alt="Settings1" src="assets/obd2-mqtt-ui-settings-01.png">
 <img width="200" alt="Settings2" src="assets/obd2-mqtt-ui-settings-02.png">
+<img width="200" alt="OTA Updater" src="assets/obd2-mqtt-ui-ota-01.png">
 </p>
 
 ### Build
