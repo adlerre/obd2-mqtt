@@ -16,7 +16,7 @@
  */
 
 import { BrowserModule } from "@angular/platform-browser";
-import { provideHttpClient, withFetch, withInterceptorsFromDi } from "@angular/common/http";
+import { provideHttpClient, withInterceptorsFromDi } from "@angular/common/http";
 import { NgModule } from "@angular/core";
 import { ReactiveFormsModule } from "@angular/forms";
 
@@ -31,8 +31,7 @@ import { NgbTypeaheadModule } from "@ng-bootstrap/ng-bootstrap";
     declarations: [
         AppComponent,
         DeviceInfoComponent,
-        OTAComponent,
-        SettingsComponent
+        SettingsComponent,
     ],
     imports: [
         BrowserModule,
@@ -48,7 +47,7 @@ import { NgbTypeaheadModule } from "@ng-bootstrap/ng-bootstrap";
         )
     ],
     providers: [
-        provideHttpClient(withInterceptorsFromDi(), withFetch()),
+        provideHttpClient(withInterceptorsFromDi()),
         ApiService
     ]
 })

@@ -19,8 +19,28 @@
   display: flex !important;
 }
 
+.d-inline-flex {
+  display: inline-flex !important;
+}
+
+.flex-row {
+  flex-direction: row !important;
+}
+
+.align-items-center {
+  align-items: center !important;
+}
+
+.align-self-center {
+  align-self: center !important;
+}
+
 .justify-content-center {
   justify-content: center !important;
+}
+
+.justify-content-between {
+  justify-content: space-between !important;
 }
 
 .justify-content-end {

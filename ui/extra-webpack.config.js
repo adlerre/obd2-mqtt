@@ -72,6 +72,20 @@ module.exports = {
                 response.json({"device": [{"name": "OBDII", "mac": "11:22:de:ad:be:ef"}]});
             });
 
+            devServer.app.get("/api/ota/start", (request, response) => {
+                setTimeout(() => {
+                    response.status(200);
+                    response.send("OK");
+                }, 1000);
+            });
+
+            devServer.app.post("/api/ota/upload", (request, response) => {
+                setTimeout(() => {
+                    response.status(200);
+                    response.send("OK");
+                }, 3000);
+            });
+
             return middlewares;
         }
     },

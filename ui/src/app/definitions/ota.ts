@@ -1,4 +1,4 @@
-/*!
+/*
  * This program is free software; you can use it, redistribute it
  * and / or modify it under the terms of the GNU General Public License
  * (GPL) as published by the Free Software Foundation; either version 3
@@ -15,44 +15,23 @@
  *  59 Temple Place - Suite 330, Boston, MA  02111-1307 USA
  */
 
-.w-25 {
-  width: 25% !important;
+import { Subject } from "rxjs";
+
+export enum OTAMode {
+    FIRMWARE = "fw",
+    LITTLE_FS = "fs"
 }
 
-.w-100 {
-  width: 100% !important;
-}
-
-.m-0 {
-  margin: 0 !important;
-}
-
-.me-2 {
-  margin-right: .5rem !important;
-}
-
-.mb-2 {
-  margin-bottom: .5rem !important;
-}
-
-.mt-auto {
-  margin-top: auto !important;
-}
-
-.mb-auto {
-  margin-bottom: auto !important;
-}
-
-.p-2 {
-  padding: .5rem !important;
-}
-
-@media (min-width: 768px) {
-  .pe-md-1 {
-    padding-right: .25rem !important;
-  }
-
-  .ps-md-1 {
-    padding-left: .25rem !important;
-  }
+export interface FileItem {
+    file: File | any;
+    mode?: OTAMode;
+    progressEvent?: Subject<number>;
+    progress?: number;
+    complete: boolean;
+    processing: boolean;
+    error: boolean;
+    errorMsg?: string;
+    created?: number;
+    started?: number;
+    completed?: number;
 }

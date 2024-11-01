@@ -45,10 +45,23 @@ void HTTPServer::init(fs::FS &fs) {
 #if OTA_ENABLED
     OTA.begin(server);
     OTA.setAutoReboot(false);
-    OTA.onSuccess([&fs]() {
-        Serial.println("Write settings...");
-        Settings.writeSettings(fs);
-        Serial.println("...done");
+    OTA.onStart([]() {
+        Serial.println("Start update...");
+    });
+    OTA.onProgress([&](size_t current, size_t final) {
+        if (millis() > otaProgressMillis) {
+            otaProgressMillis = millis() + 1000;
+            Serial.printf("...progress current: %u bytes, Final: %u bytes\n", current, final);
+        }
+    });
+    OTA.onEnd([&fs](bool success) {
+        if (success) {
+            Serial.println("...write settings");
+            Settings.writeSettings(fs);
+            Serial.println("...done");
+        } else {
+            Serial.println("...failed");
+        }
     });
 #endif
 }

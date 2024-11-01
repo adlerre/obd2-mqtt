@@ -16,5 +16,66 @@
   -->
 
 <div id="ota">
-    <iframe src="/update/"></iframe>
+    <p>
+        Download the latest <a href="https://github.com/adlerre/obd2-mqtt/releases">release</a> for your device.
+    </p>
+    <p>
+        Extract and upload <i>firmware.bin</i> and/or <i>littlefs.bin</i>, or move the entire folder to the drag and
+        drop zone.
+    </p>
+    <p>
+        <strong class="text-danger">Do not reload this page or switch to another page while the update is in
+            progress!</strong>
+    </p>
+
+    <form>
+        @if (!queue || queue && queue.length <= 1) {
+            <div class="row mb-2">
+                <label for="type" class="col-sm-2 col-form-label">Upload type</label>
+                <div class="col-sm-10">
+                    <select class="form-control form-select" id="type" name="type" [formControl]="mode">
+                        @for (t of getModes(); track t.key) {
+                            <option [ngValue]="t.value">{{ t.key }}</option>
+                        }
+                    </select>
+                </div>
+            </div>
+        }
+
+        <div class="row mb-2">
+            <div class="col-sm-12">
+                <div fileDropZone (files)="onFiles($event)" class="file-drop-zone">
+                    <div>
+                        <label for="file" class="m-0">Select or drop file/folder</label>
+                        <input type="file" id="file" name="file" accept=".bin" [hidden]="true">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @if (queue && queue.length !== 0) {
+            <ul class="file-queue list-group mb-2">
+                <li *ngFor="let item of queue"
+                    class="list-group-item d-inline-flex flex-row justify-content-between p-2"
+                    [ngClass]="{'list-group-item-danger': item.error}">
+                    <span class="text-truncate me-1">{{ item.file.filepath || item.file.name }}</span>
+                    <span *ngIf="item.errorMsg" class="text-danger">{{ item.errorMsg }}</span>
+                    <div class="d-inline-flex flex-row w-25">
+                        <div *ngIf="item.progress" class="w-100 mt-auto mb-auto">
+                            <ngb-progressbar
+                                    [type]="!item.complete ? 'info' : item.error !== true ? 'success' : 'danger'"
+                                    textType="white" [value]="item.progress" [animated]="item.processing"
+                                    [striped]="true" [showValue]="true">
+                            </ngb-progressbar>
+                        </div>
+                    </div>
+                </li>
+            </ul>
+        }
+
+        <div class="d-flex justify-content-end mb-2">
+            <input type="submit" class="btn btn-primary" value="Upload" [disabled]="!uploadEnabled"
+                   (click)="onUploadClick($event)">
+        </div>
+    </form>
 </div>

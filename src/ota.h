@@ -17,19 +17,22 @@
 #pragma once
 #include <AsyncTCP.h>
 #include <ESPAsyncWebServer.h>
-#include <ElegantOTA.h>
+#include <Update.h>
+
+enum OTA_Mode {
+    OTA_MODE_FIRMWARE = 0,
+    OTA_MODE_FILESYSTEM = 1
+};
 
 class OTAClass {
     boolean autoReboot = false;
-    boolean otaStarted = false;
-    unsigned long otaProgressMillis = 0;
-    std::function<void()> successCallback = nullptr;
 
-    void onOTAStart();
+    int currentProgressSize;
+    String updateError;
 
-    void onOTAProgress(size_t current, size_t final);
-
-    void onOTAEnd(bool success);
+    std::function<void()> preUpdateCallback = nullptr;
+    std::function<void(int, int)> progressUpdateCallback = nullptr;
+    std::function<void(bool)> postUpdateCallback = nullptr;
 
 public:
     OTAClass();
@@ -38,9 +41,11 @@ public:
 
     void setAutoReboot(bool autoReboot);
 
-    bool isStarted() const;
+    void onStart(const std::function<void()> &callable);
 
-    void onSuccess(const std::function<void()> &callable);
+    void onProgress(const std::function<void(int, int)> &callable);
+
+    void onEnd(const std::function<void(bool)> &callable);
 };
 
 extern OTAClass OTA;
