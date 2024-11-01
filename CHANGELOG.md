@@ -1,3 +1,13 @@
+## [0.7.1](https://github.com/adlerre/obd2-mqtt/compare/v0.7.0...v0.7.1) (2024-11-01)
+
+
+### Bug Fixes
+
+* add new screenshots ([81675bb](https://github.com/adlerre/obd2-mqtt/commit/81675bb0bea32c0fef1609f130c14f7a65f97226))
+* allow to select multiple files ([a28b7a4](https://github.com/adlerre/obd2-mqtt/commit/a28b7a4c3021b699409868faf51dedf5e82fe56c))
+* move to http class ([ba2d914](https://github.com/adlerre/obd2-mqtt/commit/ba2d9149e0985d21565caa7127da63295dbd3039))
+* reboot console error ([4dd823f](https://github.com/adlerre/obd2-mqtt/commit/4dd823f917292041722aa93cd05834822c89a0ed))
+
 # [0.7.0](https://github.com/adlerre/obd2-mqtt/compare/v0.6.0...v0.7.0) (2024-11-01)
 
 
