@@ -32,7 +32,7 @@ export class ApiService {
     }
 
     reboot() {
-        return this.$http.post("/api/reboot?reboot=true", {});
+        return this.$http.post("/api/reboot?reboot=true", {}, {responseType: "text"});
     }
 
     wifiInfo() {

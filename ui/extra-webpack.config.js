@@ -52,7 +52,7 @@ module.exports = {
                 } else {
                     response.status(406);
                 }
-                response.send();
+                response.send("OK");
             });
 
             devServer.app.get("/api/settings", (_, response) => {
