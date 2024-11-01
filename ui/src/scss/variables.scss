@@ -71,6 +71,10 @@ $form-invalid-color: red !default;
   --ui-nav-active-text-color: white;
   --ui-nav-hover-bg-color: gray;
   --ui-nav-hover-text-color: white;
+
+  --ui-info-rgb: rgb(13, 110, 253);
+  --ui-success-rgb: rgb(25, 135, 84);
+  --ui-danger-rgb: rgb(220, 53, 69);
 }
 
 [data-ui-theme="dark"] {

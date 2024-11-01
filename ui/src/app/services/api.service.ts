@@ -16,8 +16,10 @@
  */
 
 import { Injectable } from "@angular/core";
-import { HttpClient } from "@angular/common/http";
+import { HttpClient, HttpEvent, HttpEventType, HttpHeaders, HttpRequest } from "@angular/common/http";
 import { Configuration, DiscoveredDevices, ModemInfo, Settings, WifiInfo } from "../definitions";
+import { distinctUntilChanged, last, map, Subject } from "rxjs";
+import { OTAMode } from "../definitions/ota";
 
 @Injectable()
 export class ApiService {
@@ -52,5 +54,50 @@ export class ApiService {
     discoveredDevices() {
         return this.$http.get<DiscoveredDevices>("/api/discoveredDevices");
     }
+
+    otaStart(mode: OTAMode = OTAMode.FIRMWARE) {
+        return this.$http.get(`/api/ota/start?mode=${mode}`, {responseType: "text"});
+    }
+
+    otaUpload(file: File, progress?: Subject<number>) {
+        const formData = new FormData();
+        formData.append("file", file, file.name);
+
+        const req = new HttpRequest(
+            "POST",
+            "/api/ota/upload",
+            formData,
+            {
+                headers: new HttpHeaders(
+                    {"ngsw-bypass": "true"},
+                ),
+                reportProgress: progress !== undefined,
+                responseType: "text"
+            }
+        );
+
+        return this.$http.request(req).pipe(
+            distinctUntilChanged(),
+            map((event: HttpEvent<any>) => {
+                if (event) {
+                    if (event.type === HttpEventType.UploadProgress && progress && event.total) {
+                        const percentDone = Math.round(100 * event.loaded / event.total);
+                        progress.next(percentDone);
+                    } else if (event.type === HttpEventType.Response) {
+                        if (progress) {
+                            progress.next(100);
+                            progress.complete();
+                        }
+
+                        return event;
+                    }
+                }
+
+                return event;
+            }),
+            last()
+        );
+    }
+
 
 }

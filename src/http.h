@@ -24,6 +24,7 @@
 
 class HTTPServer {
     AsyncWebServer server;
+    long otaProgressMillis;
 
     void init(fs::FS &fs);
 
