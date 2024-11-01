@@ -159,20 +159,6 @@ void startWiFiAP() {
 }
 
 void startHttpServer() {
-    server.on(
-        "/api/reboot",
-        HTTP_POST,
-        [](AsyncWebServerRequest *request) {
-            if (request->hasParam("reboot")) {
-                request->send(200);
-                DEBUG_PORT.println("Rebooting...");
-                delay(2000);
-                ESP.restart();
-            }
-            request->send(406);
-        }
-    );
-
     server.on("/api/settings", HTTP_GET, [](AsyncWebServerRequest *request) {
         request->send(200, "application/json", Settings.buildJson().c_str());
     });

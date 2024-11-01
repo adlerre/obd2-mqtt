@@ -42,6 +42,20 @@ void HTTPServer::init(fs::FS &fs) {
         request->send(404, "text/plain", message);
     });
 
+    server.on(
+        "/api/reboot",
+        HTTP_POST,
+        [](AsyncWebServerRequest *request) {
+            if (request->hasParam("reboot")) {
+                request->send(200);
+                Serial.println("Rebooting...");
+                delay(2000);
+                ESP.restart();
+            }
+            request->send(406);
+        }
+    );
+
 #if OTA_ENABLED
     OTA.begin(server);
     OTA.setAutoReboot(false);
