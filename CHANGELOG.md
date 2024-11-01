@@ -1,3 +1,10 @@
+# [0.7.0](https://github.com/adlerre/obd2-mqtt/compare/v0.6.0...v0.7.0) (2024-11-01)
+
+
+### Features
+
+* own OTA updater implemented ([#24](https://github.com/adlerre/obd2-mqtt/issues/24)) ([003c810](https://github.com/adlerre/obd2-mqtt/commit/003c8109afc5eb4c747faf9f7dcd24f6e6615fec))
+
 # [0.6.0](https://github.com/adlerre/obd2-mqtt/compare/v0.5.1...v0.6.0) (2024-10-28)
 
 
