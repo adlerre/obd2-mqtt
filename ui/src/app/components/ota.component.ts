@@ -72,16 +72,16 @@ export class FileDropZoneDirective {
     private getFilesWebkitDataTransferItems(dataTransferItems: any) {
         const files = [];
 
-        const traverseFileTreePromise = (item, path = "") => new Promise(resolve => {
+        const traverseFileTreePromise = (item: any, path = "") => new Promise(resolve => {
             if (item.isFile) {
-                item.file(file => {
+                item.file((file: any) => {
                     file.filepath = path + file.name;
                     files.push(file);
                     resolve(file);
                 });
             } else if (item.isDirectory) {
                 const dirReader = item.createReader();
-                dirReader.readEntries(entries => {
+                dirReader.readEntries((entries: any) => {
                     const entriesPromises = [];
                     for (const entr of entries) {
                         entriesPromises.push(traverseFileTreePromise(entr, path + item.name + "/"));
@@ -96,7 +96,7 @@ export class FileDropZoneDirective {
             for (const it of dataTransferItems) {
                 entriesPromises.push(traverseFileTreePromise(it.webkitGetAsEntry ? it.webkitGetAsEntry() : it));
             }
-            Promise.all(entriesPromises).then(entries => resolve(files));
+            Promise.all(entriesPromises).then(() => resolve(files));
         });
     }
 
@@ -173,7 +173,7 @@ export class OTAComponent {
         }));
     }
 
-    private queueItemProcess(item) {
+    private queueItemProcess(item: any) {
         if (item.complete === false && item.processing === false && item.error === false) {
             item.started = Date.now();
             item.processing = true;
@@ -197,11 +197,7 @@ export class OTAComponent {
         item.complete = true;
         item.completed = Date.now();
 
-        if (res.status === 200) {
-            item.error = false;
-        } else {
-            item.error = true;
-        }
+        item.error = res.status !== 200;
 
         this.invokeUpload();
     }
