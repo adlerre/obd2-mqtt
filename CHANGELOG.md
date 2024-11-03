@@ -1,3 +1,12 @@
+## [0.7.2](https://github.com/adlerre/obd2-mqtt/compare/v0.7.1...v0.7.2) (2024-11-03)
+
+
+### Bug Fixes
+
+* change ui colors ([1690f31](https://github.com/adlerre/obd2-mqtt/commit/1690f318ef900c8c3d80fc259c41362f7f141c5e))
+* improve build of classes and variables ([0a687f9](https://github.com/adlerre/obd2-mqtt/commit/0a687f923706cac9123530f993afd80cfbcd0d0e))
+* improve code quality ([33827e4](https://github.com/adlerre/obd2-mqtt/commit/33827e45c38c950fc5ec645198cfbd8551f6fafe))
+
 ## [0.7.1](https://github.com/adlerre/obd2-mqtt/compare/v0.7.0...v0.7.1) (2024-11-01)
 
 
