@@ -15,6 +15,9 @@
  *  59 Temple Place - Suite 330, Boston, MA  02111-1307 USA
  */
 
+$spacing-base: 0.25rem !default;
+$spacing-max: 5 !default;
+
 .w-25 {
   width: 25% !important;
 }
@@ -23,16 +26,58 @@
   width: 100% !important;
 }
 
-.m-0 {
-  margin: 0 !important;
-}
+@for $i from 0 through $spacing-max {
+  $space: $spacing-base * $i;
 
-.me-2 {
-  margin-right: .5rem !important;
-}
+  .m-#{$i} {
+    margin: $space !important;
+  }
 
-.mb-2 {
-  margin-bottom: .5rem !important;
+  .ms-#{$i} {
+    margin-left: $space !important;
+  }
+
+  .me-#{$i} {
+    margin-right: $space !important;
+  }
+
+  .mt-#{$i} {
+    margin-top: $space !important;
+  }
+
+  .mb-#{$i} {
+    margin-bottom: $space !important;
+  }
+
+  .p-#{$i} {
+    padding: $space !important;
+  }
+
+  .ps-#{$i} {
+    padding-left: $space !important;
+  }
+
+  .pe-#{$i} {
+    padding-right: $space !important;
+  }
+
+  @media (min-width: 768px) {
+    .ps-md-#{$i} {
+      padding-left: $space !important;
+    }
+
+    .pe-md-#{$i} {
+      padding-right: $space !important;
+    }
+  }
+
+  .pt-#{$i} {
+    padding-top: $space !important;
+  }
+
+  .pb-#{$i} {
+    padding-bottom: $space !important;
+  }
 }
 
 .mt-auto {
@@ -41,18 +86,4 @@
 
 .mb-auto {
   margin-bottom: auto !important;
-}
-
-.p-2 {
-  padding: .5rem !important;
-}
-
-@media (min-width: 768px) {
-  .pe-md-1 {
-    padding-right: .25rem !important;
-  }
-
-  .ps-md-1 {
-    padding-left: .25rem !important;
-  }
 }

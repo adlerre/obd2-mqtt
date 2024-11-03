@@ -15,8 +15,21 @@
  *  59 Temple Place - Suite 330, Boston, MA  02111-1307 USA
  */
 
+@import "functions";
+
 $primary: #c64646 !default;
 $form-invalid-color: red !default;
+
+$colors: (
+        "primary": $primary,
+        "success": #198754,
+        "danger": #DC3545,
+        "info": #0D6EFD,
+        "warning": #baba07,
+        "muted": #6c757d,
+        "eigengrau": #16161d,
+        "white": white
+) !default;
 
 :root, [data-ui-theme="light"] {
   --ui-body-bg: white;
@@ -72,9 +85,10 @@ $form-invalid-color: red !default;
   --ui-nav-hover-bg-color: gray;
   --ui-nav-hover-text-color: white;
 
-  --ui-info-rgb: rgb(13, 110, 253);
-  --ui-success-rgb: rgb(25, 135, 84);
-  --ui-danger-rgb: rgb(220, 53, 69);
+  @each $name, $color in $colors {
+    --ui-#{$name}: #{$color};
+    --ui-#{$name}-rgb: #{toRGB($color)};
+  }
 }
 
 [data-ui-theme="dark"] {

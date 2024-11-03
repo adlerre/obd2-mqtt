@@ -15,19 +15,14 @@
  *  59 Temple Place - Suite 330, Boston, MA  02111-1307 USA
  */
 
+@import "variables";
 
-.bg-success {
-  background-color: var(--ui-success-rgb) !important;
-}
+@each $name, $color in $colors {
+  .bg-#{$name} {
+    background-color: var(--ui-#{$name}) !important;
+  }
 
-.bg-danger {
-  background-color: var(--ui-danger-rgb) !important;
-}
-
-.text-success {
-  color: var(--ui-success-rgb) !important;
-}
-
-.text-danger {
-  color: var(--ui-danger-rgb) !important;
+  .text-#{$name} {
+    color: var(--ui-#{$name}) !important;
+  }
 }

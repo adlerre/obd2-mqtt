@@ -15,6 +15,8 @@
  *  59 Temple Place - Suite 330, Boston, MA  02111-1307 USA
  */
 
+$grid-size: 12 !default;
+
 .container {
   width: 100%;
   padding-right: calc(var(--ui-gutter-x) * .5);
@@ -45,47 +47,18 @@
 }
 
 @media (min-width: 576px) {
-  .col-sm-2 {
-    flex: 0 0 auto;
-    width: 16.66666667%;
+
+  @for $i from 1 through $grid-size {
+    $width: 100% / $grid-size * $i;
+
+    .col-sm-#{$i} {
+      flex: 0 0 auto;
+      width: $width;
+    }
+
+    .offset-sm-#{$i} {
+      margin-left: $width;
+    }
   }
 
-  .col-sm-3 {
-    flex: 0 0 auto;
-    width: 25%;
-  }
-
-  .col-sm-5 {
-    flex: 0 0 auto;
-    width: 41.66666667%;
-  }
-
-  .col-sm-6 {
-    flex: 0 0 auto;
-    width: 50%;
-  }
-
-  .col-sm-7 {
-    flex: 0 0 auto;
-    width: 58.33333333%;
-  }
-
-  .col-sm-9 {
-    flex: 0 0 auto;
-    width: 75%;
-  }
-
-  .col-sm-10 {
-    flex: 0 0 auto;
-    width: 83.33333333%;
-  }
-
-  .col-sm-12 {
-    flex: 0 0 auto;
-    width: 100%;
-  }
-
-  .offset-sm-2 {
-    margin-left: 16.66666667%;
-  }
 }
