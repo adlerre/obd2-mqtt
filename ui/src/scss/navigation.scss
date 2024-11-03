@@ -16,6 +16,7 @@
  */
 
 .navbar {
+  background-color: var(--ui-nav-bg-color);
   border-bottom: 1px solid var(--ui-nav-active-bg-color);
   padding-right: calc(var(--ui-gutter-x) * .5);
   padding-left: calc(var(--ui-gutter-x) * .5);

@@ -32,7 +32,7 @@ $colors: (
 ) !default;
 
 :root, [data-ui-theme="light"] {
-  --ui-body-bg: white;
+  --ui-body-bg: #f0f0f0;
   --ui-body-color: black;
   --ui-font-sans-serif: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", "Noto Sans", "Liberation Sans", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
   --ui-body-font-family: var(--ui-font-sans-serif);
@@ -78,12 +78,12 @@ $colors: (
   --ui-link-text-color: #{$primary};
   --ui-link-hover-text-color: #{lighten($primary, 10%)};
 
-  --ui-nav-bg-color: white;
+  --ui-nav-bg-color: #fff;
   --ui-nav-text-color: black;
   --ui-nav-active-bg-color: black;
   --ui-nav-active-text-color: white;
-  --ui-nav-hover-bg-color: gray;
-  --ui-nav-hover-text-color: white;
+  --ui-nav-hover-bg-color: #{darken(#fff, 10%)};
+  --ui-nav-hover-text-color: #000;
 
   @each $name, $color in $colors {
     --ui-#{$name}: #{$color};
@@ -92,15 +92,15 @@ $colors: (
 }
 
 [data-ui-theme="dark"] {
-  --ui-body-bg: #18191A;
+  --ui-body-bg: #0d1117;
   --ui-body-color: #dee2e6;
 
   --ui-border-color: #48545c;
 
-  --ui-nav-bg-color: black;
+  --ui-nav-bg-color: #010409;
   --ui-nav-text-color: white;
   --ui-nav-active-bg-color: white;
   --ui-nav-active-text-color: black;
-  --ui-nav-hover-bg-color: #242526;
+  --ui-nav-hover-bg-color: #{darken(#0d1117, 20%)};
   --ui-nav-hover-text-color: white;
 }
