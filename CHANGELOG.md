@@ -1,3 +1,10 @@
+## [0.7.3](https://github.com/adlerre/obd2-mqtt/compare/v0.7.2...v0.7.3) (2024-11-20)
+
+
+### Bug Fixes
+
+* fix issue with measurement system switching ([#29](https://github.com/adlerre/obd2-mqtt/issues/29)) ([b0a424d](https://github.com/adlerre/obd2-mqtt/commit/b0a424df610f62751ba8201cb2508f20a2a4c8c1))
+
 ## [0.7.2](https://github.com/adlerre/obd2-mqtt/compare/v0.7.1...v0.7.2) (2024-11-03)
 
 
