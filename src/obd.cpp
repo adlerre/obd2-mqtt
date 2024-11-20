@@ -16,10 +16,186 @@
  */
 
 #include "obd.h"
+
+#include <OBDStates.h>
 #include "helper.h"
 
-OBDClass::OBDClass(): elm327() {
+OBDClass::OBDClass(): OBDStates(&elm327), elm327() {
     protocol = AUTOMATIC;
+}
+
+void OBDClass::initStates() {
+    std::function<char *(int)> toBitStr = [](int value) {
+        char str[33];
+        sprintf(str, "%s", std::bitset<32>(value).to_string().c_str());
+        return strdup(str);
+    };
+    std::function<char *(float)> toMiles = [&](float value) {
+        char str[10];
+        sprintf(str, "%4.2f", system == METRIC ? value : value / KPH_TO_MPH);
+        return strdup(str);
+    };
+    std::function<char *(int)> toMilesInt = [&](int value) {
+        char str[5];
+        sprintf(str, "%d", system == METRIC ? value : static_cast<int>(value / KPH_TO_MPH));
+        return strdup(str);
+    };
+    std::function<char *(float)> toGallons = [&](float value) {
+        char str[15];
+        sprintf(str, "%4.2f", system == METRIC ? value : value / LITER_TO_GALLON);
+        return strdup(str);
+    };
+
+    // onetime states
+    addState((new OBDStateInt(READ, "supportedPids_1_20", "Supported PIDs 1-20", "", "", "", false, true))
+        ->withUpdateInterval(-1)
+        ->withReadFunc([&]() {
+            return elm327.supportedPIDs_1_20();
+        })
+        ->withValueFormatFunc(toBitStr));
+    addState((new OBDStateInt(READ, "supportedPids_21_40", "Supported PIDs 21-40", "", "", "", false, true))
+        ->withUpdateInterval(-1)
+        ->withReadFunc([&]() {
+            return elm327.supportedPIDs_21_40();
+        })
+        ->withValueFormatFunc(toBitStr));
+    addState((new OBDStateInt(READ, "supportedPids_41_60", "Supported PIDs 41-60", "", "", "", false, true))
+        ->withUpdateInterval(-1)
+        ->withReadFunc([&]() {
+            return elm327.supportedPIDs_41_60();
+        })
+        ->withValueFormatFunc(toBitStr));
+    addState((new OBDStateInt(READ, "supportedPids_61_80", "Supported PIDs 61-80", "", "", "", false, true))
+        ->withUpdateInterval(-1)
+        ->withReadFunc([&]() {
+            return elm327.supportedPIDs_21_40();
+        })
+        ->withValueFormatFunc(toBitStr));
+
+    addState((new OBDStateInt(READ, "engineLoad", "Engine Load", "engine", "%", ""))
+        ->withPIDSettings(SERVICE_01, ENGINE_LOAD, 1, 1, 100.0 / 255.0));
+    addState((new OBDStateInt(READ, "throttle", "Throttle", "gauge", "%", ""))
+        ->withPIDSettings(SERVICE_01, THROTTLE_POSITION, 1, 1, 100.0 / 255.0));
+    addState((new OBDStateInt(READ, "rpm", "Rounds per minute", "engine", ""))
+        ->withPIDSettings(SERVICE_01, ENGINE_RPM, 1, 2, 1.0 / 4.0));
+
+    addState((new OBDStateInt(READ, "speed",
+                              system == METRIC ? "Kilometer per Hour" : "Miles per Hour", "speedometer",
+                              system == METRIC ? "km/h" : "mph", "speed"))
+        ->withPIDSettings(SERVICE_01, VEHICLE_SPEED, 1, 1)
+        ->withPostProcessFunc(
+            [&](TypedOBDState<int> *state) {
+                if (runStartTime == 0 & state->getValue() > 0) {
+                    runStartTime = millis();
+                }
+
+                const int aSpeed = (state->getOldValue() + state->getValue()) / 2;
+                float distanceDriven = getStateValue("distanceDriven", 0.0f) +
+                                       calcDistance(
+                                           aSpeed,
+                                           static_cast<float>(millis() - state->getPreviousUpdate()) / 1000.0f
+                                       );
+
+                int fuelType = getStateValue("fuelType", 0);
+                float mafRate = getStateValue("mafRate", 0.0f);
+
+                float consumption = getStateValue("consumption", 0.0f) +
+                                    calcConsumption(fuelType, aSpeed, mafRate) / 3600.0f *
+                                    static_cast<float>(millis() - state->getPreviousUpdate()) / 1000.0f;
+
+                int topSpeed = getStateValue("topSpeed", 0);
+                if (state->getValue() > topSpeed) {
+                    topSpeed = state->getValue();
+                }
+
+                float avgSpeed = distanceDriven / (static_cast<float>(millis() - runStartTime) / 1000.0f) * 3600.0f;
+                float consumptionReadable = consumption / distanceDriven * 100.0f;
+
+                setStateValue("distanceDriven", distanceDriven);
+                setStateValue("consumption", consumption);
+                setStateValue("consumptionReadable", consumptionReadable);
+                setStateValue("topSpeed", topSpeed);
+                setStateValue("avgSpeed", avgSpeed);
+            })
+        ->withValueFormatFunc(toMilesInt));
+    addState(
+        (new OBDStateInt(READ, "engineCoolantTemp", "Engine Coolant Temperature", "thermometer", "°C", "temperature"))
+        ->withPIDSettings(SERVICE_01, ENGINE_COOLANT_TEMP, 1, 1, 1, -40.0)
+        ->withUpdateInterval(10000));
+    addState(
+        (new OBDStateInt(READ, "oilTemp", "Oil Temperature", "thermometer", "°C", "temperature"))
+        ->withPIDSettings(SERVICE_01, ENGINE_OIL_TEMP, 1, 1, 1, -40.0)
+        ->withUpdateInterval(10000));
+    addState(
+        (new OBDStateInt(READ, "ambientAirTemp", "Ambient Temperature", "thermometer", "°C", "temperature"))
+        ->withPIDSettings(SERVICE_01, AMBIENT_AIR_TEMP, 1, 1, 1, -40)
+    );
+    addState(
+        (new OBDStateFloat(READ, "mafRate", "Mass Air Flow", "air-filter", "g/s"))
+        ->withPIDSettings(SERVICE_01, MAF_FLOW_RATE, 1, 2, 1.0 / 100.0));
+    addState(
+        (new OBDStateInt(READ, "fuelLevel", "Fuel Level", "fuel", "%", ""))
+        ->withPIDSettings(SERVICE_01, FUEL_TANK_LEVEL_INPUT, 1, 1, 100.0 / 255.0)
+        ->withUpdateInterval(30000));
+    addState(
+        (new OBDStateFloat(READ, "fuelRate", "fuelRate", "Fuel Rate", "fuel", system == METRIC ? "L/h" : "gal/h"))
+        ->withPIDSettings(SERVICE_01, ENGINE_FUEL_RATE, 1, 2, 1.0 / 20.0)
+        ->withValueFormatFunc(toGallons));
+    addState(
+        (new OBDStateInt(READ, "fuelType", "Fuel Type", "water-opacity", "", "", false, true))
+        ->withPIDSettings(SERVICE_01, FUEL_TYPE, 1, 1)
+        ->withUpdateInterval(30000));
+    addState((new OBDStateFloat(READ, "batteryVoltage", "Battery Voltage", "battery", "V", "voltage"))
+        ->withReadFunc([&]() {
+            return elm327.batteryVoltage();
+        })
+        ->withUpdateInterval(30000));
+    addState(
+        (new OBDStateInt(READ, "intakeAirTemp", "Intake Air Temperature", "thermometer", "°C", "temperature"))
+        ->withPIDSettings(SERVICE_01, INTAKE_AIR_TEMP, 1, 1, 1, -40.0));
+    addState(
+        (new OBDStateInt(READ, "manifoldPressure", "Manifold Pressure", "", "kPa", "pressure"))
+        ->withPIDSettings(SERVICE_01, INTAKE_MANIFOLD_ABS_PRESSURE, 1, 1)
+        ->withEnabled(false));
+    addState(
+        (new OBDStateFloat(READ, "timingAdvance", "Timing Advance", "axis-x-rotate-clockwise", "°"))
+        ->withPIDSettings(SERVICE_01, TIMING_ADVANCE, 1, 1, 1.0 / 2.0, -64.0)
+        ->withEnabled(false));
+    addState((new OBDStateInt(READ, "relativePedalPos", "Pedal Position", "seat-recline-extra", "%"))
+        ->withPIDSettings(SERVICE_01, RELATIVE_ACCELERATOR_PEDAL_POS, 1, 1, 100.0 / 255.0));
+    addState(
+        (new OBDStateInt(READ, "monitorStatus", "Monitor Status", "", "", "", false, true))
+        ->withPIDSettings(SERVICE_01, MONITOR_STATUS_SINCE_DTC_CLEARED, 1, 4)
+        ->withUpdateInterval(30000)
+        ->withPostProcessFunc([&](TypedOBDState<int> *state) {
+            setStateValue("milState", ((state->getValue() >> 16) & 0xFF) & 0x80);
+        }));
+
+    // calculated states
+    addState((new OBDStateFloat(CALC, "distanceDriven", "Calculated driven distance", "map-marker-distance",
+                                system == METRIC ? "km" : "mi", "distance"))
+        ->withValueFormatFunc(toMiles));
+    addState((new OBDStateFloat(CALC, "consumption", "Calculated consumption", "gas-station",
+                                system == METRIC ? "L" : "gal", "volume"))
+        ->withValueFormatFunc(toGallons));
+
+    addState((new OBDStateFloat(CALC, "consumptionReadable",
+                                system == METRIC ? "Calculated consumption per 100km" : "Calculated Miles per gallon",
+                                "gas-station", system == METRIC ? "l/100km" : "mpg"))
+        ->withValueFormatFunc(
+            [&](float value) {
+                char str[15];
+                sprintf(str, "%4.2f", system == METRIC ? value : 235.214583333333f / value);
+                return strdup(str);
+            }));
+
+    addState((new OBDStateInt(CALC, "topSpeed", "Top Speed", "speedometer", system == METRIC ? "km/h" : "mph", "speed"))
+        ->withValueFormatFunc(toMilesInt));
+    addState(
+        (new OBDStateFloat(CALC, "avgSpeed", "Calculated average speed", "speedometer-medium",
+                           system == METRIC ? "km/h" : "mph", "speed"))
+        ->withValueFormatFunc(toMiles));
+    addState(new OBDStateBool(CALC, "milState", "Check Engine Light", "engine-off", "", "", false));
 }
 
 void OBDClass::BTEvent(esp_spp_cb_event_t event, esp_spp_cb_param_t *param) {
@@ -57,33 +233,16 @@ BTScanResults *OBDClass::discoverBtDevices() {
     return nullptr;
 }
 
-template<typename T>
-bool OBDClass::setStateValue(T &var, obd_pid_states nextState, T value) {
-    if (elm327.nb_rx_state == ELM_SUCCESS) {
-        var = value;
-        obd_state = nextState;
-        return true;
-    }
-
-    if (elm327.nb_rx_state != ELM_GETTING_MSG && elm327.nb_rx_state != ELM_SUCCESS) {
-        elm327.printError();
-    }
-
-    if (elm327.nb_rx_state == ELM_NO_DATA) {
-        var = 0;
-        obd_state = nextState;
-    }
-
-    return false;
-}
-
-void OBDClass::begin(const String &devName, const String &devMac, const char protocol, bool checkPidSupport) {
+void OBDClass::begin(const String &devName, const String &devMac, const char protocol, bool checkPidSupport,
+                     measurementSystem system) {
     this->devName = devName;
     this->devMac = devMac;
     this->protocol = protocol;
     this->checkPidSupport = checkPidSupport;
+    this->system = system;
     stopConnect = false;
     serialBt.register_callback(BTEvent);
+    setCheckPidSupport(this->checkPidSupport);
 }
 
 void OBDClass::end() {
@@ -192,12 +351,7 @@ connect:
     Serial.println("Connected to ELM327");
 
     if (!reconnect) {
-        Serial.println("Cache supported PIDs...");
-        isPidSupported(MONITOR_STATUS_SINCE_DTC_CLEARED);
-        isPidSupported(DISTANCE_TRAVELED_WITH_MIL_ON);
-        isPidSupported(MONITOR_STATUS_THIS_DRIVE_CYCLE);
-        isPidSupported(DEMANDED_ENGINE_PERCENT_TORQUE);
-        Serial.println("...done.");
+        initStates();
 
         Serial.println("Try to get VIN...");
         char vin[18];
@@ -217,169 +371,13 @@ connect:
                 Serial.println("...VIN is empty.");
             }
         }
-
         initDone = true;
     }
 }
 
 void OBDClass::loop() {
     if (!serialBt.isClosed()) {
-        switch (obd_state) {
-            case ENG_LOAD: {
-                if (isPidSupported(ENGINE_LOAD)) {
-                    setStateValue(load, THROTTLE, static_cast<int>(elm327.engineLoad()));
-                } else {
-                    obd_state = THROTTLE;
-                }
-                break;
-            }
-            case THROTTLE:
-                if (isPidSupported(THROTTLE_POSITION)) {
-                    setStateValue(throttle, RPM, static_cast<int>(elm327.throttle()));
-                } else {
-                    obd_state = RPM;
-                }
-                break;
-            case RPM: {
-                if (isPidSupported(ENGINE_RPM)) {
-                    setStateValue(rpm, COOLANT_TEMP, elm327.rpm());
-                } else {
-                    obd_state = COOLANT_TEMP;
-                }
-                break;
-            }
-            case COOLANT_TEMP: {
-                if (isPidSupported(ENGINE_COOLANT_TEMP)) {
-                    setStateValue(coolantTemp, OIL_TEMP, elm327.engineCoolantTemp());
-                } else {
-                    obd_state = OIL_TEMP;
-                }
-                break;
-            }
-            case OIL_TEMP: {
-                if (isPidSupported(ENGINE_OIL_TEMP)) {
-                    setStateValue(oilTemp, AMBIENT_TEMP, elm327.oilTemp());
-                } else {
-                    obd_state = AMBIENT_TEMP;
-                }
-                break;
-            }
-            case AMBIENT_TEMP: {
-                if (isPidSupported(AMBIENT_AIR_TEMP)) {
-                    setStateValue(ambientAirTemp, SPEED, elm327.ambientAirTemp());
-                } else {
-                    obd_state = SPEED;
-                }
-                break;
-            }
-            case SPEED: {
-                if (isPidSupported(VEHICLE_SPEED)) {
-                    int kphBefore = kph;
-                    setStateValue(kph, MAF_RATE, elm327.kph());
-
-                    if (runStartTime == 0 & kph > 0) {
-                        runStartTime = millis();
-                    }
-
-                    if (kph > topSpeed) {
-                        topSpeed = kph;
-                    }
-
-                    distanceDriven = distanceDriven +
-                                     calcDistance(
-                                         (kphBefore + kph) / 2,
-                                         static_cast<float>(millis() - lastReadSpeed) / 1000.0f
-                                     );
-                    consumption = consumption + calcConsumption(fuelType, kph, mafRate) / 3600.0f *
-                                  static_cast<float>(millis() - lastReadSpeed) / 1000.0f;
-                    lastReadSpeed = millis();
-                } else {
-                    obd_state = MAF_RATE;
-                }
-                break;
-            }
-            case MAF_RATE: {
-                if (isPidSupported(MAF_FLOW_RATE)) {
-                    setStateValue(mafRate, FUEL_LEVEL, elm327.mafRate());
-                } else {
-                    obd_state = FUEL_LEVEL;
-                }
-                break;
-            }
-            case FUEL_LEVEL: {
-                if (isPidSupported(FUEL_TANK_LEVEL_INPUT)) {
-                    setStateValue(fuelLevel, FUEL_RATE, elm327.fuelLevel());
-                } else {
-                    obd_state = FUEL_RATE;
-                }
-                break;
-            }
-            case FUEL_RATE: {
-                if (isPidSupported(ENGINE_FUEL_RATE)) {
-                    setStateValue(fuelRate, FUEL_T, elm327.fuelRate());
-                } else {
-                    obd_state = FUEL_T;
-                }
-                break;
-            }
-            case FUEL_T: {
-                if (isPidSupported(FUEL_TYPE) && !fuelTypeRead) {
-                    setStateValue(fuelType, BAT_VOLTAGE, elm327.fuelType());
-                    fuelTypeRead = true;
-                } else {
-                    obd_state = BAT_VOLTAGE;
-                }
-                break;
-            }
-            case BAT_VOLTAGE: {
-                setStateValue(batVoltage, INT_AIR_TEMP, elm327.batteryVoltage());
-                break;
-            }
-            case INT_AIR_TEMP: {
-                if (isPidSupported(INTAKE_AIR_TEMP)) {
-                    setStateValue(intakeAirTemp, MANIFOLD_PRESSURE, elm327.intakeAirTemp());
-                } else {
-                    obd_state = MANIFOLD_PRESSURE;
-                }
-                break;
-            }
-            case MANIFOLD_PRESSURE: {
-                if (isPidSupported(INTAKE_MANIFOLD_ABS_PRESSURE)) {
-                    setStateValue(manifoldPressure, IGN_TIMING, elm327.manifoldPressure());
-                } else {
-                    obd_state = IGN_TIMING;
-                }
-                break;
-            }
-            case IGN_TIMING: {
-                if (isPidSupported(TIMING_ADVANCE)) {
-                    setStateValue(timingAdvance, PEDAL_POS, elm327.timingAdvance());
-                } else {
-                    obd_state = PEDAL_POS;
-                }
-                break;
-            }
-            case PEDAL_POS: {
-                if (isPidSupported(RELATIVE_ACCELERATOR_PEDAL_POS)) {
-                    setStateValue(pedalPosition, MILSTATUS, elm327.relativePedalPos());
-                } else {
-                    obd_state = MILSTATUS;
-                }
-                break;
-            }
-            case MILSTATUS: {
-                if (isPidSupported(MONITOR_STATUS_SINCE_DTC_CLEARED)) {
-                    setStateValue(monitorStatus, ENG_LOAD, elm327.monitorStatus());
-                    milState = ((monitorStatus >> 16) & 0xFF) & 0x80;
-                } else {
-                    obd_state = ENG_LOAD;
-                }
-            }
-        }
-
-        avgSpeed = distanceDriven / (static_cast<float>(millis() - runStartTime) / 1000.0f) * 3600.0f;
-        // curConsumption = calcCurrentConsumption(fuelType, kph, mafRate);
-        consumptionPer100 = consumption / distanceDriven * 100.0f;
+        nextState();
     } else {
         delay(500);
     }
@@ -389,230 +387,8 @@ void OBDClass::onDevicesDiscovered(const std::function<void(BTScanResults *scanR
     devDiscoveredCallback = callable;
 }
 
-bool OBDClass::isPidSupported(uint8_t pid) {
-    bool cached = false;
-    uint32_t response = 0;
-    uint8_t pidInterval = (pid / PID_INTERVAL_OFFSET) * PID_INTERVAL_OFFSET;
-
-    int retries = 0;
-    do {
-        switch (pidInterval) {
-            case SUPPORTED_PIDS_1_20:
-                response = !supportedPids_1_20_cached
-                               ? elm327.supportedPIDs_1_20()
-                               : supportedPids_1_20;
-                cached = supportedPids_1_20_cached;
-                break;
-            case SUPPORTED_PIDS_21_40:
-                response = !supportedPids_21_40_cached
-                               ? elm327.supportedPIDs_21_40()
-                               : supportedPids_21_40;
-                pid = (pid - SUPPORTED_PIDS_21_40);
-                cached = supportedPids_21_40_cached;
-                break;
-            case SUPPORTED_PIDS_41_60:
-                response = !supportedPids_41_60_cached
-                               ? elm327.supportedPIDs_41_60()
-                               : supportedPids_41_60;
-                pid = (pid - SUPPORTED_PIDS_41_60);
-                cached = supportedPids_41_60_cached;
-                break;
-            case SUPPORTED_PIDS_61_80:
-                response = !supportedPids_61_80_cached
-                               ? elm327.supportedPIDs_61_80()
-                               : supportedPids_61_80;
-                pid = (pid - SUPPORTED_PIDS_61_80);
-                cached = supportedPids_61_80_cached;
-                break;
-            default:
-                break;
-        }
-        if (!cached) {
-            if (elm327.nb_rx_state == ELM_GETTING_MSG) {
-                Serial.print(".");
-                delay(500);
-                retries++;
-            } else if (elm327.nb_rx_state != ELM_SUCCESS) {
-                Serial.print("x");
-                delay(500);
-                retries++;
-            }
-        }
-    } while (!cached && response == 0 && elm327.nb_rx_state != ELM_SUCCESS && retries < 10);
-    if (!cached) {
-        Serial.println("");
-    }
-
-    if (!cached && response != 0 && elm327.nb_rx_state == ELM_SUCCESS) {
-        switch (pidInterval) {
-            case SUPPORTED_PIDS_1_20:
-                supportedPids_1_20 = response;
-                supportedPids_1_20_cached = true;
-                break;
-            case SUPPORTED_PIDS_21_40:
-                supportedPids_21_40 = response;
-                supportedPids_21_40_cached = true;
-                break;
-            case SUPPORTED_PIDS_41_60:
-                supportedPids_41_60 = response;
-                supportedPids_41_60_cached = true;
-                break;
-            case SUPPORTED_PIDS_61_80:
-                supportedPids_61_80 = response;
-                supportedPids_61_80_cached = true;
-                break;
-            default:
-                break;
-        }
-    } else if (!cached && !checkPidSupport) {
-        switch (pidInterval) {
-            case SUPPORTED_PIDS_1_20:
-                supportedPids_1_20 = 0xFFFFFFFF;
-                supportedPids_1_20_cached = true;
-                break;
-            case SUPPORTED_PIDS_21_40:
-                supportedPids_21_40 = 0xFFFFFFFF;
-                supportedPids_21_40_cached = true;
-                break;
-            case SUPPORTED_PIDS_41_60:
-                supportedPids_41_60 = 0xFFFFFFFF;
-                supportedPids_41_60_cached = true;
-                break;
-            case SUPPORTED_PIDS_61_80:
-                supportedPids_61_80 = 0xFFFFFFFF;
-                supportedPids_61_80_cached = true;
-                break;
-            default:
-                break;
-        }
-        response = 0xFFFFFFFF;
-    }
-
-    return ((response >> (32 - pid)) & 0x1);
-}
-
-uint32_t OBDClass::getSupportedPids1To20() const {
-    return supportedPids_1_20;
-}
-
-uint32_t OBDClass::getSupportedPids21To40() const {
-    return supportedPids_21_40;
-}
-
-uint32_t OBDClass::getSupportedPids41To60() const {
-    return supportedPids_41_60;
-}
-
-uint32_t OBDClass::getSupportedPids61To80() const {
-    return supportedPids_61_80;
-}
-
-int OBDClass::getLoad() const {
-    return load;
-}
-
-int OBDClass::getThrottle() const {
-    return throttle;
-}
-
-float OBDClass::getRPM() const {
-    return rpm;
-}
-
-float OBDClass::getCoolantTemp() const {
-    return coolantTemp;
-}
-
-float OBDClass::getOilTemp() const {
-    return oilTemp;
-}
-
-float OBDClass::getAmbientAirTemp() const {
-    return ambientAirTemp;
-}
-
-int OBDClass::getSpeed(measurementSystem system) const {
-    return system == METRIC ? kph : static_cast<int>(kph / KPH_TO_MPH);
-}
-
-float OBDClass::getFuelLevel() const {
-    return fuelLevel;
-}
-
-float OBDClass::getFuelRate(measurementSystem system) const {
-    return system == METRIC ? fuelRate : fuelRate / LITER_TO_GALLON;
-}
-
-uint8_t OBDClass::getFuelType() const {
-    return fuelType;
-}
-
-bool OBDClass::getFuelTypeRead() const {
-    return fuelTypeRead;
-}
-
-float OBDClass::getMafRate() const {
-    return mafRate;
-}
-
-float OBDClass::getBatVoltage() const {
-    return batVoltage;
-}
-
-float OBDClass::getIntakeAirTemp() const {
-    return intakeAirTemp;
-}
-
-uint8_t OBDClass::getManifoldPressure() const {
-    return manifoldPressure;
-}
-
-float OBDClass::getTimingAdvance() const {
-    return timingAdvance;
-}
-
-float OBDClass::getPedalPosition() const {
-    return pedalPosition;
-}
-
-uint32_t OBDClass::getMonitorStatus() const {
-    return monitorStatus;
-}
-
-bool OBDClass::getMilState() const {
-    return milState;
-}
-
-unsigned long OBDClass::getLastReadSpeed() const {
-    return lastReadSpeed;
-}
-
 unsigned long OBDClass::getRunStartTime() const {
     return runStartTime;
-}
-
-float OBDClass::getCurConsumption(measurementSystem system) const {
-    return system == METRIC ? curConsumption : curConsumption / LITER_TO_GALLON;
-}
-
-float OBDClass::getConsumption(measurementSystem system) const {
-    return system == METRIC ? consumption : consumption / LITER_TO_GALLON;
-}
-
-float OBDClass::getConsumptionForMeasurement(measurementSystem system) const {
-    return system == METRIC ? consumptionPer100 : 235.214583333333f / consumptionPer100;
-}
-
-float OBDClass::getDistanceDriven(measurementSystem system) const {
-    return system == METRIC ? distanceDriven : distanceDriven / KPH_TO_MPH;
-}
-
-float OBDClass::getAvgSpeed(measurementSystem system) const {
-    return system == METRIC ? avgSpeed : avgSpeed / KPH_TO_MPH;
-}
-
-int OBDClass::getTopSpeed(measurementSystem system) const {
-    return system == METRIC ? topSpeed : static_cast<int>(topSpeed / KPH_TO_MPH);
 }
 
 std::string OBDClass::getConnectedBTAddress() const {
