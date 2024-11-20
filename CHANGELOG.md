@@ -1,3 +1,10 @@
+# [0.8.0](https://github.com/adlerre/obd2-mqtt/compare/v0.7.3...v0.8.0) (2024-11-20)
+
+
+### Features
+
+* generic OBD states ([#30](https://github.com/adlerre/obd2-mqtt/issues/30)) ([e3e4f17](https://github.com/adlerre/obd2-mqtt/commit/e3e4f1775e91ad8922c3081ef3fe1088cfdc4eae))
+
 ## [0.7.3](https://github.com/adlerre/obd2-mqtt/compare/v0.7.2...v0.7.3) (2024-11-20)
 
 
