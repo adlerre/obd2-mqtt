@@ -29,7 +29,7 @@
                     <select class="form-control form-select" id="measurementSystem"
                             formControlName="measurementSystem"
                             [ngClass]="{'is-invalid': general.controls.measurementSystem.errors}">
-                        <option *ngFor="let system of getMeasurementSystems()" [value]="system.value">{{ system.key }}
+                        <option *ngFor="let system of getMeasurementSystems()" [ngValue]="system.value">{{ system.key }}
                         </option>
                     </select>
                 </div>
