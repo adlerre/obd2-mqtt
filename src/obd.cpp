@@ -72,130 +72,135 @@ void OBDClass::initStates() {
         })
         ->withValueFormatFunc(toBitStr));
 
-    addState((new OBDStateInt(READ, "engineLoad", "Engine Load", "engine", "%", ""))
-        ->withPIDSettings(SERVICE_01, ENGINE_LOAD, 1, 1, 100.0 / 255.0));
-    addState((new OBDStateInt(READ, "throttle", "Throttle", "gauge", "%", ""))
-        ->withPIDSettings(SERVICE_01, THROTTLE_POSITION, 1, 1, 100.0 / 255.0));
-    addState((new OBDStateInt(READ, "rpm", "Rounds per minute", "engine", ""))
-        ->withPIDSettings(SERVICE_01, ENGINE_RPM, 1, 2, 1.0 / 4.0));
-
-    addState((new OBDStateInt(READ, "speed",
-                              system == METRIC ? "Kilometer per Hour" : "Miles per Hour", "speedometer",
-                              system == METRIC ? "km/h" : "mph", "speed"))
-        ->withPIDSettings(SERVICE_01, VEHICLE_SPEED, 1, 1)
-        ->withPostProcessFunc(
-            [&](TypedOBDState<int> *state) {
-                if (runStartTime == 0 & state->getValue() > 0) {
-                    runStartTime = millis();
-                }
-
-                const int aSpeed = (state->getOldValue() + state->getValue()) / 2;
-                float distanceDriven = getStateValue("distanceDriven", 0.0f) +
-                                       calcDistance(
-                                           aSpeed,
-                                           static_cast<float>(millis() - state->getPreviousUpdate()) / 1000.0f
-                                       );
-
-                int fuelType = getStateValue("fuelType", 0);
-                float mafRate = getStateValue("mafRate", 0.0f);
-
-                float consumption = getStateValue("consumption", 0.0f) +
-                                    calcConsumption(fuelType, aSpeed, mafRate) / 3600.0f *
-                                    static_cast<float>(millis() - state->getPreviousUpdate()) / 1000.0f;
-
-                int topSpeed = getStateValue("topSpeed", 0);
-                if (state->getValue() > topSpeed) {
-                    topSpeed = state->getValue();
-                }
-
-                float avgSpeed = distanceDriven / (static_cast<float>(millis() - runStartTime) / 1000.0f) * 3600.0f;
-                float consumptionReadable = consumption / distanceDriven * 100.0f;
-
-                setStateValue("distanceDriven", distanceDriven);
-                setStateValue("consumption", consumption);
-                setStateValue("consumptionReadable", consumptionReadable);
-                setStateValue("topSpeed", topSpeed);
-                setStateValue("avgSpeed", avgSpeed);
-            })
-        ->withValueFormatFunc(toMilesInt));
-    addState(
-        (new OBDStateInt(READ, "engineCoolantTemp", "Engine Coolant Temperature", "thermometer", "°C", "temperature"))
-        ->withPIDSettings(SERVICE_01, ENGINE_COOLANT_TEMP, 1, 1, 1, -40.0)
-        ->withUpdateInterval(10000));
-    addState(
-        (new OBDStateInt(READ, "oilTemp", "Oil Temperature", "thermometer", "°C", "temperature"))
-        ->withPIDSettings(SERVICE_01, ENGINE_OIL_TEMP, 1, 1, 1, -40.0)
-        ->withUpdateInterval(10000));
-    addState(
-        (new OBDStateInt(READ, "ambientAirTemp", "Ambient Temperature", "thermometer", "°C", "temperature"))
-        ->withPIDSettings(SERVICE_01, AMBIENT_AIR_TEMP, 1, 1, 1, -40)
-    );
-    addState(
-        (new OBDStateFloat(READ, "mafRate", "Mass Air Flow", "air-filter", "g/s"))
-        ->withPIDSettings(SERVICE_01, MAF_FLOW_RATE, 1, 2, 1.0 / 100.0));
-    addState(
-        (new OBDStateInt(READ, "fuelLevel", "Fuel Level", "fuel", "%", ""))
-        ->withPIDSettings(SERVICE_01, FUEL_TANK_LEVEL_INPUT, 1, 1, 100.0 / 255.0)
-        ->withUpdateInterval(30000));
-    addState(
-        (new OBDStateFloat(READ, "fuelRate", "fuelRate", "Fuel Rate", "fuel", system == METRIC ? "L/h" : "gal/h"))
-        ->withPIDSettings(SERVICE_01, ENGINE_FUEL_RATE, 1, 2, 1.0 / 20.0)
-        ->withValueFormatFunc(toGallons));
-    addState(
-        (new OBDStateInt(READ, "fuelType", "Fuel Type", "water-opacity", "", "", false, true))
-        ->withPIDSettings(SERVICE_01, FUEL_TYPE, 1, 1)
-        ->withUpdateInterval(30000));
+    // addState((new OBDStateInt(READ, "engineLoad", "Engine Load", "engine", "%", ""))
+    //     ->withPIDSettings(SERVICE_01, ENGINE_LOAD, 1, 1, 100.0 / 255.0));
+    // addState((new OBDStateInt(READ, "throttle", "Throttle", "gauge", "%", ""))
+    //     ->withPIDSettings(SERVICE_01, THROTTLE_POSITION, 1, 1, 100.0 / 255.0));
+    // addState((new OBDStateInt(READ, "rpm", "Rounds per minute", "engine", ""))
+    //     ->withPIDSettings(SERVICE_01, ENGINE_RPM, 1, 2, 1.0 / 4.0));
+    //
+    // addState((new OBDStateInt(READ, "speed",
+    //                           system == METRIC ? "Kilometer per Hour" : "Miles per Hour", "speedometer",
+    //                           system == METRIC ? "km/h" : "mph", "speed"))
+    //     ->withPIDSettings(SERVICE_01, VEHICLE_SPEED, 1, 1)
+    //     ->withPostProcessFunc(
+    //         [&](TypedOBDState<int> *state) {
+    //             if (runStartTime == 0 & state->getValue() > 0) {
+    //                 runStartTime = millis();
+    //             }
+    //
+    //             const int aSpeed = (state->getOldValue() + state->getValue()) / 2;
+    //             float distanceDriven = getStateValue("distanceDriven", 0.0f) +
+    //                                    calcDistance(
+    //                                        aSpeed,
+    //                                        static_cast<float>(millis() - state->getPreviousUpdate()) / 1000.0f
+    //                                    );
+    //
+    //             int fuelType = getStateValue("fuelType", 0);
+    //             float mafRate = getStateValue("mafRate", 0.0f);
+    //
+    //             float consumption = getStateValue("consumption", 0.0f) +
+    //                                 calcConsumption(fuelType, aSpeed, mafRate) / 3600.0f *
+    //                                 static_cast<float>(millis() - state->getPreviousUpdate()) / 1000.0f;
+    //
+    //             int topSpeed = getStateValue("topSpeed", 0);
+    //             if (state->getValue() > topSpeed) {
+    //                 topSpeed = state->getValue();
+    //             }
+    //
+    //             float avgSpeed = distanceDriven / (static_cast<float>(millis() - runStartTime) / 1000.0f) * 3600.0f;
+    //             float consumptionReadable = consumption / distanceDriven * 100.0f;
+    //
+    //             setStateValue("distanceDriven", distanceDriven);
+    //             setStateValue("consumption", consumption);
+    //             setStateValue("consumptionReadable", consumptionReadable);
+    //             setStateValue("topSpeed", topSpeed);
+    //             setStateValue("avgSpeed", avgSpeed);
+    //         })
+    //     ->withValueFormatFunc(toMilesInt));
+    // addState(
+    //     (new OBDStateInt(READ, "engineCoolantTemp", "Engine Coolant Temperature", "thermometer", "°C", "temperature"))
+    //     ->withPIDSettings(SERVICE_01, ENGINE_COOLANT_TEMP, 1, 1, 1, -40.0)
+    //     ->withUpdateInterval(10000));
+    // addState(
+    //     (new OBDStateInt(READ, "oilTemp", "Oil Temperature", "thermometer", "°C", "temperature"))
+    //     ->withPIDSettings(SERVICE_01, ENGINE_OIL_TEMP, 1, 1, 1, -40.0)
+    //     ->withUpdateInterval(10000));
+    // addState(
+    //     (new OBDStateInt(READ, "ambientAirTemp", "Ambient Temperature", "thermometer", "°C", "temperature"))
+    //     ->withPIDSettings(SERVICE_01, AMBIENT_AIR_TEMP, 1, 1, 1, -40)
+    // );
+    // addState(
+    //     (new OBDStateFloat(READ, "mafRate", "Mass Air Flow", "air-filter", "g/s"))
+    //     ->withPIDSettings(SERVICE_01, MAF_FLOW_RATE, 1, 2, 1.0 / 100.0));
+    // addState(
+    //     (new OBDStateInt(READ, "fuelLevel", "Fuel Level", "fuel", "%", ""))
+    //     ->withPIDSettings(SERVICE_01, FUEL_TANK_LEVEL_INPUT, 1, 1, 100.0 / 255.0)
+    //     ->withUpdateInterval(30000));
+    // addState(
+    //     (new OBDStateFloat(READ, "fuelRate", "fuelRate", "Fuel Rate", "fuel", system == METRIC ? "L/h" : "gal/h"))
+    //     ->withPIDSettings(SERVICE_01, ENGINE_FUEL_RATE, 1, 2, 1.0 / 20.0)
+    //     ->withValueFormatFunc(toGallons));
+    // addState(
+    //     (new OBDStateInt(READ, "fuelType", "Fuel Type", "water-opacity", "", "", false, true))
+    //     ->withPIDSettings(SERVICE_01, FUEL_TYPE, 1, 1)
+    //     ->withUpdateInterval(30000));
     addState((new OBDStateFloat(READ, "batteryVoltage", "Battery Voltage", "battery", "V", "voltage"))
         ->withReadFunc([&]() {
             return elm327.batteryVoltage();
         })
         ->withUpdateInterval(30000));
+    // addState(
+    //     (new OBDStateInt(READ, "intakeAirTemp", "Intake Air Temperature", "thermometer", "°C", "temperature"))
+    //     ->withPIDSettings(SERVICE_01, INTAKE_AIR_TEMP, 1, 1, 1, -40.0));
+    // addState(
+    //     (new OBDStateInt(READ, "manifoldPressure", "Manifold Pressure", "", "kPa", "pressure"))
+    //     ->withPIDSettings(SERVICE_01, INTAKE_MANIFOLD_ABS_PRESSURE, 1, 1)
+    //     ->withEnabled(false));
+    // addState(
+    //     (new OBDStateFloat(READ, "timingAdvance", "Timing Advance", "axis-x-rotate-clockwise", "°"))
+    //     ->withPIDSettings(SERVICE_01, TIMING_ADVANCE, 1, 1, 1.0 / 2.0, -64.0)
+    //     ->withEnabled(false));
+    // addState((new OBDStateInt(READ, "relativePedalPos", "Pedal Position", "seat-recline-extra", "%"))
+    //     ->withPIDSettings(SERVICE_01, RELATIVE_ACCELERATOR_PEDAL_POS, 1, 1, 100.0 / 255.0));
+    // addState(
+    //     (new OBDStateInt(READ, "monitorStatus", "Monitor Status", "", "", "", false, true))
+    //     ->withPIDSettings(SERVICE_01, MONITOR_STATUS_SINCE_DTC_CLEARED, 1, 4)
+    //     ->withUpdateInterval(30000)
+    //     ->withPostProcessFunc([&](TypedOBDState<int> *state) {
+    //         setStateValue("milState", ((state->getValue() >> 16) & 0xFF) & 0x80);
+    //     }));
+
+    // ISSUE #25 - VW eUP SoC
     addState(
-        (new OBDStateInt(READ, "intakeAirTemp", "Intake Air Temperature", "thermometer", "°C", "temperature"))
-        ->withPIDSettings(SERVICE_01, INTAKE_AIR_TEMP, 1, 1, 1, -40.0));
-    addState(
-        (new OBDStateInt(READ, "manifoldPressure", "Manifold Pressure", "", "kPa", "pressure"))
-        ->withPIDSettings(SERVICE_01, INTAKE_MANIFOLD_ABS_PRESSURE, 1, 1)
-        ->withEnabled(false));
-    addState(
-        (new OBDStateFloat(READ, "timingAdvance", "Timing Advance", "axis-x-rotate-clockwise", "°"))
-        ->withPIDSettings(SERVICE_01, TIMING_ADVANCE, 1, 1, 1.0 / 2.0, -64.0)
-        ->withEnabled(false));
-    addState((new OBDStateInt(READ, "relativePedalPos", "Pedal Position", "seat-recline-extra", "%"))
-        ->withPIDSettings(SERVICE_01, RELATIVE_ACCELERATOR_PEDAL_POS, 1, 1, 100.0 / 255.0));
-    addState(
-        (new OBDStateInt(READ, "monitorStatus", "Monitor Status", "", "", "", false, true))
-        ->withPIDSettings(SERVICE_01, MONITOR_STATUS_SINCE_DTC_CLEARED, 1, 4)
-        ->withUpdateInterval(30000)
-        ->withPostProcessFunc([&](TypedOBDState<int> *state) {
-            setStateValue("milState", ((state->getValue() >> 16) & 0xFF) & 0x80);
-        }));
+        (new OBDStateInt(READ, "soc", "State of Charge", "battery", "%", "battery"))
+        ->withPIDSettings(0x22, 0x028C, 1, 1, 100.0 / 255.0));
 
     // calculated states
-    addState((new OBDStateFloat(CALC, "distanceDriven", "Calculated driven distance", "map-marker-distance",
-                                system == METRIC ? "km" : "mi", "distance"))
-        ->withValueFormatFunc(toMiles));
-    addState((new OBDStateFloat(CALC, "consumption", "Calculated consumption", "gas-station",
-                                system == METRIC ? "L" : "gal", "volume"))
-        ->withValueFormatFunc(toGallons));
-
-    addState((new OBDStateFloat(CALC, "consumptionReadable",
-                                system == METRIC ? "Calculated consumption per 100km" : "Calculated Miles per gallon",
-                                "gas-station", system == METRIC ? "l/100km" : "mpg"))
-        ->withValueFormatFunc(
-            [&](float value) {
-                char str[15];
-                sprintf(str, "%4.2f", system == METRIC ? value : 235.214583333333f / value);
-                return strdup(str);
-            }));
-
-    addState((new OBDStateInt(CALC, "topSpeed", "Top Speed", "speedometer", system == METRIC ? "km/h" : "mph", "speed"))
-        ->withValueFormatFunc(toMilesInt));
-    addState(
-        (new OBDStateFloat(CALC, "avgSpeed", "Calculated average speed", "speedometer-medium",
-                           system == METRIC ? "km/h" : "mph", "speed"))
-        ->withValueFormatFunc(toMiles));
-    addState(new OBDStateBool(CALC, "milState", "Check Engine Light", "engine-off", "", "", false));
+    // addState((new OBDStateFloat(CALC, "distanceDriven", "Calculated driven distance", "map-marker-distance",
+    //                             system == METRIC ? "km" : "mi", "distance"))
+    //     ->withValueFormatFunc(toMiles));
+    // addState((new OBDStateFloat(CALC, "consumption", "Calculated consumption", "gas-station",
+    //                             system == METRIC ? "L" : "gal", "volume"))
+    //     ->withValueFormatFunc(toGallons));
+    //
+    // addState((new OBDStateFloat(CALC, "consumptionReadable",
+    //                             system == METRIC ? "Calculated consumption per 100km" : "Calculated Miles per gallon",
+    //                             "gas-station", system == METRIC ? "l/100km" : "mpg"))
+    //     ->withValueFormatFunc(
+    //         [&](float value) {
+    //             char str[15];
+    //             sprintf(str, "%4.2f", system == METRIC ? value : 235.214583333333f / value);
+    //             return strdup(str);
+    //         }));
+    //
+    // addState((new OBDStateInt(CALC, "topSpeed", "Top Speed", "speedometer", system == METRIC ? "km/h" : "mph", "speed"))
+    //     ->withValueFormatFunc(toMilesInt));
+    // addState(
+    //     (new OBDStateFloat(CALC, "avgSpeed", "Calculated average speed", "speedometer-medium",
+    //                        system == METRIC ? "km/h" : "mph", "speed"))
+    //     ->withValueFormatFunc(toMiles));
+    // addState(new OBDStateBool(CALC, "milState", "Check Engine Light", "engine-off", "", "", false));
 }
 
 void OBDClass::BTEvent(esp_spp_cb_event_t event, esp_spp_cb_param_t *param) {
