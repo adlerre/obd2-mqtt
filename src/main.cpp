@@ -129,7 +129,7 @@ void WiFiAPStationDisconnected(WiFiEvent_t event, WiFiEventInfo_t info) {
     if (wifiAPStaConnected == 0) {
         DEBUG_PORT.println("WiFi AP all clients disconnected. Start all other task.");
         OBD.begin(Settings.getOBD2Name(OBD_ADP_NAME), Settings.getOBD2MAC(), Settings.getOBD2Protocol(),
-                  Settings.getOBD2CheckPIDSupport());
+                  Settings.getOBD2CheckPIDSupport(), static_cast<measurementSystem>(Settings.getMeasurementSystem()));
         OBD.connect(true);
         wifiAPInUse = false;
     }
@@ -267,115 +267,22 @@ bool sendDiscoveryData() {
 
     DEBUG_PORT.print("Send discovery data...");
 
-    allSendsSuccessed |= mqtt.sendTopicConfig("", "engineRunning", "Engine Running", "engine", "", "", "", "",
-                                              "binary_sensor");
-
-    if (OBD.isPidSupported(MONITOR_STATUS_SINCE_DTC_CLEARED)) {
-        allSendsSuccessed |= mqtt.sendTopicConfig("", "mil", "Check Engine Light", "engine-off", "", "", "", "",
-                                                  "binary_sensor");
-    }
-
-    if (OBD.isPidSupported(ENGINE_LOAD)) {
-        allSendsSuccessed |= mqtt.sendTopicConfig("", "load", "Engine Load", "engine", "%", "", "", "");
-    }
-
-    if (OBD.isPidSupported(THROTTLE_POSITION)) {
-        allSendsSuccessed |= mqtt.sendTopicConfig("", "throttle", "Throttle", "gauge", "%", "", "", "");
-    }
-
-    if (OBD.isPidSupported(ENGINE_COOLANT_TEMP)) {
-        allSendsSuccessed |= mqtt.sendTopicConfig("", "coolantTemp", "Engine Coolant Temperature", "thermometer", "°C",
-                                                  "temperature", "measurement", "");
-    }
-
-    if (OBD.isPidSupported(ENGINE_OIL_TEMP)) {
-        allSendsSuccessed |= mqtt.sendTopicConfig("", "oilTemp", "Oil Temperature", "thermometer", "°C",
-                                                  "temperature", "measurement", "");
-    }
-
-    if (OBD.isPidSupported(AMBIENT_AIR_TEMP)) {
-        allSendsSuccessed |= mqtt.sendTopicConfig("", "ambientAirTemp", "Ambient Temperature", "thermometer",
-                                                  "°C", "temperature", "measurement", "");
-    }
-
-    if (OBD.isPidSupported(INTAKE_AIR_TEMP)) {
-        allSendsSuccessed |= mqtt.sendTopicConfig("", "intakeAirTemp", "Intake Air Temperature", "thermometer", "°C",
-                                                  "temperature", "measurement", "");
-    }
-
-    // if (OBD.isPidSupported(INTAKE_MANIFOLD_ABS_PRESSURE)) {
-    //     allSendsSuccessed |= mqtt.sendTopicConfig("", "manifoldPressure", "Manifold Pressure", "", "kPa",
-    //                                               "pressure", "measurement", "");
-    // }
-
-    if (OBD.isPidSupported(MAF_FLOW_RATE)) {
-        allSendsSuccessed |= mqtt.sendTopicConfig("", "mafRate", "Mass Air Flow", "air-filter", "g/s", "",
-                                                  "measurement", "");
-    }
-
-    // if (OBD.isPidSupported(TIMING_ADVANCE)) {
-    //     allSendsSuccessed |= mqtt.sendTopicConfig("", "timingAdvance", "Timing Advance", "axis-x-rotate-clockwise", "°",
-    //                                               "", "measurement", "");
-    // }
-
-    if (OBD.isPidSupported(ENGINE_RPM)) {
-        allSendsSuccessed |= mqtt.sendTopicConfig("", "rpm", "Rounds per minute", "engine", "", "", "measurement", "");
-    }
-
-    if (OBD.isPidSupported(VEHICLE_SPEED)) {
-        if (Settings.getMeasurementSystem() == METRIC) {
-            allSendsSuccessed |= mqtt.sendTopicConfig("", "kph", "Kilometer per Hour", "speedometer", "km/h", "speed",
-                                                      "measurement", "");
-        } else {
-            allSendsSuccessed |= mqtt.sendTopicConfig("", "mph", "Miles per Hour", "speedometer", "mph", "speed",
-                                                      "measurement", "");
+    std::vector<OBDState *> states{};
+    OBD.getStates([](const OBDState *state) {
+        return state->isEnabled() && state->isSupported() && !(
+                   state->isDiagnostic() && state->getUpdateInterval() == -1);
+    }, states);
+    if (!states.empty()) {
+        for (auto &state: states) {
+            allSendsSuccessed |= mqtt.sendTopicConfig("", state->getName(), state->getDescription(), state->getIcon(),
+                                                      state->getUnit(), state->getDeviceClass(),
+                                                      state->isMeasurement() ? "measurement" : "",
+                                                      state->isDiagnostic() ? "diagnostic" : "",
+                                                      state->valueType() == "bool" ? "binary_sensor" : "sensor");
         }
-    }
-
-    if (OBD.isPidSupported(ENGINE_FUEL_RATE)) {
-        allSendsSuccessed |= mqtt.sendTopicConfig("", "fuelRate", "Fuel Rate", "fuel",
-                                                  Settings.getMeasurementSystem() == METRIC ? "L/h" : "gal/h", "",
-                                                  "measurement", "");
-    }
-
-    if (OBD.isPidSupported(FUEL_TANK_LEVEL_INPUT)) {
-        allSendsSuccessed |= mqtt.sendTopicConfig("", "fuelLevel", "Fuel Level", "fuel", "%", "", "measurement", "");
-    }
-
-    allSendsSuccessed |= mqtt.sendTopicConfig("", "batVoltage", "Battery Voltage", "battery", "V", "voltage",
-                                              "measurement", "");
-
-    if (OBD.isPidSupported(RELATIVE_ACCELERATOR_PEDAL_POS)) {
-        allSendsSuccessed |= mqtt.sendTopicConfig("", "pedalPosition", "Pedal Position", "seat-recline-extra", "%", "",
-                                                  "measurement", "");
-    }
-
-    allSendsSuccessed |= mqtt.sendTopicConfig("", "topSpeed", "Top Speed", "speedometer",
-                                              Settings.getMeasurementSystem() == METRIC ? "km/h" : "mph", "speed",
-                                              "measurement", "");
-
-    // allSendsSuccessed |= mqtt.sendTopicConfig("", "curConsumption", "Calculated current consumption",
-    //                                           "gas-station-outline", "l/100km", "", "measurement", "");
-    allSendsSuccessed |= mqtt.sendTopicConfig("", "consumption", "Calculated consumption",
-                                              "gas-station", Settings.getMeasurementSystem() == METRIC ? "L" : "gal",
-                                              "volume", "", "");
-
-    if (Settings.getMeasurementSystem() == METRIC) {
-        allSendsSuccessed |= mqtt.sendTopicConfig("", "consumptionPer100", "Calculated consumption per 100km",
-                                                  "gas-station", "l/100km", "", "measurement", "");
     } else {
-        allSendsSuccessed |= mqtt.sendTopicConfig("", "mpg", "Calculated Miles per gallon",
-                                                  "gas-station", "mpg", "", "measurement", "");
+        allSendsSuccessed = true;
     }
-
-    allSendsSuccessed |= mqtt.sendTopicConfig("", "distanceDriven", "Calculated driven distance",
-                                              "map-marker-distance",
-                                              Settings.getMeasurementSystem() == METRIC ? "km" : "mi", "distance",
-                                              "measurement", "");
-    allSendsSuccessed |= mqtt.sendTopicConfig("", "avgSpeed", "Calculated average speed",
-                                              "speedometer-medium",
-                                              Settings.getMeasurementSystem() == METRIC ? "km/h" : "mph", "speed",
-                                              "measurement", "");
 
     DEBUG_PORT.printf("...%s (%dms)\n", allSendsSuccessed ? "done" : "failed", millis() - start);
 
@@ -426,17 +333,22 @@ bool sendStaticDiagnosticDiscoveryData() {
     const unsigned long start = millis();
     bool allSendsSuccessed = false;
 
-    DEBUG_PORT.print("Send static diagnostic discovery data...");;
-    if (OBD.getSupportedPids1To20() != 0 || OBD.getSupportedPids21To40() != 0 || OBD.getSupportedPids41To60() != 0
-        || OBD.getSupportedPids61To80() != 0) {
-        allSendsSuccessed |= mqtt.sendTopicConfig("", "supportedPids_1_20", "Supported PIDs 1-20", "", "", "", "",
-                                                  "diagnostic");
-        allSendsSuccessed |= mqtt.sendTopicConfig("", "supportedPids_21_40", "Supported PIDs 21-40", "", "", "", "",
-                                                  "diagnostic");
-        allSendsSuccessed |= mqtt.sendTopicConfig("", "supportedPids_41_60", "Supported PIDs 41-60", "", "", "", "",
-                                                  "diagnostic");
-        allSendsSuccessed |= mqtt.sendTopicConfig("", "supportedPids_61_80", "Supported PIDs 61-80", "", "", "", "",
-                                                  "diagnostic");
+    DEBUG_PORT.print("Send static diagnostic discovery data...");
+
+    std::vector<OBDState *> states{};
+    OBD.getStates([](const OBDState *state) {
+        return state->isEnabled() && state->isSupported() && state->isDiagnostic() && state->getUpdateInterval() == -1;
+    }, states);
+    if (!states.empty()) {
+        for (auto &state: states) {
+            allSendsSuccessed |= mqtt.sendTopicConfig("", state->getName(), state->getDescription(), state->getIcon(),
+                                                      state->getUnit(), state->getDeviceClass(),
+                                                      state->isMeasurement() ? "measurement" : "",
+                                                      state->isDiagnostic() ? "diagnostic" : "",
+                                                      state->valueType() == "bool" ? "binary_sensor" : "sensor");
+        }
+    } else {
+        allSendsSuccessed = true;
     }
 
     if (!OBD.vin().empty()) {
@@ -452,121 +364,45 @@ bool sendStaticDiagnosticDiscoveryData() {
 bool sendOBDData() {
     const unsigned long start = millis();
     bool allSendsSuccessed = false;
-    char tmp_char[50];
 
     DEBUG_PORT.print("Send OBD data...");
 
     allSendsSuccessed |= mqtt.sendTopicUpdate(LWT_TOPIC, LWT_CONNECTED);
 
-    if (OBD.isPidSupported(ENGINE_RPM)) {
-        allSendsSuccessed |= mqtt.sendTopicUpdate("engineRunning", OBD.getRPM() > 300 ? "on" : "off");
-    }
+    std::vector<OBDState *> states{};
+    OBD.getStates([](const OBDState *state) {
+        return state->isEnabled() && state->isSupported() && !(
+                   state->isDiagnostic() && state->getUpdateInterval() == -1);
+    }, states);
+    if (!states.empty()) {
+        for (auto &state: states) {
+            char tmp_char[50];
+            if (state->getLastUpdate() + state->getUpdateInterval() > millis()) {
+                continue;
+            }
 
-    if (OBD.isPidSupported(MONITOR_STATUS_SINCE_DTC_CLEARED)) {
-        allSendsSuccessed |= mqtt.sendTopicUpdate("mil", OBD.getMilState() ? "on" : "off");
-    }
+            if (state->valueType() == "int") {
+                auto *is = reinterpret_cast<OBDStateInt *>(state);
+                char *str = is->formatValue();
+                strcpy(tmp_char, str);
+                free(str);
+            } else if (state->valueType() == "float") {
+                auto *is = reinterpret_cast<OBDStateFloat *>(state);
+                char *str = is->formatValue();
+                strcpy(tmp_char, str);
+                free(str);
+            } else if (state->valueType() == "bool") {
+                auto *is = reinterpret_cast<OBDStateBool *>(state);
+                char *str = is->formatValue();
+                strcpy(tmp_char, str);
+                free(str);
+            }
 
-    if (OBD.isPidSupported(ENGINE_LOAD)) {
-        sprintf(tmp_char, "%d", OBD.getLoad());
-        allSendsSuccessed |= mqtt.sendTopicUpdate("load", std::string(tmp_char));
-    }
-
-    if (OBD.isPidSupported(THROTTLE_POSITION)) {
-        sprintf(tmp_char, "%d", OBD.getThrottle());
-        allSendsSuccessed |= mqtt.sendTopicUpdate("throttle", std::string(tmp_char));
-    }
-
-    if (OBD.isPidSupported(ENGINE_COOLANT_TEMP)) {
-        sprintf(tmp_char, "%d", static_cast<int>(OBD.getCoolantTemp()));
-        allSendsSuccessed |= mqtt.sendTopicUpdate("coolantTemp", std::string(tmp_char));
-    }
-
-    if (OBD.isPidSupported(ENGINE_OIL_TEMP)) {
-        sprintf(tmp_char, "%d", static_cast<int>(OBD.getOilTemp()));
-        allSendsSuccessed |= mqtt.sendTopicUpdate("oilTemp", std::string(tmp_char));
-    }
-
-    if (OBD.isPidSupported(AMBIENT_AIR_TEMP)) {
-        sprintf(tmp_char, "%d", static_cast<int>(OBD.getAmbientAirTemp()));
-        allSendsSuccessed |= mqtt.sendTopicUpdate("ambientAirTemp", std::string(tmp_char));
-    }
-
-    if (OBD.isPidSupported(INTAKE_AIR_TEMP)) {
-        sprintf(tmp_char, "%d", static_cast<int>(OBD.getIntakeAirTemp()));
-        allSendsSuccessed |= mqtt.sendTopicUpdate("intakeAirTemp", std::string(tmp_char));
-    }
-
-    // if (OBD.isPidSupported(INTAKE_MANIFOLD_ABS_PRESSURE)) {
-    //     sprintf(tmp_char, "%d", static_cast<int>(manifoldPressure));
-    //     allSendsSuccessed |= mqtt.sendTopicUpdate("manifoldPressure", std::string(tmp_char));
-    // }
-
-    if (OBD.isPidSupported(MAF_FLOW_RATE)) {
-        sprintf(tmp_char, "%4.2f", OBD.getMafRate());
-        allSendsSuccessed |= mqtt.sendTopicUpdate("mafRate", std::string(tmp_char));
-    }
-
-    // if (OBD.isPidSupported(TIMING_ADVANCE)) {
-    //     sprintf(tmp_char, "%d", static_cast<int>(timingAdvance));
-    //     allSendsSuccessed |= mqtt.sendTopicUpdate("timingAdvance", std::string(tmp_char));
-    // }
-
-    if (OBD.isPidSupported(ENGINE_RPM)) {
-        sprintf(tmp_char, "%d", static_cast<int>(OBD.getRPM()));
-        allSendsSuccessed |= mqtt.sendTopicUpdate("rpm", std::string(tmp_char));
-    }
-
-    if (OBD.isPidSupported(VEHICLE_SPEED)) {
-        if (Settings.getMeasurementSystem() == METRIC) {
-            sprintf(tmp_char, "%d", OBD.getSpeed());
-            allSendsSuccessed |= mqtt.sendTopicUpdate("kph", std::string(tmp_char));
-        } else {
-            sprintf(tmp_char, "%d", OBD.getSpeed(IMPERIAL));
-            allSendsSuccessed |= mqtt.sendTopicUpdate("mph", std::string(tmp_char));
+            allSendsSuccessed |= mqtt.sendTopicUpdate(state->getName(), std::string(tmp_char));
         }
-    }
-
-    if (OBD.isPidSupported(ENGINE_FUEL_RATE)) {
-        sprintf(tmp_char, "%4.2f", OBD.getFuelRate(static_cast<measurementSystem>(Settings.getMeasurementSystem())));
-        allSendsSuccessed |= mqtt.sendTopicUpdate("fuelRate", std::string(tmp_char));
-    }
-
-    if (OBD.isPidSupported(FUEL_TANK_LEVEL_INPUT)) {
-        sprintf(tmp_char, "%d", static_cast<int>(OBD.getFuelLevel()));
-        allSendsSuccessed |= mqtt.sendTopicUpdate("fuelLevel", std::string(tmp_char));
-    }
-
-    sprintf(tmp_char, "%4.2f", OBD.getBatVoltage());
-    allSendsSuccessed |= mqtt.sendTopicUpdate("batVoltage", std::string(tmp_char));
-
-    if (OBD.isPidSupported(RELATIVE_ACCELERATOR_PEDAL_POS)) {
-        sprintf(tmp_char, "%d", static_cast<int>(OBD.getPedalPosition()));
-        allSendsSuccessed |= mqtt.sendTopicUpdate("pedalPosition", std::string(tmp_char));
-    }
-
-    sprintf(tmp_char, "%d", OBD.getTopSpeed(static_cast<measurementSystem>(Settings.getMeasurementSystem())));
-    allSendsSuccessed |= mqtt.sendTopicUpdate("topSpeed", std::string(tmp_char));
-
-    // sprintf(tmp_char, "%4.2f", static_cast<float>(curConsumption));
-    // allSendsSuccessed |= mqtt.sendTopicUpdate("curConsumption", std::string(tmp_char));
-
-    sprintf(tmp_char, "%4.2f", OBD.getConsumption(static_cast<measurementSystem>(Settings.getMeasurementSystem())));
-    allSendsSuccessed |= mqtt.sendTopicUpdate("consumption", std::string(tmp_char));
-
-    if (Settings.getMeasurementSystem() == METRIC) {
-        sprintf(tmp_char, "%4.2f", OBD.getConsumptionForMeasurement());
-        allSendsSuccessed |= mqtt.sendTopicUpdate("consumptionPer100", std::string(tmp_char));
     } else {
-        sprintf(tmp_char, "%4.2f",
-                OBD.getConsumptionForMeasurement(static_cast<measurementSystem>(Settings.getMeasurementSystem())));
-        allSendsSuccessed |= mqtt.sendTopicUpdate("mpg", std::string(tmp_char));
+        allSendsSuccessed = true;
     }
-
-    sprintf(tmp_char, "%4.2f", OBD.getDistanceDriven(static_cast<measurementSystem>(Settings.getMeasurementSystem())));
-    allSendsSuccessed |= mqtt.sendTopicUpdate("distanceDriven", std::string(tmp_char));
-
-    sprintf(tmp_char, "%4.2f", OBD.getAvgSpeed(static_cast<measurementSystem>(Settings.getMeasurementSystem())));
-    allSendsSuccessed |= mqtt.sendTopicUpdate("avgSpeed", std::string(tmp_char));
 
     DEBUG_PORT.printf("...%s (%dms)\n", allSendsSuccessed ? "done" : "failed", millis() - start);
 
@@ -614,19 +450,35 @@ bool sendStaticDiagnosticData() {
     char tmp_char[50];
     DEBUG_PORT.print("Send static diagnostic data...");
 
-    if (OBD.getSupportedPids1To20() != 0 || OBD.getSupportedPids21To40() != 0 || OBD.getSupportedPids41To60() != 0
-        || OBD.getSupportedPids61To80() != 0) {
-        sprintf(tmp_char, "%s", std::bitset<32>(OBD.getSupportedPids1To20()).to_string().c_str());
-        allSendsSuccessed |= mqtt.sendTopicUpdate("supportedPids_1_20", std::string(tmp_char));
+    std::vector<OBDState *> states{};
+    OBD.getStates([](const OBDState *state) {
+        return state->isEnabled() && state->isSupported() && state->isDiagnostic() && state->getUpdateInterval() == -1;
+    }, states);
+    if (!states.empty()) {
+        for (auto &state: states) {
+            if (state->getLastUpdate() + state->getUpdateInterval() > millis()) {
+                continue;
+            }
 
-        sprintf(tmp_char, "%s", std::bitset<32>(OBD.getSupportedPids21To40()).to_string().c_str());
-        allSendsSuccessed |= mqtt.sendTopicUpdate("supportedPids_21_40", std::string(tmp_char));
+            if (state->valueType() == "int") {
+                auto *is = reinterpret_cast<OBDStateInt *>(state);
+                char *str = is->formatValue();
+                strcpy(tmp_char, str);
+                free(str);
+            } else if (state->valueType() == "float") {
+                auto *is = reinterpret_cast<OBDStateFloat *>(state);
+                char *str = is->formatValue();
+                strcpy(tmp_char, str);
+                free(str);
+            } else if (state->valueType() == "bool") {
+                auto *is = reinterpret_cast<OBDStateBool *>(state);
+                char *str = is->formatValue();
+                strcpy(tmp_char, str);
+                free(str);
+            }
 
-        sprintf(tmp_char, "%s", std::bitset<32>(OBD.getSupportedPids41To60()).to_string().c_str());
-        allSendsSuccessed |= mqtt.sendTopicUpdate("supportedPids_41_60", std::string(tmp_char));
-
-        sprintf(tmp_char, "%s", std::bitset<32>(OBD.getSupportedPids61To80()).to_string().c_str());
-        allSendsSuccessed |= mqtt.sendTopicUpdate("supportedPids_61_80", std::string(tmp_char));
+            allSendsSuccessed |= mqtt.sendTopicUpdate(state->getName(), std::string(tmp_char));
+        }
     } else {
         allSendsSuccessed = true;
     }
@@ -746,7 +598,7 @@ void mqttSendData() {
     }
 }
 
-void readStatesTask(void *parameters) {
+[[noreturn]] void readStatesTask(void *parameters) {
     for (;;) {
         if (!wifiAPInUse) {
             // readStates();
@@ -846,6 +698,9 @@ void setup() {
 
     Settings.readSettings(LittleFS);
 
+    // disable Watch Dog for Core 0 - should fix crashes
+    disableCore0WDT();
+
     startWiFiAP();
     startHttpServer();
 
@@ -855,17 +710,14 @@ void setup() {
     gsm.enableGPS();
 
     OBD.begin(Settings.getOBD2Name(OBD_ADP_NAME), Settings.getOBD2MAC(), Settings.getOBD2Protocol(),
-              Settings.getOBD2CheckPIDSupport());
+              Settings.getOBD2CheckPIDSupport(), static_cast<measurementSystem>(Settings.getMeasurementSystem()));
     OBD.onDevicesDiscovered(onBTDevicesDiscovered);
     OBD.connect();
 
     if (!Settings.getMQTTHostname().isEmpty()) {
         mqtt.setIdentifier(!stripChars(OBD.vin()).empty() ? OBD.vin() : OBD.getConnectedBTAddress());
 
-        // disable Watch Dog for Core 0 - should fix crashes
-        disableCore0WDT();
-
-        xTaskCreatePinnedToCore(mqttTask, "MQTTTask", 8192, nullptr, 1, &mqttTaskHdl, 0);
+        xTaskCreatePinnedToCore(mqttTask, "MQTTTask", 4096, nullptr, 1, &mqttTaskHdl, 0);
         xTaskCreatePinnedToCore(outputTask, "OutputTask", 8192, nullptr, 10, &outputTaskHdl, 0);
     }
 

@@ -17,8 +17,12 @@
 #pragma once
 #include <atomic>
 #include <BluetoothSerial.h>
+#include <OBDStates.h>
 
 #include "ELMduino.h"
+
+// ELM327
+// https://cdn.sparkfun.com/assets/learn_tutorials/8/3/ELM327DS.pdf
 
 // set default adapter name
 #ifndef OBD_ADP_NAME
@@ -46,6 +50,7 @@
 #define DENSITY_DIESEL      830.0
 
 // https://en.m.wikipedia.org/w/index.php?title=OBD-II_PIDs
+// https://www.goingelectric.de/wiki/Liste-der-OBD2-Codes/
 #define FUEL_TYPE_GASOLINE  1
 #define FUEL_TYPE_METHANOL  2
 #define FUEL_TYPE_ETHANOL   3
@@ -59,31 +64,11 @@
 #define LITER_TO_GALLON     3.7854f
 
 typedef enum {
-    ENG_LOAD,
-    RPM,
-    COOLANT_TEMP,
-    INT_AIR_TEMP,
-    AMBIENT_TEMP,
-    OIL_TEMP,
-    MANIFOLD_PRESSURE,
-    IGN_TIMING,
-    SPEED,
-    THROTTLE,
-    MAF_RATE,
-    FUEL_LEVEL,
-    FUEL_RATE,
-    FUEL_T,
-    BAT_VOLTAGE,
-    PEDAL_POS,
-    MILSTATUS
-} obd_pid_states;
-
-typedef enum {
     METRIC,
     IMPERIAL
 } measurementSystem;
 
-class OBDClass {
+class OBDClass : public OBDStates {
     BluetoothSerial serialBt;
     ELM327 elm327;
 
@@ -95,46 +80,9 @@ class OBDClass {
     char protocol;
     bool checkPidSupport = false;
 
-    obd_pid_states obd_state = ENG_LOAD;
+    measurementSystem system = METRIC;
 
-    // cached PIDs
-    uint32_t supportedPids_1_20{0};
-    bool supportedPids_1_20_cached{false};
-    uint32_t supportedPids_21_40{0};
-    bool supportedPids_21_40_cached{false};
-    uint32_t supportedPids_41_60{0};
-    bool supportedPids_41_60_cached{false};
-    uint32_t supportedPids_61_80{0};
-    bool supportedPids_61_80_cached{false};
-
-    int load{0};
-    int throttle{0};
-    float rpm{0};
-    float coolantTemp{0};
-    float oilTemp{0};
-    float ambientAirTemp{0};
-    int kph{0};
-    float fuelLevel{0};
-    float fuelRate{0};
-    uint8_t fuelType{0};
-    bool fuelTypeRead{false};
-    float mafRate{0};
-    float batVoltage{0};
-    float intakeAirTemp{0};
-    uint8_t manifoldPressure{0};
-    float timingAdvance{0};
-    float pedalPosition{0};
-    uint32_t monitorStatus{0};
-    bool milState{false};
-
-    unsigned long lastReadSpeed{0};
     unsigned long runStartTime{0};
-    float curConsumption{0};
-    float consumption{0};
-    float consumptionPer100{0};
-    float distanceDriven{0};
-    float avgSpeed{0};
-    int topSpeed{0};
 
     std::string connectedBTAddress;
     std::string VIN;
@@ -145,21 +93,13 @@ class OBDClass {
 
     static void BTEvent(esp_spp_cb_event_t event, esp_spp_cb_param_t *param);
 
-    /**
-     * Set value and next state.
-     *
-     * @param var the variable to set
-     * @param nextState the next state
-     * @param value the value to set
-     * @return <code>true</code> on success
-     */
-    template<typename T>
-    bool setStateValue(T &var, obd_pid_states nextState, T value);
-protected:
 public:
     OBDClass();
 
-    void begin(const String &devName, const String &devMac, char protocol = AUTOMATIC, bool checkPidSupport = false);
+    void initStates();
+
+    void begin(const String &devName, const String &devMac, char protocol = AUTOMATIC, bool checkPidSupport = false,
+               measurementSystem system = METRIC);
 
     void end();
 
@@ -169,78 +109,11 @@ public:
 
     void onDevicesDiscovered(const std::function<void(BTScanResults *scanResult)> &callable);
 
-    /**
-     * Checks if PID is supported.
-     *
-     * @param pid the PID
-     */
-    bool isPidSupported(uint8_t pid);
-
-    uint32_t getSupportedPids1To20() const;
-
-    uint32_t getSupportedPids21To40() const;
-
-    uint32_t getSupportedPids41To60() const;
-
-    uint32_t getSupportedPids61To80() const;
-
     std::string vin() const;
 
     std::string getConnectedBTAddress() const;
 
-    int getLoad() const;
-
-    int getThrottle() const;
-
-    float getRPM() const;
-
-    float getCoolantTemp() const;
-
-    float getOilTemp() const;
-
-    float getAmbientAirTemp() const;
-
-    int getSpeed(measurementSystem system = METRIC) const;
-
-    float getFuelLevel() const;
-
-    float getFuelRate(measurementSystem system = METRIC) const;
-
-    uint8_t getFuelType() const;
-
-    bool getFuelTypeRead() const;
-
-    float getMafRate() const;
-
-    float getBatVoltage() const;
-
-    float getIntakeAirTemp() const;
-
-    uint8_t getManifoldPressure() const;
-
-    float getTimingAdvance() const;
-
-    float getPedalPosition() const;
-
-    uint32_t getMonitorStatus() const;
-
-    bool getMilState() const;
-
-    unsigned long getLastReadSpeed() const;
-
     unsigned long getRunStartTime() const;
-
-    float getCurConsumption(measurementSystem system = METRIC) const;
-
-    float getConsumption(measurementSystem system = METRIC) const;
-
-    float getConsumptionForMeasurement(measurementSystem system = METRIC) const;
-
-    float getDistanceDriven(measurementSystem system = METRIC) const;
-
-    float getAvgSpeed(measurementSystem system = METRIC) const;
-
-    int getTopSpeed(measurementSystem system = METRIC) const;
 
     /**
      * Calculate the current consumption from MAF Rate.
