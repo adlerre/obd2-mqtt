@@ -166,10 +166,30 @@ void OBDClass::initStates() {
     addState(
         (new OBDStateInt(READ, "monitorStatus", "Monitor Status", "", "", "", false, true))
         ->withPIDSettings(SERVICE_01, MONITOR_STATUS_SINCE_DTC_CLEARED, 1, 4)
-        ->withUpdateInterval(30000)
+        ->withUpdateInterval(60000)
         ->withPostProcessFunc([&](TypedOBDState<int> *state) {
-            setStateValue("milState", ((state->getValue() >> 16) & 0xFF) & 0x80);
-        }));
+            const byte responseByte_2 = (state->getValue() >> 16) & 0xFF;
+            setStateValue("milState", responseByte_2 & 0x80);
+
+            const u_int8_t numCodes = (responseByte_2 - 0x80);
+            int numDTCs = 0;
+            if (numCodes > 0) {
+                elm327.currentDTCCodes();
+                if (elm327.nb_rx_state == ELM_SUCCESS) {
+                    numDTCs = static_cast<int>(elm327.DTC_Response.codesFound);
+                    if (numDTCs > 0) {
+                        Serial.println("DTCs Found: ");
+                        for (int i = 0; i < numDTCs; i++) {
+                            Serial.println(elm327.DTC_Response.codes[i]);
+                        }
+                    }
+                }
+            }
+            setStateValue("numDTCs", numDTCs);
+        })
+        ->withValueFormatFunc(toBitStr));
+    addState((new OBDStateInt(READ, "odometer", "Odometer", "counter", system == METRIC ? "km" : "mi", "", true))
+        ->withPIDSettings(SERVICE_01, 0xA6, 1, 4, 1.0 / 10.0));
 
     // calculated states
     addState((new OBDStateFloat(CALC, "distanceDriven", "Calculated driven distance", "map-marker-distance",
@@ -196,6 +216,7 @@ void OBDClass::initStates() {
                            system == METRIC ? "km/h" : "mph", "speed"))
         ->withValueFormatFunc(toMiles));
     addState(new OBDStateBool(CALC, "milState", "Check Engine Light", "engine-off", "", "", false));
+    addState(new OBDStateInt(CALC, "numDTCs", "Number of DTCs", "code-array", "", "", false, true));
 }
 
 void OBDClass::BTEvent(esp_spp_cb_event_t event, esp_spp_cb_param_t *param) {
@@ -233,7 +254,7 @@ BTScanResults *OBDClass::discoverBtDevices() {
     return nullptr;
 }
 
-void OBDClass::begin(const String &devName, const String &devMac, const char protocol, bool checkPidSupport,
+void OBDClass::begin(const String &devName, const String &devMac, const char protocol, const bool checkPidSupport,
                      measurementSystem system) {
     this->devName = devName;
     this->devMac = devMac;
