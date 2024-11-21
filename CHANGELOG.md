@@ -1,3 +1,18 @@
+# [0.9.0](https://github.com/adlerre/obd2-mqtt/compare/v0.8.0...v0.9.0) (2024-11-21)
+
+
+### Bug Fixes
+
+* possible buffer overflow ([983f88d](https://github.com/adlerre/obd2-mqtt/commit/983f88de0b38d77b07d3d81cf0cfbbaa111b8c38))
+* remove ToDos ([5d6dc45](https://github.com/adlerre/obd2-mqtt/commit/5d6dc458008dccbabecbd785a25cf168c6b7cd71))
+* remove unused imports ([59674e7](https://github.com/adlerre/obd2-mqtt/commit/59674e70ae455bd2e4fb361ff27084b473376aef))
+
+
+### Features
+
+* add more states, odometer, number of DTCs and print theas to console ([a3cf1a7](https://github.com/adlerre/obd2-mqtt/commit/a3cf1a71ee97560ffe72ee558611222b82700fcb))
+* use custom implementation to check if pid is supported ([6740272](https://github.com/adlerre/obd2-mqtt/commit/6740272180d33000296dd41153d59e139521886c))
+
 # [0.8.0](https://github.com/adlerre/obd2-mqtt/compare/v0.7.3...v0.8.0) (2024-11-20)
 
 
