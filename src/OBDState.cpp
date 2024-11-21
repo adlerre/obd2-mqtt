@@ -70,6 +70,20 @@ bool OBDState::isDiagnostic() const {
     return this->diagnostic;
 }
 
+uint32_t OBDState::supportedPIDs(const uint8_t &service, const uint16_t &pid) const {
+    uint8_t pidInterval = (pid / PID_INTERVAL_OFFSET) * PID_INTERVAL_OFFSET;
+    return (uint32_t) elm327->processPID(service, pidInterval, 1, 4);
+}
+
+bool OBDState::isPIDSupported(const uint8_t &service, const uint16_t &pid) const {
+    uint8_t pidInterval = (pid / PID_INTERVAL_OFFSET) * PID_INTERVAL_OFFSET;
+    uint32_t response = supportedPIDs(service, pidInterval);
+    if (elm327->nb_rx_state == ELM_SUCCESS) {
+        return ((response >> (32 - pid)) & 0x1);
+    }
+    return false;
+}
+
 void OBDState::setPIDSettings(const uint8_t &service, const uint16_t &pid, const uint8_t &numResponses,
                               const uint8_t &numExpectedBytes, const double &scaleFactor, const float &bias) {
     this->type = READ;
@@ -217,8 +231,7 @@ template<typename T>
 void TypedOBDState<T>::readValue() {
     if (elm327 != nullptr && elm327->elm_port && this->type == READ) {
         if (!this->init && this->readFunction == nullptr) {
-            this->supported = this->checkPidSupport && this->service == SERVICE_01 && elm327->isPidSupported(this->pid)
-                              || true;
+            this->supported = this->checkPidSupport && isPIDSupported(this->service, this->pid) || true;
             this->init = this->checkPidSupport && elm327->nb_rx_state == ELM_SUCCESS || true;
         } else if (this->readFunction != nullptr) {
             this->init = true;

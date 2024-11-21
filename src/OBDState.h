@@ -87,6 +87,10 @@ public:
 
     bool isDiagnostic() const;
 
+    uint32_t supportedPIDs(const uint8_t &service, const uint16_t &pid) const;
+
+    bool isPIDSupported(const uint8_t &service, const uint16_t &pid) const;
+
     void setPIDSettings(const uint8_t &service, const uint16_t &pid,
                         const uint8_t &numResponses, const uint8_t &numExpectedBytes, const double &scaleFactor = 1,
                         const float &bias = 0);
