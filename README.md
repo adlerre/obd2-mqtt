@@ -112,8 +112,3 @@ Diagnostic Output:
 
 ...and don't want to expose your MQTT broker on the Internet, use a free MQTT provider and take a look
 on [mqtt-proxy](tools/mqtt-proxy) tool.
-
-## ToDos
-
-* support more PIDs (odometer,...)
-* get vehicle information (working)
