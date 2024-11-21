@@ -31,17 +31,17 @@ void OBDClass::initStates() {
         return strdup(str);
     };
     std::function<char *(float)> toMiles = [&](float value) {
-        char str[10];
+        char str[16];
         sprintf(str, "%4.2f", system == METRIC ? value : value / KPH_TO_MPH);
         return strdup(str);
     };
     std::function<char *(int)> toMilesInt = [&](int value) {
-        char str[5];
+        char str[16];
         sprintf(str, "%d", system == METRIC ? value : static_cast<int>(value / KPH_TO_MPH));
         return strdup(str);
     };
     std::function<char *(float)> toGallons = [&](float value) {
-        char str[15];
+        char str[16];
         sprintf(str, "%4.2f", system == METRIC ? value : value / LITER_TO_GALLON);
         return strdup(str);
     };
