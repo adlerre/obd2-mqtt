@@ -1,3 +1,11 @@
+## [0.9.1](https://github.com/adlerre/obd2-mqtt/compare/v0.9.0...v0.9.1) (2024-11-22)
+
+
+### Bug Fixes
+
+* send only changed data to save traffic ([d6f69f7](https://github.com/adlerre/obd2-mqtt/commit/d6f69f702f4bc7f79a2a176fbd2f37d75dce81c7))
+* use shorter interval ([d850248](https://github.com/adlerre/obd2-mqtt/commit/d8502489ddfecc1c9a75874379b54aef61f29745))
+
 # [0.9.0](https://github.com/adlerre/obd2-mqtt/compare/v0.8.0...v0.9.0) (2024-11-21)
 
 
