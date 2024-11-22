@@ -120,12 +120,10 @@ void OBDClass::initStates() {
         ->withValueFormatFunc(toMilesInt));
     addState(
         (new OBDStateInt(READ, "engineCoolantTemp", "Engine Coolant Temperature", "thermometer", "°C", "temperature"))
-        ->withPIDSettings(SERVICE_01, ENGINE_COOLANT_TEMP, 1, 1, 1, -40.0)
-        ->withUpdateInterval(10000));
+        ->withPIDSettings(SERVICE_01, ENGINE_COOLANT_TEMP, 1, 1, 1, -40.0));
     addState(
         (new OBDStateInt(READ, "oilTemp", "Oil Temperature", "thermometer", "°C", "temperature"))
-        ->withPIDSettings(SERVICE_01, ENGINE_OIL_TEMP, 1, 1, 1, -40.0)
-        ->withUpdateInterval(10000));
+        ->withPIDSettings(SERVICE_01, ENGINE_OIL_TEMP, 1, 1, 1, -40.0));
     addState(
         (new OBDStateInt(READ, "ambientAirTemp", "Ambient Temperature", "thermometer", "°C", "temperature"))
         ->withPIDSettings(SERVICE_01, AMBIENT_AIR_TEMP, 1, 1, 1, -40)
