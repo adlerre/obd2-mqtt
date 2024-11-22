@@ -18,7 +18,6 @@
 
 #include <WiFi.h>
 #include <atomic>
-#include <bitset>
 
 #if !defined(CONFIG_BT_ENABLED) || !defined(CONFIG_BLUEDROID_ENABLED)
 #error Bluetooth is not enabled! Please run `make menuconfig` to and enable it
@@ -383,16 +382,19 @@ bool sendOBDData() {
 
             if (state->valueType() == "int") {
                 auto *is = reinterpret_cast<OBDStateInt *>(state);
+                if (state->getLastUpdate() > 0 && is->getOldValue() == is->getValue()) continue;
                 char *str = is->formatValue();
                 strcpy(tmp_char, str);
                 free(str);
             } else if (state->valueType() == "float") {
                 auto *is = reinterpret_cast<OBDStateFloat *>(state);
+                if (state->getLastUpdate() > 0 && is->getOldValue() == is->getValue()) continue;
                 char *str = is->formatValue();
                 strcpy(tmp_char, str);
                 free(str);
             } else if (state->valueType() == "bool") {
                 auto *is = reinterpret_cast<OBDStateBool *>(state);
+                if (state->getLastUpdate() > 0 && is->getOldValue() == is->getValue()) continue;
                 char *str = is->formatValue();
                 strcpy(tmp_char, str);
                 free(str);
@@ -462,16 +464,19 @@ bool sendStaticDiagnosticData() {
 
             if (state->valueType() == "int") {
                 auto *is = reinterpret_cast<OBDStateInt *>(state);
+                if (state->getLastUpdate() > 0 && is->getOldValue() == is->getValue()) continue;
                 char *str = is->formatValue();
                 strcpy(tmp_char, str);
                 free(str);
             } else if (state->valueType() == "float") {
                 auto *is = reinterpret_cast<OBDStateFloat *>(state);
+                if (state->getLastUpdate() > 0 && is->getOldValue() == is->getValue()) continue;
                 char *str = is->formatValue();
                 strcpy(tmp_char, str);
                 free(str);
             } else if (state->valueType() == "bool") {
                 auto *is = reinterpret_cast<OBDStateBool *>(state);
+                if (state->getLastUpdate() > 0 && is->getOldValue() == is->getValue()) continue;
                 char *str = is->formatValue();
                 strcpy(tmp_char, str);
                 free(str);
@@ -608,7 +613,7 @@ void mqttSendData() {
     }
 }
 
-void outputTask(void *parameters) {
+[[noreturn]] void outputTask(void *parameters) {
     unsigned long checkInterval = 0;
     for (;;) {
         if (!wifiAPInUse) {
@@ -677,7 +682,7 @@ void outputTask(void *parameters) {
     }
 }
 
-void mqttTask(void *parameters) {
+[[noreturn]] void mqttTask(void *parameters) {
     for (;;) {
         if (!wifiAPInUse) {
             mqtt.loop();
