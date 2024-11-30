@@ -18,6 +18,7 @@
 #pragma once
 #include <ELMduino.h>
 #include <functional>
+#include <map>
 
 typedef enum {
     READ,
@@ -45,10 +46,13 @@ protected:
     double scaleFactor = 1;
     float bias = 0;
 
+    const char *calcExpression = nullptr;
+
     bool init = false;
     bool checkPidSupport = false;
     bool supported = true;
     bool enabled = true;
+    bool visible = true;
     bool processing = false;
 
     long updateInterval = 1000;
@@ -87,6 +91,10 @@ public:
 
     bool isDiagnostic() const;
 
+    virtual void setCalcExpression(const char *expression);
+
+    virtual bool hasCalcExpression() const;
+
     uint32_t supportedPIDs(const uint8_t &service, const uint16_t &pid) const;
 
     bool isPIDSupported(const uint8_t &service, const uint16_t &pid) const;
@@ -112,6 +120,12 @@ public:
 
     virtual OBDState *withEnabled(bool enable);
 
+    bool isVisible() const;
+
+    void setVisible(bool visible);
+
+    virtual OBDState *withVisible(bool visible);
+
     bool isProcessing() const;
 
     void setUpdateInterval(long interval);
@@ -125,6 +139,9 @@ public:
     long getLastUpdate() const;
 
     virtual void readValue();
+
+    virtual void calcValue(const std::function<double(const char *)> &func,
+                           const std::map<const char *, const std::function<double(double)> > &funcs = {});
 };
 
 template<typename T>
@@ -139,6 +156,8 @@ protected:
     std::function<void(TypedOBDState *)> postProcessFunction = nullptr;
 
     const char *valueFormat = "%d";
+
+    const char *valueFormatExpression = nullptr;
 
     std::function<char *(T)> valueFormatFunction = nullptr;
 
@@ -156,6 +175,8 @@ public:
 
     TypedOBDState *withEnabled(bool enable) override;
 
+    TypedOBDState *withVisible(bool visible) override;
+
     virtual T getOldValue();
 
     virtual void setOldValue(T value);
@@ -172,13 +193,22 @@ public:
 
     void readValue() override;
 
+    virtual TypedOBDState *withCalcExpression(const char *expression);
+
+    void calcValue(const std::function<double(const char *)> &func,
+                   const std::map<const char *, const std::function<double(double)> > &funcs) override;
+
     virtual void setPostProcessFunc(const std::function<void(TypedOBDState *)> &postProcessFunction);
 
-    virtual TypedOBDState *withPostProcessFunc(std::function<void(TypedOBDState *)> postProcessFunction);
+    virtual TypedOBDState *withPostProcessFunc(const std::function<void(TypedOBDState *)> &postProcessFunction);
 
     virtual void setValueFormat(const char *format);
 
     virtual TypedOBDState *withValueFormat(const char *format);
+
+    virtual void setValueFormatExpression(const char *expression);
+
+    virtual TypedOBDState *withValueFormatExpression(const char *expression);
 
     virtual void setValueFormatFunc(const std::function<char *(T)> &valueFormatFunction);
 
@@ -207,13 +237,19 @@ public:
 
     OBDStateBool *withEnabled(bool enable) override;
 
+    OBDStateBool *withVisible(bool visible) override;
+
     OBDStateBool *withUpdateInterval(long interval) override;
 
     OBDStateBool *withReadFunc(const std::function<bool()> &func) override;
 
+    OBDStateBool *withCalcExpression(const char *expression) override;
+
     OBDStateBool *withPostProcessFunc(const std::function<void(TypedOBDState *)> &postProcessFunction);
 
     OBDStateBool *withValueFormat(const char *format) override;
+
+    OBDStateBool *withValueFormatExpression(const char *expression) override;
 
     OBDStateBool *withValueFormatFunc(const std::function<char *(bool)> &valueFormatFunction);
 };
@@ -233,13 +269,19 @@ public:
 
     OBDStateFloat *withEnabled(bool enable) override;
 
+    OBDStateFloat *withVisible(bool visible);
+
     OBDStateFloat *withUpdateInterval(long interval) override;
 
     OBDStateFloat *withReadFunc(const std::function<float()> &func) override;
 
+    OBDStateFloat *withCalcExpression(const char *expression) override;
+
     OBDStateFloat *withPostProcessFunc(const std::function<void(TypedOBDState *)> &postProcessFunction);
 
     OBDStateFloat *withValueFormat(const char *format) override;
+
+    OBDStateFloat *withValueFormatExpression(const char *expression) override;
 
     OBDStateFloat *withValueFormatFunc(const std::function<char *(float)> &valueFormatFunction);
 };
@@ -258,13 +300,19 @@ public:
 
     OBDStateInt *withEnabled(bool enable) override;
 
+    OBDStateInt *withVisible(bool visible);
+
     OBDStateInt *withUpdateInterval(long interval) override;
 
     OBDStateInt *withReadFunc(const std::function<int()> &func) override;
 
+    OBDStateInt *withCalcExpression(const char *expression) override;
+
     OBDStateInt *withPostProcessFunc(const std::function<void(TypedOBDState *)> &postProcessFunction);
 
     OBDStateInt *withValueFormat(const char *format) override;
+
+    OBDStateInt *withValueFormatExpression(const char *expression) override;
 
     OBDStateInt *withValueFormatFunc(const std::function<char *(int)> &valueFormatFunction);
 };

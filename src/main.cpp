@@ -90,7 +90,6 @@ std::atomic<float> gpsAccuracy{0};
 
 TaskHandle_t outputTaskHdl;
 TaskHandle_t stateTaskHdl;
-TaskHandle_t mqttTaskHdl;
 
 size_t getESPHeapSize() {
     return heap_caps_get_free_size(MALLOC_CAP_8BIT);
@@ -268,7 +267,7 @@ bool sendDiscoveryData() {
 
     std::vector<OBDState *> states{};
     OBD.getStates([](const OBDState *state) {
-        return state->isEnabled() && state->isSupported() && !(
+        return state->isVisible() && state->isEnabled() && state->isSupported() && !(
                    state->isDiagnostic() && state->getUpdateInterval() == -1);
     }, states);
     if (!states.empty()) {
@@ -336,7 +335,8 @@ bool sendStaticDiagnosticDiscoveryData() {
 
     std::vector<OBDState *> states{};
     OBD.getStates([](const OBDState *state) {
-        return state->isEnabled() && state->isSupported() && state->isDiagnostic() && state->getUpdateInterval() == -1;
+        return state->isVisible() && state->isEnabled() && state->isSupported() && state->isDiagnostic() && state->
+               getUpdateInterval() == -1;
     }, states);
     if (!states.empty()) {
         for (auto &state: states) {
@@ -370,7 +370,7 @@ bool sendOBDData() {
 
     std::vector<OBDState *> states{};
     OBD.getStates([](const OBDState *state) {
-        return state->isEnabled() && state->isSupported() && !(
+        return state->isVisible() && state->isEnabled() && state->isSupported() && !(
                    state->isDiagnostic() && state->getUpdateInterval() == -1);
     }, states);
     if (!states.empty()) {
@@ -382,19 +382,16 @@ bool sendOBDData() {
 
             if (state->valueType() == "int") {
                 auto *is = reinterpret_cast<OBDStateInt *>(state);
-                if (state->getLastUpdate() > 0 && is->getOldValue() == is->getValue()) continue;
                 char *str = is->formatValue();
                 strcpy(tmp_char, str);
                 free(str);
             } else if (state->valueType() == "float") {
                 auto *is = reinterpret_cast<OBDStateFloat *>(state);
-                if (state->getLastUpdate() > 0 && is->getOldValue() == is->getValue()) continue;
                 char *str = is->formatValue();
                 strcpy(tmp_char, str);
                 free(str);
             } else if (state->valueType() == "bool") {
                 auto *is = reinterpret_cast<OBDStateBool *>(state);
-                if (state->getLastUpdate() > 0 && is->getOldValue() == is->getValue()) continue;
                 char *str = is->formatValue();
                 strcpy(tmp_char, str);
                 free(str);
@@ -454,7 +451,8 @@ bool sendStaticDiagnosticData() {
 
     std::vector<OBDState *> states{};
     OBD.getStates([](const OBDState *state) {
-        return state->isEnabled() && state->isSupported() && state->isDiagnostic() && state->getUpdateInterval() == -1;
+        return state->isVisible() && state->isEnabled() && state->isSupported() && state->isDiagnostic() && state->
+               getUpdateInterval() == -1;
     }, states);
     if (!states.empty()) {
         for (auto &state: states) {
@@ -464,19 +462,16 @@ bool sendStaticDiagnosticData() {
 
             if (state->valueType() == "int") {
                 auto *is = reinterpret_cast<OBDStateInt *>(state);
-                if (state->getLastUpdate() > 0 && is->getOldValue() == is->getValue()) continue;
                 char *str = is->formatValue();
                 strcpy(tmp_char, str);
                 free(str);
             } else if (state->valueType() == "float") {
                 auto *is = reinterpret_cast<OBDStateFloat *>(state);
-                if (state->getLastUpdate() > 0 && is->getOldValue() == is->getValue()) continue;
                 char *str = is->formatValue();
                 strcpy(tmp_char, str);
                 free(str);
             } else if (state->valueType() == "bool") {
                 auto *is = reinterpret_cast<OBDStateBool *>(state);
-                if (state->getLastUpdate() > 0 && is->getOldValue() == is->getValue()) continue;
                 char *str = is->formatValue();
                 strcpy(tmp_char, str);
                 free(str);
@@ -606,7 +601,6 @@ void mqttSendData() {
 [[noreturn]] void readStatesTask(void *parameters) {
     for (;;) {
         if (!wifiAPInUse) {
-            // readStates();
             OBD.loop();
         }
         delay(10);
@@ -621,7 +615,7 @@ void mqttSendData() {
                 continue;
             }
 
-            // debugOutputStates();
+            mqtt.loop();
 
             if ((GSM::hasGSMLocation() || GSM::hasGPSLocation()) && millis() > checkInterval) {
                 unsigned long start = millis();
@@ -678,16 +672,7 @@ void mqttSendData() {
                 mqttSendData();
             }
         }
-        delay(100);
-    }
-}
-
-[[noreturn]] void mqttTask(void *parameters) {
-    for (;;) {
-        if (!wifiAPInUse) {
-            mqtt.loop();
-        }
-        delay(100);
+        delay(50);
     }
 }
 
@@ -722,11 +707,10 @@ void setup() {
     if (!Settings.getMQTTHostname().isEmpty()) {
         mqtt.setIdentifier(!stripChars(OBD.vin()).empty() ? OBD.vin() : OBD.getConnectedBTAddress());
 
-        xTaskCreatePinnedToCore(mqttTask, "MQTTTask", 4096, nullptr, 1, &mqttTaskHdl, 0);
-        xTaskCreatePinnedToCore(outputTask, "OutputTask", 8192, nullptr, 10, &outputTaskHdl, 0);
+        xTaskCreatePinnedToCore(outputTask, "OutputTask", 10240, nullptr, 10, &outputTaskHdl, 0);
     }
 
-    xTaskCreatePinnedToCore(readStatesTask, "ReadStatesTask", 8192, nullptr, 1, &stateTaskHdl, 1);
+    xTaskCreatePinnedToCore(readStatesTask, "ReadStatesTask", 10240, nullptr, 1, &stateTaskHdl, 1);
 }
 
 void loop() {

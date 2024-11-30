@@ -16,6 +16,7 @@
  */
 #pragma once
 #include <BluetoothSerial.h>
+#include <bitset>
 #include <OBDStates.h>
 
 #include "ELMduino.h"
@@ -34,9 +35,9 @@
 #define AF_RATIO_GAS        17.2
 #define AF_RATIO_GASOLINE   14.7
 #define AF_RATIO_PROPANE    15.5
-#define AF_RATIO_ETHANOL    9
+#define AF_RATIO_ETHANOL    9.0
 #define AF_RATIO_METHANOL   6.4
-#define AF_RATIO_HYDROGEN   34
+#define AF_RATIO_HYDROGEN   34.0
 #define AF_RATIO_DIESEL     14.6
 
 // https://kraftstoff-info.de/vergleich-der-kraftstoffe-nach-energiegehalt-und-dichte
@@ -88,6 +89,33 @@ class OBDClass : public OBDStates {
 
     std::function<void(BTScanResults *scanResult)> devDiscoveredCallback = nullptr;
 
+    std::function<char *(int)> toBitStr = [](const int value) {
+        char str[33];
+        snprintf(str, sizeof(str), "%s", std::bitset<32>(value).to_string().c_str());
+        return strdup(str);
+    };
+    std::function<char *(float)> toMiles = [&](const float value) {
+        char str[16];
+        snprintf(str, sizeof(str), "%4.2f", system == METRIC ? value : value / KPH_TO_MPH);
+        return strdup(str);
+    };
+    std::function<char *(int)> toMilesInt = [&](const int value) {
+        char str[16];
+        snprintf(str, sizeof(str), "%d", system == METRIC ? value : static_cast<int>(value / KPH_TO_MPH));
+        return strdup(str);
+    };
+    std::function<char *(float)> toGallons = [&](const float value) {
+        char str[16];
+        snprintf(str, sizeof(str), "%4.2f", system == METRIC ? value : value / LITER_TO_GALLON);
+        return strdup(str);
+    };
+    std::function<char *(float)> toMPG = [&](const float value) {
+        char str[16];
+        snprintf(str, sizeof(str), "%4.2f",
+                 system == METRIC ? value : value == 0.0f ? 0.0f : 235.214583333333f / value);
+        return strdup(str);
+    };
+
     BTScanResults *discoverBtDevices();
 
     static void BTEvent(esp_spp_cb_event_t event, esp_spp_cb_param_t *param);
@@ -113,35 +141,6 @@ public:
     std::string getConnectedBTAddress() const;
 
     unsigned long getRunStartTime() const;
-
-    /**
-     * Calculate the current consumption from MAF Rate.
-     *
-     * @param fuelType the fuel type
-     * @param kph the km/h
-     * @param mafRate the MAF rate
-     * @return the consumption
-     */
-    static float calcCurrentConsumption(int fuelType, int kph, float mafRate);
-
-    /**
-     * Calculate the consumption from MAF Rate.
-     *
-     * @param fuelType the fuel type
-     * @param kph the km/h
-     * @param mafRate the MAF rate
-     * @return the consumption
-     */
-    static float calcConsumption(int fuelType, int kph, float mafRate);
-
-    /**
-     * Calculate distance from given km/h and time.
-     *
-     * @param kph the km/h
-     * @param time the time in seconds
-     * @return the distance
-     */
-    static float calcDistance(int kph, float time);
 };
 
 extern OBDClass OBD;

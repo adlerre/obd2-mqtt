@@ -17,6 +17,8 @@
 
 #include "OBDState.h"
 
+#include <ExprParser.h>
+
 OBDState::OBDState(const OBDStateType type, const char *name, const char *description, const char *icon,
                    const char *unit, const char *deviceClass, const bool measurement, const bool diagnostic) {
     this->type = type;
@@ -70,14 +72,23 @@ bool OBDState::isDiagnostic() const {
     return this->diagnostic;
 }
 
+void OBDState::setCalcExpression(const char *expression) {
+    this->type = CALC;
+    this->calcExpression = expression;
+}
+
+bool OBDState::hasCalcExpression() const {
+    return this->calcExpression != nullptr;
+}
+
 uint32_t OBDState::supportedPIDs(const uint8_t &service, const uint16_t &pid) const {
-    uint8_t pidInterval = (pid / PID_INTERVAL_OFFSET) * PID_INTERVAL_OFFSET;
-    return (uint32_t) elm327->processPID(service, pidInterval, 1, 4);
+    const uint8_t pidInterval = (pid / PID_INTERVAL_OFFSET) * PID_INTERVAL_OFFSET;
+    return static_cast<uint32_t>(elm327->processPID(service, pidInterval, 1, 4));
 }
 
 bool OBDState::isPIDSupported(const uint8_t &service, const uint16_t &pid) const {
-    uint8_t pidInterval = (pid / PID_INTERVAL_OFFSET) * PID_INTERVAL_OFFSET;
-    uint32_t response = supportedPIDs(service, pidInterval);
+    const uint8_t pidInterval = (pid / PID_INTERVAL_OFFSET) * PID_INTERVAL_OFFSET;
+    const uint32_t response = supportedPIDs(service, pidInterval);
     if (elm327->nb_rx_state == ELM_SUCCESS) {
         return ((response >> (32 - pid)) & 0x1);
     }
@@ -127,6 +138,19 @@ OBDState *OBDState::withEnabled(bool enable) {
     return this;
 }
 
+bool OBDState::isVisible() const {
+    return this->visible;
+}
+
+void OBDState::setVisible(bool visible) {
+    this->visible = visible;
+}
+
+OBDState *OBDState::withVisible(bool visible) {
+    this->setVisible(visible);
+    return this;
+}
+
 bool OBDState::isProcessing() const {
     return this->processing;
 }
@@ -163,6 +187,10 @@ long OBDState::getLastUpdate() const {
 void OBDState::readValue() {
 }
 
+void OBDState::calcValue(const std::function<double(const char *)> &func,
+                         const std::map<const char *, const std::function<double(double)>> &funcs) {
+}
+
 template<typename T>
 TypedOBDState<T>::TypedOBDState(OBDStateType type, const char *name, const char *description,
                                 const char *icon, const char *unit, const char *deviceClass,
@@ -186,6 +214,12 @@ TypedOBDState<T> *TypedOBDState<T>::withPIDSettings(const uint8_t &service, cons
 template<typename T>
 TypedOBDState<T> *TypedOBDState<T>::withEnabled(bool enable) {
     this->setEnabled(enable);
+    return this;
+}
+
+template<typename T>
+TypedOBDState<T> *TypedOBDState<T>::withVisible(bool visible) {
+    this->setVisible(visible);
     return this;
 }
 
@@ -272,12 +306,44 @@ void TypedOBDState<T>::readValue() {
 }
 
 template<typename T>
+TypedOBDState<T> *TypedOBDState<T>::withCalcExpression(const char *expression) {
+    this->setCalcExpression(expression);
+    return this;
+}
+
+template<typename T>
+void TypedOBDState<T>::calcValue(const std::function<double(const char *)> &func,
+                                 const std::map<const char *, const std::function<double(double)>> &funcs) {
+    if (this->type == CALC && this->calcExpression != nullptr) {
+        if (!this->processing) {
+            this->oldValue = this->value;
+            this->previousUpdate = this->lastUpdate;
+            this->processing = true;
+        }
+
+        ExprParser parser;
+        parser.setCustomFunctions(funcs);
+        parser.setVariableResolveFunction(func);
+        this->value = static_cast<T>(parser.evalExp(this->calcExpression));
+        if (strlen(parser.errormsg) > 0) {
+            Serial.println();
+            Serial.print(this->calcExpression);
+            Serial.print(": ");
+            Serial.println(parser.errormsg);
+        }
+        this->lastUpdate = millis();
+        this->processing = false;
+    }
+}
+
+template<typename T>
 void TypedOBDState<T>::setPostProcessFunc(const std::function<void(TypedOBDState *)> &postProcessFunction) {
     this->postProcessFunction = postProcessFunction;
 }
 
 template<typename T>
-TypedOBDState<T> *TypedOBDState<T>::withPostProcessFunc(std::function<void(TypedOBDState *)> postProcessFunction) {
+TypedOBDState<T> *TypedOBDState<
+    T>::withPostProcessFunc(const std::function<void(TypedOBDState *)> &postProcessFunction) {
     this->postProcessFunction = postProcessFunction;
     return this;
 }
@@ -290,6 +356,17 @@ void TypedOBDState<T>::setValueFormat(const char *format) {
 template<typename T>
 TypedOBDState<T> *TypedOBDState<T>::withValueFormat(const char *format) {
     this->setValueFormat(format);
+    return this;
+}
+
+template<typename T>
+void TypedOBDState<T>::setValueFormatExpression(const char *expression) {
+    this->valueFormatExpression = expression;
+}
+
+template<typename T>
+TypedOBDState<T> *TypedOBDState<T>::withValueFormatExpression(const char *expression) {
+    this->setValueFormatExpression(expression);
     return this;
 }
 
@@ -311,7 +388,25 @@ char *TypedOBDState<T>::formatValue() {
     }
 
     char str[50];
-    sprintf(str, this->valueFormat, this->getValue());
+    if (this->valueFormatExpression != nullptr) {
+        ExprParser parser;
+        parser.setVariableResolveFunction([&](const char *varName)-> double {
+            if (varName != nullptr) {
+                if (varName[0] == '$') {
+                    varName++;
+                }
+                if (strcmp(varName, "value") == 0) {
+                    return this->getValue();
+                }
+            }
+            return 0.0;
+        });
+        double val = parser.evalExp(this->valueFormatExpression);
+        sprintf(str, this->valueFormat, static_cast<T>(!isinf(val) ? val : 0));
+    } else {
+        sprintf(str, this->valueFormat, this->getValue());
+    }
+
     return strdup(str);
 }
 
@@ -319,7 +414,6 @@ OBDStateBool::OBDStateBool(OBDStateType type, const char *name, const char *desc
                            const char *icon, const char *unit, const char *deviceClass,
                            const bool measurement, const bool diagnostic): TypedOBDState(
     type, name, description, icon, unit, deviceClass, measurement, diagnostic) {
-    this->type = READ;
     this->oldValue = false;
     this->value = false;
     this->TypedOBDState::setValueFormatFunc([](const bool val) {
@@ -343,6 +437,11 @@ OBDStateBool *OBDStateBool::withEnabled(bool enable) {
     return this;
 }
 
+OBDStateBool * OBDStateBool::withVisible(bool visible) {
+    this->setVisible(visible);
+    return this;
+}
+
 OBDStateBool *OBDStateBool::withUpdateInterval(long interval) {
     this->setUpdateInterval(interval);
     return this;
@@ -353,6 +452,11 @@ OBDStateBool *OBDStateBool::withReadFunc(const std::function<bool()> &func) {
     return this;
 }
 
+OBDStateBool *OBDStateBool::withCalcExpression(const char *expression) {
+    TypedOBDState::setCalcExpression(expression);
+    return this;
+}
+
 OBDStateBool *OBDStateBool::withPostProcessFunc(const std::function<void(TypedOBDState *)> &postProcessFunction) {
     TypedOBDState::setPostProcessFunc(postProcessFunction);
     return this;
@@ -360,6 +464,11 @@ OBDStateBool *OBDStateBool::withPostProcessFunc(const std::function<void(TypedOB
 
 OBDStateBool *OBDStateBool::withValueFormat(const char *format) {
     TypedOBDState::setValueFormat(format);
+    return this;
+}
+
+OBDStateBool *OBDStateBool::withValueFormatExpression(const char *expression) {
+    TypedOBDState::setValueFormatExpression(expression);
     return this;
 }
 
@@ -393,6 +502,11 @@ OBDStateFloat *OBDStateFloat::withEnabled(bool enable) {
     return this;
 }
 
+OBDStateFloat * OBDStateFloat::withVisible(bool visible) {
+    this->setVisible(visible);
+    return this;
+}
+
 OBDStateFloat *OBDStateFloat::withUpdateInterval(long interval) {
     this->setUpdateInterval(interval);
     return this;
@@ -403,6 +517,11 @@ OBDStateFloat *OBDStateFloat::withReadFunc(const std::function<float()> &func) {
     return this;
 }
 
+OBDStateFloat *OBDStateFloat::withCalcExpression(const char *expression) {
+    TypedOBDState::setCalcExpression(expression);
+    return this;
+}
+
 OBDStateFloat *OBDStateFloat::withPostProcessFunc(const std::function<void(TypedOBDState *)> &postProcessFunction) {
     TypedOBDState::setPostProcessFunc(postProcessFunction);
     return this;
@@ -410,6 +529,11 @@ OBDStateFloat *OBDStateFloat::withPostProcessFunc(const std::function<void(Typed
 
 OBDStateFloat *OBDStateFloat::withValueFormat(const char *format) {
     TypedOBDState::setValueFormat(format);
+    return this;
+}
+
+OBDStateFloat *OBDStateFloat::withValueFormatExpression(const char *expression) {
+    TypedOBDState::setValueFormatExpression(expression);
     return this;
 }
 
@@ -443,6 +567,11 @@ OBDStateInt *OBDStateInt::withEnabled(bool enable) {
     return this;
 }
 
+OBDStateInt * OBDStateInt::withVisible(bool visible) {
+    this->setVisible(visible);
+    return this;
+}
+
 OBDStateInt *OBDStateInt::withUpdateInterval(long interval) {
     this->setUpdateInterval(interval);
     return this;
@@ -453,6 +582,11 @@ OBDStateInt *OBDStateInt::withReadFunc(const std::function<int()> &func) {
     return this;
 }
 
+OBDStateInt *OBDStateInt::withCalcExpression(const char *expression) {
+    TypedOBDState::setCalcExpression(expression);
+    return this;
+}
+
 OBDStateInt *OBDStateInt::withPostProcessFunc(const std::function<void(TypedOBDState *)> &postProcessFunction) {
     TypedOBDState::setPostProcessFunc(postProcessFunction);
     return this;
@@ -460,6 +594,11 @@ OBDStateInt *OBDStateInt::withPostProcessFunc(const std::function<void(TypedOBDS
 
 OBDStateInt *OBDStateInt::withValueFormat(const char *format) {
     TypedOBDState::setValueFormat(format);
+    return this;
+}
+
+OBDStateInt *OBDStateInt::withValueFormatExpression(const char *expression) {
+    TypedOBDState::setValueFormatExpression(expression);
     return this;
 }
 
