@@ -245,13 +245,13 @@ public:
 
     OBDStateBool *withCalcExpression(const char *expression) override;
 
-    OBDStateBool *withPostProcessFunc(const std::function<void(TypedOBDState *)> &postProcessFunction);
+    OBDStateBool *withPostProcessFunc(const std::function<void(TypedOBDState *)> &postProcessFunction) override;
 
     OBDStateBool *withValueFormat(const char *format) override;
 
     OBDStateBool *withValueFormatExpression(const char *expression) override;
 
-    OBDStateBool *withValueFormatFunc(const std::function<char *(bool)> &valueFormatFunction);
+    OBDStateBool *withValueFormatFunc(const std::function<char *(bool)> &valueFormatFunction) override;
 };
 
 class OBDStateFloat final : public TypedOBDState<float> {
@@ -269,7 +269,7 @@ public:
 
     OBDStateFloat *withEnabled(bool enable) override;
 
-    OBDStateFloat *withVisible(bool visible);
+    OBDStateFloat *withVisible(bool visible) override;
 
     OBDStateFloat *withUpdateInterval(long interval) override;
 
@@ -277,13 +277,13 @@ public:
 
     OBDStateFloat *withCalcExpression(const char *expression) override;
 
-    OBDStateFloat *withPostProcessFunc(const std::function<void(TypedOBDState *)> &postProcessFunction);
+    OBDStateFloat *withPostProcessFunc(const std::function<void(TypedOBDState *)> &postProcessFunction) override;
 
     OBDStateFloat *withValueFormat(const char *format) override;
 
     OBDStateFloat *withValueFormatExpression(const char *expression) override;
 
-    OBDStateFloat *withValueFormatFunc(const std::function<char *(float)> &valueFormatFunction);
+    OBDStateFloat *withValueFormatFunc(const std::function<char *(float)> &valueFormatFunction) override;
 };
 
 class OBDStateInt final : public TypedOBDState<int> {
@@ -300,7 +300,7 @@ public:
 
     OBDStateInt *withEnabled(bool enable) override;
 
-    OBDStateInt *withVisible(bool visible);
+    OBDStateInt *withVisible(bool visible) override;
 
     OBDStateInt *withUpdateInterval(long interval) override;
 
@@ -308,11 +308,11 @@ public:
 
     OBDStateInt *withCalcExpression(const char *expression) override;
 
-    OBDStateInt *withPostProcessFunc(const std::function<void(TypedOBDState *)> &postProcessFunction);
+    OBDStateInt *withPostProcessFunc(const std::function<void(TypedOBDState *)> &postProcessFunction) override;
 
     OBDStateInt *withValueFormat(const char *format) override;
 
     OBDStateInt *withValueFormatExpression(const char *expression) override;
 
-    OBDStateInt *withValueFormatFunc(const std::function<char *(int)> &valueFormatFunction);
+    OBDStateInt *withValueFormatFunc(const std::function<char *(int)> &valueFormatFunction) override;
 };
