@@ -430,10 +430,6 @@ connect:
             }
         }
 
-        if (runStartTime == 0) {
-            runStartTime = millis();
-        }
-
         initDone = true;
     }
 }
@@ -448,10 +444,6 @@ void OBDClass::loop() {
 
 void OBDClass::onDevicesDiscovered(const std::function<void(BTScanResults *scanResult)> &callable) {
     devDiscoveredCallback = callable;
-}
-
-unsigned long OBDClass::getRunStartTime() const {
-    return runStartTime;
 }
 
 std::string OBDClass::getConnectedBTAddress() const {

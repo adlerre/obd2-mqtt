@@ -82,8 +82,6 @@ class OBDClass : public OBDStates {
 
     measurementSystem system = METRIC;
 
-    unsigned long runStartTime{0};
-
     std::string connectedBTAddress;
     std::string VIN;
 
@@ -139,8 +137,6 @@ public:
     std::string vin() const;
 
     std::string getConnectedBTAddress() const;
-
-    unsigned long getRunStartTime() const;
 };
 
 extern OBDClass OBD;
