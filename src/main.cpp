@@ -707,10 +707,10 @@ void setup() {
     if (!Settings.getMQTTHostname().isEmpty()) {
         mqtt.setIdentifier(!stripChars(OBD.vin()).empty() ? OBD.vin() : OBD.getConnectedBTAddress());
 
-        xTaskCreatePinnedToCore(outputTask, "OutputTask", 10240, nullptr, 10, &outputTaskHdl, 0);
+        xTaskCreatePinnedToCore(outputTask, "OutputTask", 9216, nullptr, 10, &outputTaskHdl, 0);
     }
 
-    xTaskCreatePinnedToCore(readStatesTask, "ReadStatesTask", 10240, nullptr, 1, &stateTaskHdl, 1);
+    xTaskCreatePinnedToCore(readStatesTask, "ReadStatesTask", 9216, nullptr, 1, &stateTaskHdl, 1);
 }
 
 void loop() {
