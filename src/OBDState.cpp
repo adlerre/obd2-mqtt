@@ -36,8 +36,8 @@ OBDStateType OBDState::getType() const {
     return this->type;
 }
 
-char *OBDState::valueType() {
-    return const_cast<char *>("base");
+const char *OBDState::valueType() const {
+    return "base";
 }
 
 void OBDState::setELM327(ELM327 *elm327) {
@@ -107,8 +107,35 @@ void OBDState::setPIDSettings(const uint8_t &service, const uint16_t &pid, const
     this->updateInterval = 100;
 }
 
+void OBDState::setPIDSettings(const uint8_t &service, const uint16_t &pid, const uint8_t &numResponses,
+                              const uint8_t &numExpectedBytes, const char *scaleFactorExpression, const float &bias) {
+    double scaleFactor = 1;
+    if (scaleFactorExpression != nullptr && strlen(scaleFactorExpression) > 0) {
+        ExprParser parser;
+        scaleFactor = parser.evalExp(scaleFactorExpression);
+        if (strlen(parser.errormsg) > 0) {
+            Serial.print("Error: ");
+            Serial.print(this->name);
+            Serial.print(" ");
+            Serial.println(scaleFactorExpression);
+            Serial.print(" ");
+            Serial.println(parser.errormsg);
+        }
+    } else {
+        this->scaleFactorExpression = scaleFactorExpression;
+    }
+    this->setPIDSettings(service, pid, numResponses, numExpectedBytes, scaleFactor, bias);
+}
+
 OBDState *OBDState::withPIDSettings(const uint8_t &service, const uint16_t &pid, const uint8_t &numResponses,
                                     const uint8_t &numExpectedBytes, const double &scaleFactor, const float &bias) {
+    this->setPIDSettings(service, pid, numResponses, numExpectedBytes, scaleFactor, bias);
+    return this;
+}
+
+OBDState *OBDState::withPIDSettings(const uint8_t &service, const uint16_t &pid, const uint8_t &numResponses,
+                                    const uint8_t &numExpectedBytes, const char *scaleFactorExpression,
+                                    const float &bias) {
     this->setPIDSettings(service, pid, numResponses, numExpectedBytes, scaleFactor, bias);
     return this;
 }
@@ -191,6 +218,25 @@ void OBDState::calcValue(const std::function<double(const char *)> &func,
                          const std::map<const char *, const std::function<double(double)>> &funcs) {
 }
 
+void OBDState::toJSON(JsonDocument &doc) {
+    doc["type"] = this->getType();
+    doc["valueType"] = this->valueType();
+    doc["enabled"] = this->isEnabled();
+    doc["visible"] = this->isVisible();
+    doc["updateInterval"] = this->getUpdateInterval();
+
+    doc["name"] = this->getName();
+    doc["description"] = this->getDescription();
+    doc["icon"] = this->getIcon();
+    doc["unit"] = this->getUnit();
+    doc["measurement"] = this->isMeasurement();
+    doc["diagnostic"] = this->isDiagnostic();
+
+    if (this->type == CALC && this->calcExpression != nullptr) {
+        doc["calcExpression"] = this->calcExpression;
+    }
+}
+
 template<typename T>
 TypedOBDState<T>::TypedOBDState(OBDStateType type, const char *name, const char *description,
                                 const char *icon, const char *unit, const char *deviceClass,
@@ -199,8 +245,8 @@ TypedOBDState<T>::TypedOBDState(OBDStateType type, const char *name, const char 
 }
 
 template<typename T>
-char *TypedOBDState<T>::valueType() {
-    return const_cast<char *>("generic");
+const char *TypedOBDState<T>::valueType() const {
+    return "generic";
 }
 
 template<typename T>
@@ -208,6 +254,15 @@ TypedOBDState<T> *TypedOBDState<T>::withPIDSettings(const uint8_t &service, cons
                                                     const uint8_t &numResponses, const uint8_t &numExpectedBytes,
                                                     const double &scaleFactor, const float &bias) {
     this->setPIDSettings(service, pid, numResponses, numExpectedBytes, scaleFactor, bias);
+    return this;
+}
+
+template<typename T>
+TypedOBDState<T> *TypedOBDState<T>::withPIDSettings(const uint8_t &service, const uint16_t &pid,
+                                                    const uint8_t &numResponses, const uint8_t &numExpectedBytes,
+                                                    const char *scaleFactorExpression,
+                                                    const float &bias) {
+    this->setPIDSettings(service, pid, numResponses, numExpectedBytes, scaleFactorExpression, bias);
     return this;
 }
 
@@ -246,6 +301,17 @@ void TypedOBDState<T>::setValue(T value) {
 template<typename T>
 TypedOBDState<T> *TypedOBDState<T>::withUpdateInterval(long interval) {
     this->setUpdateInterval(interval);
+    return this;
+}
+
+template<typename T>
+void TypedOBDState<T>::setReadFuncName(const char *funcName) {
+    this->readFunctionName = funcName;
+}
+
+template<typename T>
+TypedOBDState<T> *TypedOBDState<T>::withReadFuncName(const char *funcName) {
+    this->setReadFuncName(funcName);
     return this;
 }
 
@@ -371,6 +437,17 @@ TypedOBDState<T> *TypedOBDState<T>::withValueFormatExpression(const char *expres
 }
 
 template<typename T>
+void TypedOBDState<T>::setValueFormatFuncName(const char *funcName) {
+    this->valueFormatFunctionName = funcName;
+}
+
+template<typename T>
+TypedOBDState<T> * TypedOBDState<T>::withValueFormatFuncName(const char *funcName) {
+    this->setValueFormatFuncName(funcName);
+    return this;
+}
+
+template<typename T>
 void TypedOBDState<T>::setValueFormatFunc(const std::function<char *(T)> &valueFormatFunction) {
     this->valueFormatFunction = valueFormatFunction;
 }
@@ -410,6 +487,35 @@ char *TypedOBDState<T>::formatValue() {
     return strdup(str);
 }
 
+template<typename T>
+void TypedOBDState<T>::toJSON(JsonDocument &doc) {
+    OBDState::toJSON(doc);
+
+    if (this->type == READ) {
+        if (this->readFunction != nullptr && this->readFunctionName != nullptr) {
+            doc["readFunc"] = this->readFunctionName;
+        } else {
+            doc["pid"]["service"] = this->service;
+            doc["pid"]["pid"] = this->pid;
+            doc["pid"]["numResponses"] = this->numResponses;
+            doc["pid"]["numExpectedBytes"] = this->numExpectedBytes;
+            if (this->scaleFactorExpression != nullptr) {
+                doc["pid"]["scaleFactor"] = this->scaleFactorExpression;
+            }
+            if (this->bias != 0) {
+                doc["pid"]["bias"] = this->bias;
+            }
+        }
+    }
+
+    doc["value"]["format"] = this->valueFormat;
+    if (this->valueFormatFunction != nullptr && this->valueFormatFunctionName != nullptr) {
+        doc["value"]["func"] = this->valueFormatFunctionName;
+    } else if (this->valueFormatExpression != nullptr) {
+        doc["value"]["expression"] = this->valueFormatExpression;
+    }
+}
+
 OBDStateBool::OBDStateBool(OBDStateType type, const char *name, const char *description,
                            const char *icon, const char *unit, const char *deviceClass,
                            const bool measurement, const bool diagnostic): TypedOBDState(
@@ -421,8 +527,8 @@ OBDStateBool::OBDStateBool(OBDStateType type, const char *name, const char *desc
     });
 }
 
-char *OBDStateBool::valueType() {
-    return const_cast<char *>("bool");
+const char *OBDStateBool::valueType() const {
+    return "bool";
 }
 
 OBDStateBool *OBDStateBool::withPIDSettings(const uint8_t &service, const uint16_t &pid, const uint8_t &numResponses,
@@ -432,18 +538,30 @@ OBDStateBool *OBDStateBool::withPIDSettings(const uint8_t &service, const uint16
     return this;
 }
 
+OBDStateBool *OBDStateBool::withPIDSettings(const uint8_t &service, const uint16_t &pid, const uint8_t &numResponses,
+                                            const uint8_t &numExpectedBytes, const char *scaleFactorExpression,
+                                            const float &bias) {
+    this->setPIDSettings(service, pid, numResponses, numExpectedBytes, scaleFactorExpression, bias);
+    return this;
+}
+
 OBDStateBool *OBDStateBool::withEnabled(bool enable) {
     this->setEnabled(enable);
     return this;
 }
 
-OBDStateBool * OBDStateBool::withVisible(bool visible) {
+OBDStateBool *OBDStateBool::withVisible(bool visible) {
     this->setVisible(visible);
     return this;
 }
 
 OBDStateBool *OBDStateBool::withUpdateInterval(long interval) {
     this->setUpdateInterval(interval);
+    return this;
+}
+
+OBDStateBool *OBDStateBool::withReadFuncName(const char *funcName) {
+    this->setReadFuncName(funcName);
     return this;
 }
 
@@ -472,6 +590,11 @@ OBDStateBool *OBDStateBool::withValueFormatExpression(const char *expression) {
     return this;
 }
 
+OBDStateBool *OBDStateBool::withValueFormatFuncName(const char *funcName) {
+    TypedOBDState::setValueFormatFuncName(funcName);
+    return this;
+}
+
 OBDStateBool *OBDStateBool::withValueFormatFunc(const std::function<char *(bool)> &valueFormatFunction) {
     TypedOBDState::setValueFormatFunc(valueFormatFunction);
     return this;
@@ -486,8 +609,8 @@ OBDStateFloat::OBDStateFloat(OBDStateType type, const char *name, const char *de
     this->TypedOBDState::setValueFormat("%4.2f");
 }
 
-char *OBDStateFloat::valueType() {
-    return const_cast<char *>("float");
+const char *OBDStateFloat::valueType() const {
+    return "float";
 }
 
 OBDStateFloat *OBDStateFloat::withPIDSettings(const uint8_t &service, const uint16_t &pid, const uint8_t &numResponses,
@@ -497,18 +620,30 @@ OBDStateFloat *OBDStateFloat::withPIDSettings(const uint8_t &service, const uint
     return this;
 }
 
+OBDStateFloat *OBDStateFloat::withPIDSettings(const uint8_t &service, const uint16_t &pid, const uint8_t &numResponses,
+                                              const uint8_t &numExpectedBytes, const char *scaleFactorExpression,
+                                              const float &bias) {
+    this->setPIDSettings(service, pid, numResponses, numExpectedBytes, scaleFactorExpression, bias);
+    return this;
+}
+
 OBDStateFloat *OBDStateFloat::withEnabled(bool enable) {
     this->setEnabled(enable);
     return this;
 }
 
-OBDStateFloat * OBDStateFloat::withVisible(bool visible) {
+OBDStateFloat *OBDStateFloat::withVisible(bool visible) {
     this->setVisible(visible);
     return this;
 }
 
 OBDStateFloat *OBDStateFloat::withUpdateInterval(long interval) {
     this->setUpdateInterval(interval);
+    return this;
+}
+
+OBDStateFloat *OBDStateFloat::withReadFuncName(const char *funcName) {
+    this->setReadFuncName(funcName);
     return this;
 }
 
@@ -537,6 +672,11 @@ OBDStateFloat *OBDStateFloat::withValueFormatExpression(const char *expression) 
     return this;
 }
 
+OBDStateFloat *OBDStateFloat::withValueFormatFuncName(const char *funcName) {
+    TypedOBDState::setValueFormatFuncName(funcName);
+    return this;
+}
+
 OBDStateFloat *OBDStateFloat::withValueFormatFunc(const std::function<char *(float)> &valueFormatFunction) {
     TypedOBDState::setValueFormatFunc(valueFormatFunction);
     return this;
@@ -551,8 +691,8 @@ OBDStateInt::OBDStateInt(OBDStateType type, const char *name, const char *descri
     this->TypedOBDState::setValueFormat("%d");
 }
 
-char *OBDStateInt::valueType() {
-    return const_cast<char *>("int");
+const char *OBDStateInt::valueType() const {
+    return "int";
 }
 
 OBDStateInt *OBDStateInt::withPIDSettings(const uint8_t &service, const uint16_t &pid, const uint8_t &numResponses,
@@ -562,18 +702,30 @@ OBDStateInt *OBDStateInt::withPIDSettings(const uint8_t &service, const uint16_t
     return this;
 }
 
+OBDStateInt *OBDStateInt::withPIDSettings(const uint8_t &service, const uint16_t &pid, const uint8_t &numResponses,
+                                          const uint8_t &numExpectedBytes, const char *scaleFactorExpression,
+                                          const float &bias) {
+    this->setPIDSettings(service, pid, numResponses, numExpectedBytes, scaleFactorExpression, bias);
+    return this;
+}
+
 OBDStateInt *OBDStateInt::withEnabled(bool enable) {
     this->setEnabled(enable);
     return this;
 }
 
-OBDStateInt * OBDStateInt::withVisible(bool visible) {
+OBDStateInt *OBDStateInt::withVisible(bool visible) {
     this->setVisible(visible);
     return this;
 }
 
 OBDStateInt *OBDStateInt::withUpdateInterval(long interval) {
     this->setUpdateInterval(interval);
+    return this;
+}
+
+OBDStateInt *OBDStateInt::withReadFuncName(const char *funcName) {
+    this->setReadFuncName(funcName);
     return this;
 }
 
@@ -599,6 +751,11 @@ OBDStateInt *OBDStateInt::withValueFormat(const char *format) {
 
 OBDStateInt *OBDStateInt::withValueFormatExpression(const char *expression) {
     TypedOBDState::setValueFormatExpression(expression);
+    return this;
+}
+
+OBDStateInt *OBDStateInt::withValueFormatFuncName(const char *funcName) {
+    TypedOBDState::setValueFormatFuncName(funcName);
     return this;
 }
 

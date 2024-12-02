@@ -17,6 +17,7 @@
 #pragma once
 #include <BluetoothSerial.h>
 #include <bitset>
+#include <FS.h>
 #include <OBDStates.h>
 
 #include "ELMduino.h"
@@ -28,6 +29,8 @@
 #ifndef OBD_ADP_NAME
 #define OBD_ADP_NAME        "OBDII"
 #endif
+
+#define STATES_FILE          "/states.json"
 
 #define BT_DISCOVER_TIME    10000
 
@@ -87,39 +90,20 @@ class OBDClass : public OBDStates {
 
     std::function<void(BTScanResults *scanResult)> devDiscoveredCallback = nullptr;
 
-    std::function<char *(int)> toBitStr = [](const int value) {
-        char str[33];
-        snprintf(str, sizeof(str), "%s", std::bitset<32>(value).to_string().c_str());
-        return strdup(str);
-    };
-    std::function<char *(float)> toMiles = [&](const float value) {
-        char str[16];
-        snprintf(str, sizeof(str), "%4.2f", system == METRIC ? value : value / KPH_TO_MPH);
-        return strdup(str);
-    };
-    std::function<char *(int)> toMilesInt = [&](const int value) {
-        char str[16];
-        snprintf(str, sizeof(str), "%d", system == METRIC ? value : static_cast<int>(value / KPH_TO_MPH));
-        return strdup(str);
-    };
-    std::function<char *(float)> toGallons = [&](const float value) {
-        char str[16];
-        snprintf(str, sizeof(str), "%4.2f", system == METRIC ? value : value / LITER_TO_GALLON);
-        return strdup(str);
-    };
-    std::function<char *(float)> toMPG = [&](const float value) {
-        char str[16];
-        snprintf(str, sizeof(str), "%4.2f",
-                 system == METRIC ? value : value == 0.0f ? 0.0f : 235.214583333333f / value);
-        return strdup(str);
-    };
-
     BTScanResults *discoverBtDevices();
 
     static void BTEvent(esp_spp_cb_event_t event, esp_spp_cb_param_t *param);
 
+    template<typename T>
+    T *setReadFuncByName(const char *funcName, T *state);
+
+    template<typename T>
+    T *setFormatFuncByName(const char *funcName, T *state);
+
 public:
     OBDClass();
+
+    bool writeStates(FS &fs);
 
     void initStates();
 

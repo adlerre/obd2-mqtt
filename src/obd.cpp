@@ -136,40 +136,148 @@ OBDClass::OBDClass(): OBDStates(&elm327), elm327() {
     });
 }
 
+bool OBDClass::writeStates(FS &fs) {
+    bool success = false;
+
+    File file = fs.open(STATES_FILE, FILE_WRITE);
+    if (!file) {
+        Serial.println("Failed to open file settings.json for writing.");
+        return false;
+    }
+
+    JsonDocument doc;
+    std::vector<OBDState *> states{};
+    OBD.getStates([](const OBDState *) {
+        return true;
+    }, states);
+    for (OBDState *state: states) {
+        JsonDocument stateObj;
+        state->toJSON(stateObj);
+        doc.add(stateObj);
+    }
+    success = serializeJson(doc, file);
+
+    file.close();
+
+    return success;
+}
+
+template<typename T>
+T *OBDClass::setReadFuncByName(const char *funcName, T *state) {
+    if (funcName == "batteryVoltage" && state->valueType() == "float") {
+        auto *is = reinterpret_cast<OBDStateFloat *>(state);
+        is->withReadFuncName("batteryVoltage");
+        is->withReadFunc([&]() {
+            return elm327.batteryVoltage();
+        });
+        return is;
+    }
+
+    return state;
+}
+
+template<typename T>
+T *OBDClass::setFormatFuncByName(const char *funcName, T *state) {
+    if (state->valueType() == "int") {
+        auto *is = reinterpret_cast<OBDStateInt *>(state);
+        if (funcName == "toBitStr") {
+            is->withValueFormatFuncName("toBitStr");
+            is->withValueFormatFunc([](const int value) {
+                char str[33];
+                snprintf(str, sizeof(str), "%s", std::bitset<32>(value).to_string().c_str());
+                return strdup(str);
+            });
+        } else if (funcName == "toMiles") {
+            is->withValueFormatFuncName("toMiles");
+            is->withValueFormatFunc([&](const int value) {
+                char str[16];
+                snprintf(str, sizeof(str), "%d", system == METRIC ? value : static_cast<int>(value / KPH_TO_MPH));
+                return strdup(str);
+            });
+        }
+    } else if (state->valueType() == "float") {
+        auto *is = reinterpret_cast<OBDStateFloat *>(state);
+        if (funcName == "toMiles") {
+            is->withValueFormatFuncName("toMiles");
+            is->withValueFormatFunc([&](const float value) {
+                char str[16];
+                snprintf(str, sizeof(str), "%4.2f", system == METRIC ? value : value / KPH_TO_MPH);
+                return strdup(str);
+            });
+        } else if (funcName == "toGallons") {
+            is->withValueFormatFuncName("toGallons");
+            is->withValueFormatFunc([&](const float value) {
+                char str[16];
+                snprintf(str, sizeof(str), "%4.2f", system == METRIC ? value : value / LITER_TO_GALLON);
+                return strdup(str);
+            });
+        } else if (funcName == "toMPG") {
+            is->withValueFormatFuncName("toMPG");
+            is->withValueFormatFunc([&](const float value) {
+                char str[16];
+                snprintf(str, sizeof(str), "%4.2f",
+                         system == METRIC ? value : value == 0.0f ? 0.0f : 235.214583333333f / value);
+                return strdup(str);
+            });
+        }
+    }
+    return state;
+}
+
 void OBDClass::initStates() {
     // onetime states
     addState((new OBDStateInt(CALC, "startTime", "Start Time", "", "", "", false, true))
         ->withVisible(false)
         ->withUpdateInterval(-1)
-        ->withCalcExpression("$millis"));
-    addState((new OBDStateInt(READ, "supportedPids_1_20", "Supported PIDs 1-20", "", "", "", false, true))
-        ->withUpdateInterval(-1)
-        ->withPIDSettings(SERVICE_01, SUPPORTED_PIDS_1_20, 1, 4)
-        ->withValueFormatFunc(toBitStr));
-    addState((new OBDStateInt(READ, "supportedPids_21_40", "Supported PIDs 21-40", "", "", "", false, true))
-        ->withUpdateInterval(-1)
-        ->withPIDSettings(SERVICE_01, SUPPORTED_PIDS_21_40, 1, 4)
-        ->withValueFormatFunc(toBitStr));
-    addState((new OBDStateInt(READ, "supportedPids_41_60", "Supported PIDs 41-60", "", "", "", false, true))
-        ->withUpdateInterval(-1)
-        ->withPIDSettings(SERVICE_01, SUPPORTED_PIDS_41_60, 1, 4)
-        ->withValueFormatFunc(toBitStr));
-    addState((new OBDStateInt(READ, "supportedPids_61_80", "Supported PIDs 61-80", "", "", "", false, true))
-        ->withUpdateInterval(-1)
-        ->withPIDSettings(SERVICE_01, SUPPORTED_PIDS_61_80, 1, 4)
-        ->withValueFormatFunc(toBitStr));
+        ->withCalcExpression("($millis)"));
+    addState(
+        setFormatFuncByName<OBDStateInt>(
+            "toBitStr",
+            (new OBDStateInt(READ, "supportedPids_1_20", "Supported PIDs 1-20", "", "", "", false, true))
+            ->withUpdateInterval(-1)
+            ->withPIDSettings(SERVICE_01, SUPPORTED_PIDS_1_20, 1, 4, 1)
+        )
+    );
+    addState(
+        setFormatFuncByName<OBDStateInt>(
+            "toBitStr",
+            (new OBDStateInt(READ, "supportedPids_21_40", "Supported PIDs 21-40", "", "", "", false, true))
+            ->withUpdateInterval(-1)
+            ->withPIDSettings(SERVICE_01, SUPPORTED_PIDS_21_40, 1, 4, 1)
+        )
+    );
+    addState(
+        setFormatFuncByName<OBDStateInt>(
+            "toBitStr",
+            (new OBDStateInt(READ, "supportedPids_41_60", "Supported PIDs 41-60", "", "", "", false, true))
+            ->withUpdateInterval(-1)
+            ->withPIDSettings(SERVICE_01, SUPPORTED_PIDS_41_60, 1, 4, 1)
+        )
+    );
+    addState(
+        setFormatFuncByName<OBDStateInt>(
+            "toBitStr",
+            (new OBDStateInt(READ, "supportedPids_61_80", "Supported PIDs 61-80", "", "", "", false, true))
+            ->withUpdateInterval(-1)
+            ->withPIDSettings(SERVICE_01, SUPPORTED_PIDS_61_80, 1, 4, 1)
+        )
+    );
 
     addState((new OBDStateInt(READ, "engineLoad", "Engine Load", "engine", "%", ""))
-        ->withPIDSettings(SERVICE_01, ENGINE_LOAD, 1, 1, 100.0 / 255.0));
+        ->withPIDSettings(SERVICE_01, ENGINE_LOAD, 1, 1, "100.0 / 255.0"));
     addState((new OBDStateInt(READ, "throttle", "Throttle", "gauge", "%", ""))
-        ->withPIDSettings(SERVICE_01, THROTTLE_POSITION, 1, 1, 100.0 / 255.0));
+        ->withPIDSettings(SERVICE_01, THROTTLE_POSITION, 1, 1, "100.0 / 255.0"));
     addState((new OBDStateInt(READ, "rpm", "Rounds per minute", "engine", ""))
-        ->withPIDSettings(SERVICE_01, ENGINE_RPM, 1, 2, 1.0 / 4.0));
-    addState((new OBDStateInt(READ, "speed",
-                              system == METRIC ? "Kilometer per Hour" : "Miles per Hour", "speedometer",
-                              system == METRIC ? "km/h" : "mph", "speed"))
-        ->withPIDSettings(SERVICE_01, VEHICLE_SPEED, 1, 1)
-        ->withValueFormatFunc(toMilesInt));
+        ->withPIDSettings(SERVICE_01, ENGINE_RPM, 1, 2, "1.0 / 4.0"));
+    addState(
+        setFormatFuncByName<OBDStateInt>(
+            "toMiles",
+            (new OBDStateInt(READ, "speed",
+                             system == METRIC ? "Kilometer per Hour" : "Miles per Hour", "speedometer",
+                             system == METRIC ? "km/h" : "mph", "speed"))
+            ->withPIDSettings(SERVICE_01, VEHICLE_SPEED, 1, 1, 1)
+        )
+    );
     addState(
         (new OBDStateInt(READ, "engineCoolantTemp", "Engine Coolant Temperature", "thermometer", "°C", "temperature"))
         ->withPIDSettings(SERVICE_01, ENGINE_COOLANT_TEMP, 1, 1, 1, -40.0));
@@ -182,72 +290,102 @@ void OBDClass::initStates() {
     );
     addState(
         (new OBDStateFloat(READ, "mafRate", "Mass Air Flow", "air-filter", "g/s"))
-        ->withPIDSettings(SERVICE_01, MAF_FLOW_RATE, 1, 2, 1.0 / 100.0));
+        ->withPIDSettings(SERVICE_01, MAF_FLOW_RATE, 1, 2, "1.0 / 100.0"));
     addState(
         (new OBDStateInt(READ, "fuelLevel", "Fuel Level", "fuel", "%", ""))
-        ->withPIDSettings(SERVICE_01, FUEL_TANK_LEVEL_INPUT, 1, 1, 100.0 / 255.0)
+        ->withPIDSettings(SERVICE_01, FUEL_TANK_LEVEL_INPUT, 1, 1, "100.0 / 255.0")
         ->withUpdateInterval(30000));
     addState(
-        (new OBDStateFloat(READ, "fuelRate", "fuelRate", "Fuel Rate", "fuel", system == METRIC ? "L/h" : "gal/h"))
-        ->withPIDSettings(SERVICE_01, ENGINE_FUEL_RATE, 1, 2, 1.0 / 20.0)
-        ->withValueFormatFunc(toGallons));
+        setFormatFuncByName<OBDStateFloat>(
+            "toGallons",
+            (new OBDStateFloat(READ, "fuelRate", "fuelRate", "Fuel Rate", "fuel", system == METRIC ? "L/h" : "gal/h"))
+            ->withPIDSettings(SERVICE_01, ENGINE_FUEL_RATE, 1, 2, "1.0 / 20.0")
+        ));
     addState(
         (new OBDStateInt(READ, "fuelType", "Fuel Type", "water-opacity", "", "", false, true))
-        ->withPIDSettings(SERVICE_01, FUEL_TYPE, 1, 1)
+        ->withPIDSettings(SERVICE_01, FUEL_TYPE, 1, 1, 1)
         ->withUpdateInterval(30000));
-    addState((new OBDStateFloat(READ, "batteryVoltage", "Battery Voltage", "battery", "V", "voltage"))
-        ->withReadFunc([&]() {
-            return elm327.batteryVoltage();
-        })
-        ->withUpdateInterval(30000));
+    addState(
+        setReadFuncByName<OBDStateFloat>(
+            "batteryVoltage",
+            (new OBDStateFloat(READ, "batteryVoltage", "Battery Voltage", "battery", "V", "voltage"))
+            ->withUpdateInterval(30000)
+        )
+    );
     addState(
         (new OBDStateInt(READ, "intakeAirTemp", "Intake Air Temperature", "thermometer", "°C", "temperature"))
         ->withPIDSettings(SERVICE_01, INTAKE_AIR_TEMP, 1, 1, 1, -40.0));
     addState(
         (new OBDStateInt(READ, "manifoldPressure", "Manifold Pressure", "", "kPa", "pressure"))
-        ->withPIDSettings(SERVICE_01, INTAKE_MANIFOLD_ABS_PRESSURE, 1, 1)
+        ->withPIDSettings(SERVICE_01, INTAKE_MANIFOLD_ABS_PRESSURE, 1, 1, 1)
         ->withEnabled(false));
     addState(
         (new OBDStateFloat(READ, "timingAdvance", "Timing Advance", "axis-x-rotate-clockwise", "°"))
-        ->withPIDSettings(SERVICE_01, TIMING_ADVANCE, 1, 1, 1.0 / 2.0, -64.0)
+        ->withPIDSettings(SERVICE_01, TIMING_ADVANCE, 1, 1, "1.0 / 2.0", -64.0)
         ->withEnabled(false));
     addState((new OBDStateInt(READ, "relativePedalPos", "Pedal Position", "seat-recline-extra", "%"))
-        ->withPIDSettings(SERVICE_01, RELATIVE_ACCELERATOR_PEDAL_POS, 1, 1, 100.0 / 255.0));
+        ->withPIDSettings(SERVICE_01, RELATIVE_ACCELERATOR_PEDAL_POS, 1, 1, "100.0 / 255.0"));
     addState(
-        (new OBDStateInt(READ, "monitorStatus", "Monitor Status", "", "", "", false, true))
-        ->withPIDSettings(SERVICE_01, MONITOR_STATUS_SINCE_DTC_CLEARED, 1, 4)
-        ->withUpdateInterval(60000)
-        ->withValueFormatFunc(toBitStr));
-    addState((new OBDStateInt(READ, "odometer", "Odometer", "counter", system == METRIC ? "km" : "mi", ""))
-        ->withPIDSettings(SERVICE_01, 0xA6, 1, 4, 1.0 / 10.0)
-        ->withValueFormatFunc(toMilesInt));
+        setFormatFuncByName<OBDStateInt>(
+            "toBitStr",
+            (new OBDStateInt(READ, "monitorStatus", "Monitor Status", "", "", "", false, true))
+            ->withPIDSettings(SERVICE_01, MONITOR_STATUS_SINCE_DTC_CLEARED, 1, 4, 1)
+            ->withUpdateInterval(60000)
+        )
+    );
+    addState(
+        setFormatFuncByName<OBDStateInt>(
+            "toMiles",
+            (new OBDStateInt(READ, "odometer", "Odometer", "counter", system == METRIC ? "km" : "mi", ""))
+            ->withPIDSettings(SERVICE_01, 0xA6, 1, 4, "1.0 / 10.0")
+        )
+    );
 
     // calculated states
     addState((new OBDStateBool(CALC, "engineRunning", "Engine Running", "engine", "", "", false))
         ->withCalcExpression("max($rpm, 300) - 300"));
-    addState((new OBDStateFloat(CALC, "distanceDriven", "Calculated driven distance", "map-marker-distance",
-                                system == METRIC ? "km" : "mi", "distance"))
-        ->withCalcExpression(
-            "$distanceDriven + ($speed.ov + $speed) / 2 / 3600 * ($millis - $distanceDriven.lu) / 1000")
-        ->withValueFormatFunc(toMiles));
-    addState((new OBDStateFloat(CALC, "consumption", "Calculated consumption", "gas-station",
-                                system == METRIC ? "L" : "gal", "volume"))
-        ->withCalcExpression(
-            "$consumption + ($mafRate * 3600 / (afRatio($fuelType) * density($fuelType))) / 3600 * ($millis - $consumption.lu) / 1000")
-        ->withValueFormatFunc(toGallons));
-    addState((new OBDStateFloat(CALC, "consumptionReadable",
-                                system == METRIC ? "Calculated consumption per 100km" : "Calculated Miles per gallon",
-                                "gas-station", system == METRIC ? "l/100km" : "mpg"))
-        ->withCalcExpression("($consumption / $distanceDriven) * 100")
-        ->withValueFormatFunc(toMPG));
-    addState((new OBDStateInt(CALC, "topSpeed", "Top Speed", "speedometer", system == METRIC ? "km/h" : "mph", "speed"))
-        ->withCalcExpression("max($topSpeed, $speed)")
-        ->withValueFormatFunc(toMilesInt));
     addState(
-        (new OBDStateFloat(CALC, "avgSpeed", "Calculated average speed", "speedometer-medium",
-                           system == METRIC ? "km/h" : "mph", "speed"))
-        ->withCalcExpression("$distanceDriven / (($millis - $startTime) / 1000) * 3600")
-        ->withValueFormatFunc(toMiles));
+        setFormatFuncByName<OBDStateFloat>(
+            "toMiles",
+            (new OBDStateFloat(CALC, "distanceDriven", "Calculated driven distance", "map-marker-distance",
+                               system == METRIC ? "km" : "mi", "distance"))
+            ->withCalcExpression(
+                "$distanceDriven + ($speed.ov + $speed) / 2 / 3600 * ($millis - $distanceDriven.lu) / 1000")
+        )
+    );
+    addState(
+        setFormatFuncByName<OBDStateFloat>(
+            "toGallons",
+            (new OBDStateFloat(CALC, "consumption", "Calculated consumption", "gas-station",
+                               system == METRIC ? "L" : "gal", "volume"))
+            ->withCalcExpression(
+                "$consumption + ($mafRate * 3600 / (afRatio($fuelType) * density($fuelType))) / 3600 * ($millis - $consumption.lu) / 1000")
+        )
+    );
+    addState(
+        setFormatFuncByName<OBDStateFloat>(
+            "toMPG",
+            (new OBDStateFloat(CALC, "consumptionReadable",
+                               system == METRIC ? "Calculated consumption per 100km" : "Calculated Miles per gallon",
+                               "gas-station", system == METRIC ? "l/100km" : "mpg"))
+            ->withCalcExpression("($consumption / $distanceDriven) * 100")
+        )
+    );
+    addState(
+        setFormatFuncByName<OBDStateInt>(
+            "toMiles",
+            (new OBDStateInt(CALC, "topSpeed", "Top Speed", "speedometer", system == METRIC ? "km/h" : "mph", "speed"))
+            ->withCalcExpression("max($topSpeed, $speed)")
+        )
+    );
+    addState(
+        setFormatFuncByName<OBDStateFloat>(
+            "toMiles",
+            (new OBDStateFloat(CALC, "avgSpeed", "Calculated average speed", "speedometer-medium",
+                               system == METRIC ? "km/h" : "mph", "speed"))
+            ->withCalcExpression("$distanceDriven / (($millis - $startTime) / 1000) * 3600")
+        )
+    );
     addState((new OBDStateBool(CALC, "milState", "Check Engine Light", "engine-off", "", "", false))
         ->withUpdateInterval(60000)
         ->withCalcExpression("$monitorStatus.c & 128"));
