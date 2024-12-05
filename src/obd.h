@@ -74,6 +74,7 @@ typedef enum {
 class OBDClass : public OBDStates {
     BluetoothSerial serialBt;
     ELM327 elm327;
+    FS *fs{};
 
     bool initDone = false;
     bool stopConnect = false;
@@ -95,6 +96,11 @@ class OBDClass : public OBDStates {
     static void BTEvent(esp_spp_cb_event_t event, esp_spp_cb_param_t *param);
 
     template<typename T>
+    void fromJSON(T *state, JsonDocument &doc);
+
+    void writeJSON(JsonDocument &doc);
+
+    template<typename T>
     T *setReadFuncByName(const char *funcName, T *state);
 
     template<typename T>
@@ -103,11 +109,15 @@ class OBDClass : public OBDStates {
 public:
     OBDClass();
 
+    bool readStates(FS &fs);
+
+    std::string buildJSON();
+
     bool writeStates(FS &fs);
 
     void initStates();
 
-    void begin(const String &devName, const String &devMac, char protocol = AUTOMATIC, bool checkPidSupport = false,
+    void begin(const String &devName, const String &devMac, FS &fs, char protocol = AUTOMATIC, bool checkPidSupport = false,
                measurementSystem system = METRIC);
 
     void end();
