@@ -388,6 +388,7 @@ void OBDClass::begin(const String &devName, const String &devMac, FS &fs, const 
 
 void OBDClass::end() {
     stopConnect = true;
+    serialBt.disconnect();
     serialBt.end();
 }
 
@@ -521,7 +522,7 @@ connect:
 }
 
 void OBDClass::loop() {
-    if (!serialBt.isClosed()) {
+    if (!stopConnect && serialBt && !serialBt.isClosed()) {
         nextState();
     } else {
         delay(500);
