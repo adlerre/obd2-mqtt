@@ -98,6 +98,8 @@ class OBDClass : public OBDStates {
     template<typename T>
     void fromJSON(T *state, JsonDocument &doc);
 
+    void readJSON(JsonDocument &doc);
+
     void writeJSON(JsonDocument &doc);
 
     template<typename T>
@@ -108,6 +110,8 @@ class OBDClass : public OBDStates {
 
 public:
     OBDClass();
+
+    bool parseJSON(std::string &json);
 
     bool readStates(FS &fs);
 

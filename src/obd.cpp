@@ -136,6 +136,18 @@ OBDClass::OBDClass(): OBDStates(&elm327), elm327() {
     });
 }
 
+bool OBDClass::parseJSON(std::string &json) {
+    bool success = false;
+    Serial.println(json.c_str());
+    JsonDocument doc;
+    if (!deserializeJson(doc, json)) {
+        readJSON(doc);
+        success = true;
+    }
+
+    return success;
+}
+
 template<typename T>
 void OBDClass::fromJSON(T *state, JsonDocument &doc) {
     state->setEnabled(doc["enabled"].as<bool>());
@@ -180,49 +192,7 @@ bool OBDClass::readStates(FS &fs) {
     if (file && !file.isDirectory()) {
         JsonDocument doc;
         if (!deserializeJson(doc, file)) {
-            const JsonArray array = doc.as<JsonArray>();
-            for (JsonDocument stateObj: array) {
-                if (stateObj["valueType"] == "bool") {
-                    auto *state = new OBDStateBool(
-                        stateObj["type"].as<OBDStateType>(),
-                        stateObj["name"].as<std::string>().c_str(),
-                        stateObj["description"].as<std::string>().c_str(),
-                        !stateObj["icon"].isNull() ? stateObj["icon"].as<std::string>().c_str() : "",
-                        !stateObj["unit"].isNull() ? stateObj["unit"].as<std::string>().c_str() : "",
-                        !stateObj["deviceClass"].isNull() ? stateObj["deviceClass"].as<std::string>().c_str() : "",
-                        stateObj["measurement"].as<bool>(),
-                        stateObj["diagnostic"].as<bool>()
-                    );
-                    fromJSON(state, stateObj);
-                    addState(state);
-                } else if (stateObj["valueType"] == "float") {
-                    auto *state = new OBDStateFloat(
-                        stateObj["type"].as<OBDStateType>(),
-                        stateObj["name"].as<std::string>().c_str(),
-                        stateObj["description"].as<std::string>().c_str(),
-                        !stateObj["icon"].isNull() ? stateObj["icon"].as<std::string>().c_str() : "",
-                        !stateObj["unit"].isNull() ? stateObj["unit"].as<std::string>().c_str() : "",
-                        !stateObj["deviceClass"].isNull() ? stateObj["deviceClass"].as<std::string>().c_str() : "",
-                        stateObj["measurement"].as<bool>(),
-                        stateObj["diagnostic"].as<bool>()
-                    );
-                    fromJSON(state, stateObj);
-                    addState(state);
-                } else if (stateObj["valueType"] == "int") {
-                    auto *state = new OBDStateInt(
-                        stateObj["type"].as<OBDStateType>(),
-                        stateObj["name"].as<std::string>().c_str(),
-                        stateObj["description"].as<std::string>().c_str(),
-                        !stateObj["icon"].isNull() ? stateObj["icon"].as<std::string>().c_str() : "",
-                        !stateObj["unit"].isNull() ? stateObj["unit"].as<std::string>().c_str() : "",
-                        !stateObj["deviceClass"].isNull() ? stateObj["deviceClass"].as<std::string>().c_str() : "",
-                        stateObj["measurement"].as<bool>(),
-                        stateObj["diagnostic"].as<bool>()
-                    );
-                    fromJSON(state, stateObj);
-                    addState(state);
-                }
-            }
+            readJSON(doc);
             success = true;
         }
         file.close();
@@ -239,6 +209,52 @@ std::string OBDClass::buildJSON() {
     serializeJson(doc, payload);
 
     return payload;
+}
+
+void OBDClass::readJSON(JsonDocument &doc) {
+    const JsonArray array = doc.as<JsonArray>();
+    for (JsonDocument stateObj: array) {
+        if (stateObj["valueType"] == "bool") {
+            auto *state = new OBDStateBool(
+                stateObj["type"].as<OBDStateType>(),
+                stateObj["name"].as<std::string>().c_str(),
+                stateObj["description"].as<std::string>().c_str(),
+                !stateObj["icon"].isNull() ? stateObj["icon"].as<std::string>().c_str() : "",
+                !stateObj["unit"].isNull() ? stateObj["unit"].as<std::string>().c_str() : "",
+                !stateObj["deviceClass"].isNull() ? stateObj["deviceClass"].as<std::string>().c_str() : "",
+                stateObj["measurement"].as<bool>(),
+                stateObj["diagnostic"].as<bool>()
+            );
+            fromJSON(state, stateObj);
+            addState(state);
+        } else if (stateObj["valueType"] == "float") {
+            auto *state = new OBDStateFloat(
+                stateObj["type"].as<OBDStateType>(),
+                stateObj["name"].as<std::string>().c_str(),
+                stateObj["description"].as<std::string>().c_str(),
+                !stateObj["icon"].isNull() ? stateObj["icon"].as<std::string>().c_str() : "",
+                !stateObj["unit"].isNull() ? stateObj["unit"].as<std::string>().c_str() : "",
+                !stateObj["deviceClass"].isNull() ? stateObj["deviceClass"].as<std::string>().c_str() : "",
+                stateObj["measurement"].as<bool>(),
+                stateObj["diagnostic"].as<bool>()
+            );
+            fromJSON(state, stateObj);
+            addState(state);
+        } else if (stateObj["valueType"] == "int") {
+            auto *state = new OBDStateInt(
+                stateObj["type"].as<OBDStateType>(),
+                stateObj["name"].as<std::string>().c_str(),
+                stateObj["description"].as<std::string>().c_str(),
+                !stateObj["icon"].isNull() ? stateObj["icon"].as<std::string>().c_str() : "",
+                !stateObj["unit"].isNull() ? stateObj["unit"].as<std::string>().c_str() : "",
+                !stateObj["deviceClass"].isNull() ? stateObj["deviceClass"].as<std::string>().c_str() : "",
+                stateObj["measurement"].as<bool>(),
+                stateObj["diagnostic"].as<bool>()
+            );
+            fromJSON(state, stateObj);
+            addState(state);
+        }
+    }
 }
 
 void OBDClass::writeJSON(JsonDocument &doc) {
