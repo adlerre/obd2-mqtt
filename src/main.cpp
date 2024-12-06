@@ -169,19 +169,63 @@ void startHttpServer() {
         nullptr,
         [](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total) {
             if (request->contentType() == "application/json") {
-                std::string json;
-                for (size_t i = 0; i < len; i++) {
-                    json += static_cast<char>(data[i]);
+                if (!index) {
+                    request->_tempObject = malloc(total);
                 }
-                if (Settings.parseJson(json)) {
-                    if (Settings.writeSettings(LittleFS)) {
-                        request->send(200);
-                        return;
+
+                if (request->_tempObject != nullptr) {
+                    memcpy(static_cast<uint8_t *>(request->_tempObject) + index, data, len);
+
+                    if (index + len == total) {
+                        auto json = std::string(static_cast<const char *>(request->_tempObject), total);
+                        if (Settings.parseJson(json)) {
+                            if (Settings.writeSettings(LittleFS)) {
+                                request->send(200);
+                            }
+                        } else {
+                            request->send(500);
+                        }
                     }
                 }
-                request->send(500);
+            } else {
+                request->send(406);
             }
-            request->send(406);
+        }
+    );
+
+    server.on("/api/states", HTTP_GET, [](AsyncWebServerRequest *request) {
+        request->send(200, "application/json", OBD.buildJSON().c_str());
+    });
+
+    server.on(
+        "/api/states",
+        HTTP_PUT,
+        [](AsyncWebServerRequest *request) {
+        },
+        nullptr,
+        [](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total) {
+            if (request->contentType() == "application/json") {
+                if (!index) {
+                    request->_tempObject = malloc(total);
+                }
+
+                if (request->_tempObject != nullptr) {
+                    memcpy(static_cast<uint8_t *>(request->_tempObject) + index, data, len);
+
+                    if (index + len == total) {
+                        auto json = std::string(static_cast<const char *>(request->_tempObject), total);
+                        if (OBD.parseJSON(json)) {
+                            if (OBD.writeStates(LittleFS)) {
+                                request->send(200);
+                            }
+                        } else {
+                            request->send(500);
+                        }
+                    }
+                }
+            } else {
+                request->send(406);
+            }
         }
     );
 
