@@ -66,11 +66,6 @@
 #define KPH_TO_MPH          1.60934f
 #define LITER_TO_GALLON     3.7854f
 
-typedef enum {
-    METRIC,
-    IMPERIAL
-} measurementSystem;
-
 class OBDClass : public OBDStates {
     BluetoothSerial serialBt;
     ELM327 elm327;
@@ -83,8 +78,6 @@ class OBDClass : public OBDStates {
     String devMac;
     char protocol;
     bool checkPidSupport = false;
-
-    measurementSystem system = METRIC;
 
     std::string connectedBTAddress;
     std::string VIN;
@@ -121,8 +114,7 @@ public:
 
     void initStates();
 
-    void begin(const String &devName, const String &devMac, FS &fs, char protocol = AUTOMATIC, bool checkPidSupport = false,
-               measurementSystem system = METRIC);
+    void begin(const String &devName, const String &devMac, FS &fs, char protocol = AUTOMATIC, bool checkPidSupport = false);
 
     void end();
 

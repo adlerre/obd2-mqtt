@@ -26,7 +26,6 @@ import {
     DiscoveredDevices,
     discoveryIntervals,
     locationIntervals,
-    MeasurementSystems,
     MQTTProtocol,
     NetworkMode,
     OBD2Protocol,
@@ -68,8 +67,6 @@ export class SettingsComponent implements OnInit {
 
     form: FormGroup;
 
-    general: FormGroup;
-
     wifi: FormGroup;
 
     mobile: FormGroup;
@@ -91,9 +88,6 @@ export class SettingsComponent implements OnInit {
     protected readonly locationIntervals = locationIntervals;
 
     constructor(private $api: ApiService) {
-        this.general = new FormGroup({
-            measurementSystem: new FormControl<number>(0, Validators.required),
-        });
         this.wifi = new FormGroup({
             ssid: new FormControl("", Validators.maxLength(64)),
             password: new FormControl("", [Validators.minLength(8), Validators.maxLength(32)])
@@ -130,7 +124,6 @@ export class SettingsComponent implements OnInit {
         });
 
         this.form = new FormGroup({
-            general: this.general,
             wifi: this.wifi,
             mobile: this.mobile,
             obd2: this.obd2,
@@ -144,15 +137,6 @@ export class SettingsComponent implements OnInit {
         this.$api.discoveredDevices()
             .pipe(catchError(() => of({} as DiscoveredDevices)))
             .subscribe(dd => this.discoveredDevices = dd);
-    }
-
-    getMeasurementSystems(): Array<{ key: string, value: number }> {
-        return Object.keys(MeasurementSystems)
-            .filter((k: any) => typeof k === "string" && isNaN(parseInt(k, 10)))
-            .map(key => ({
-                key: key,
-                value: MeasurementSystems[key as keyof typeof MeasurementSystems]
-            }));
     }
 
     isNetworkModeAllowed(): boolean {

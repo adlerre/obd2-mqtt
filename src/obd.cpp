@@ -317,8 +317,7 @@ T *OBDClass::setFormatFuncByName(const char *funcName, T *state) {
                     ->withValueFormatFuncName("toMiles")
                     ->withValueFormatFunc([&](const int value) {
                         char str[16];
-                        snprintf(str, sizeof(str), "%d",
-                                 system == METRIC ? value : static_cast<int>(static_cast<float>(value) / KPH_TO_MPH));
+                        snprintf(str, sizeof(str), "%d", static_cast<int>(static_cast<float>(value) / KPH_TO_MPH));
                         return strdup(str);
                     });
         }
@@ -329,7 +328,7 @@ T *OBDClass::setFormatFuncByName(const char *funcName, T *state) {
                     ->withValueFormatFuncName("toMiles")
                     ->withValueFormatFunc([&](const float value) {
                         char str[16];
-                        snprintf(str, sizeof(str), "%4.2f", system == METRIC ? value : value / KPH_TO_MPH);
+                        snprintf(str, sizeof(str), "%4.2f", value / KPH_TO_MPH);
                         return strdup(str);
                     });
         } else if (strcmp(funcName, "toGallons") == 0) {
@@ -337,7 +336,7 @@ T *OBDClass::setFormatFuncByName(const char *funcName, T *state) {
                     ->withValueFormatFuncName("toGallons")
                     ->withValueFormatFunc([&](const float value) {
                         char str[16];
-                        snprintf(str, sizeof(str), "%4.2f", system == METRIC ? value : value / LITER_TO_GALLON);
+                        snprintf(str, sizeof(str), "%4.2f", value / LITER_TO_GALLON);
                         return strdup(str);
                     });
         } else if (strcmp(funcName, "toMPG") == 0) {
@@ -345,8 +344,7 @@ T *OBDClass::setFormatFuncByName(const char *funcName, T *state) {
                     ->withValueFormatFuncName("toMPG")
                     ->withValueFormatFunc([&](const float value) {
                         char str[16];
-                        snprintf(str, sizeof(str), "%4.2f",
-                                 system == METRIC ? value : value == 0.0f ? 0.0f : 235.214583333333f / value);
+                        snprintf(str, sizeof(str), "%4.2f", value == 0.0f ? 0.0f : 235.214583333333f / value);
                         return strdup(str);
                     });
         }
@@ -390,14 +388,12 @@ BTScanResults *OBDClass::discoverBtDevices() {
 }
 
 void OBDClass::begin(const String &devName, const String &devMac, FS &fs, const char protocol,
-                     const bool checkPidSupport,
-                     measurementSystem system) {
+                     const bool checkPidSupport) {
     this->devName = devName;
     this->devMac = devMac;
     this->fs = &fs;
     this->protocol = protocol;
     this->checkPidSupport = checkPidSupport;
-    this->system = system;
     stopConnect = false;
     serialBt.register_callback(BTEvent);
 }
