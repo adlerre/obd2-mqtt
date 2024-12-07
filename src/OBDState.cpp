@@ -30,11 +30,11 @@ void OBDState::operator delete(void *ptr) {
 OBDState::OBDState(const OBDStateType type, const char *name, const char *description, const char *icon,
                    const char *unit, const char *deviceClass, const bool measurement, const bool diagnostic) {
     this->type = type;
-    strcpy(this->name, name);
-    strcpy(this->description, description);
-    strcpy(this->icon, icon);
-    strcpy(this->unit, unit);
-    strcpy(this->deviceClass, deviceClass);
+    strlcpy(this->name, name, sizeof(this->name));
+    strlcpy(this->description, description, sizeof(this->description));
+    strlcpy(this->icon, icon, sizeof(this->icon));
+    strlcpy(this->unit, unit, sizeof(this->unit));
+    strlcpy(this->deviceClass, deviceClass, sizeof(this->deviceClass));
     this->measurement = measurement;
     this->diagnostic = diagnostic;
     this->updateInterval = 100;
@@ -82,7 +82,7 @@ bool OBDState::isDiagnostic() const {
 
 void OBDState::setCalcExpression(const char *expression) {
     this->type = CALC;
-    strcpy(this->calcExpression, expression);
+    strlcpy(this->calcExpression, expression, sizeof(this->calcExpression));
 }
 
 bool OBDState::hasCalcExpression() const {
@@ -130,7 +130,7 @@ void OBDState::setPIDSettings(const uint8_t &service, const uint16_t &pid, const
             Serial.println(parser.errormsg);
         }
     }
-    strcpy(this->scaleFactorExpression, scaleFactorExpression);
+    strlcpy(this->scaleFactorExpression, scaleFactorExpression, sizeof(this->scaleFactorExpression));
 
     this->setPIDSettings(service, pid, numResponses, numExpectedBytes, scaleFactor, bias);
 }
@@ -315,7 +315,7 @@ TypedOBDState<T> *TypedOBDState<T>::withUpdateInterval(long interval) {
 
 template<typename T>
 void TypedOBDState<T>::setReadFuncName(const char *funcName) {
-    strcpy(this->readFunctionName, funcName);
+    strlcpy(this->readFunctionName, funcName, sizeof(this->readFunctionName));
 }
 
 template<typename T>
@@ -427,7 +427,7 @@ TypedOBDState<T> *TypedOBDState<
 
 template<typename T>
 void TypedOBDState<T>::setValueFormat(const char *format) {
-    strcpy(this->valueFormat, format);
+    strlcpy(this->valueFormat, format, sizeof(this->valueFormat));
 }
 
 template<typename T>
@@ -438,7 +438,7 @@ TypedOBDState<T> *TypedOBDState<T>::withValueFormat(const char *format) {
 
 template<typename T>
 void TypedOBDState<T>::setValueFormatExpression(const char *expression) {
-    strcpy(this->valueFormatExpression, expression);
+    strlcpy(this->valueFormatExpression, expression, sizeof(this->valueFormatExpression));
 }
 
 template<typename T>
@@ -449,7 +449,7 @@ TypedOBDState<T> *TypedOBDState<T>::withValueFormatExpression(const char *expres
 
 template<typename T>
 void TypedOBDState<T>::setValueFormatFuncName(const char *funcName) {
-    strcpy(this->valueFormatFunctionName, funcName);
+    strlcpy(this->valueFormatFunctionName, funcName, sizeof(this->valueFormatFunctionName));
 }
 
 template<typename T>
