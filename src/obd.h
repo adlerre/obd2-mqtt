@@ -16,6 +16,8 @@
  */
 #pragma once
 #include <BluetoothSerial.h>
+#include <bitset>
+#include <FS.h>
 #include <OBDStates.h>
 
 #include "ELMduino.h"
@@ -28,15 +30,17 @@
 #define OBD_ADP_NAME        "OBDII"
 #endif
 
+#define STATES_FILE          "/states.json"
+
 #define BT_DISCOVER_TIME    10000
 
 // https://stackoverflow.com/questions/17170646/what-is-the-best-way-to-get-fuel-consumption-mpg-using-obd2-parameters
 #define AF_RATIO_GAS        17.2
 #define AF_RATIO_GASOLINE   14.7
 #define AF_RATIO_PROPANE    15.5
-#define AF_RATIO_ETHANOL    9
+#define AF_RATIO_ETHANOL    9.0
 #define AF_RATIO_METHANOL   6.4
-#define AF_RATIO_HYDROGEN   34
+#define AF_RATIO_HYDROGEN   34.0
 #define AF_RATIO_DIESEL     14.6
 
 // https://kraftstoff-info.de/vergleich-der-kraftstoffe-nach-energiegehalt-und-dichte
@@ -62,14 +66,10 @@
 #define KPH_TO_MPH          1.60934f
 #define LITER_TO_GALLON     3.7854f
 
-typedef enum {
-    METRIC,
-    IMPERIAL
-} measurementSystem;
-
 class OBDClass : public OBDStates {
     BluetoothSerial serialBt;
     ELM327 elm327;
+    FS *fs{};
 
     bool initDone = false;
     bool stopConnect = false;
@@ -78,10 +78,6 @@ class OBDClass : public OBDStates {
     String devMac;
     char protocol;
     bool checkPidSupport = false;
-
-    measurementSystem system = METRIC;
-
-    unsigned long runStartTime{0};
 
     std::string connectedBTAddress;
     std::string VIN;
@@ -92,13 +88,33 @@ class OBDClass : public OBDStates {
 
     static void BTEvent(esp_spp_cb_event_t event, esp_spp_cb_param_t *param);
 
+    template<typename T>
+    void fromJSON(T *state, JsonDocument &doc);
+
+    void readJSON(JsonDocument &doc);
+
+    void writeJSON(JsonDocument &doc);
+
+    template<typename T>
+    T *setReadFuncByName(const char *funcName, T *state);
+
+    template<typename T>
+    T *setFormatFuncByName(const char *funcName, T *state);
+
 public:
     OBDClass();
 
+    bool parseJSON(std::string &json);
+
+    bool readStates(FS &fs);
+
+    std::string buildJSON();
+
+    bool writeStates(FS &fs);
+
     void initStates();
 
-    void begin(const String &devName, const String &devMac, char protocol = AUTOMATIC, bool checkPidSupport = false,
-               measurementSystem system = METRIC);
+    void begin(const String &devName, const String &devMac, FS &fs, char protocol = AUTOMATIC, bool checkPidSupport = false);
 
     void end();
 
@@ -111,37 +127,6 @@ public:
     std::string vin() const;
 
     std::string getConnectedBTAddress() const;
-
-    unsigned long getRunStartTime() const;
-
-    /**
-     * Calculate the current consumption from MAF Rate.
-     *
-     * @param fuelType the fuel type
-     * @param kph the km/h
-     * @param mafRate the MAF rate
-     * @return the consumption
-     */
-    static float calcCurrentConsumption(int fuelType, int kph, float mafRate);
-
-    /**
-     * Calculate the consumption from MAF Rate.
-     *
-     * @param fuelType the fuel type
-     * @param kph the km/h
-     * @param mafRate the MAF rate
-     * @return the consumption
-     */
-    static float calcConsumption(int fuelType, int kph, float mafRate);
-
-    /**
-     * Calculate distance from given km/h and time.
-     *
-     * @param kph the km/h
-     * @param time the time in seconds
-     * @return the distance
-     */
-    static float calcDistance(int kph, float time);
 };
 
 extern OBDClass OBD;
