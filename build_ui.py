@@ -64,7 +64,7 @@ def buildUI():
 
 
 def removeUIFiles(public_path):
-    pattern = ".*(\\.js$|\\.txt$)"
+    pattern = ".*(\\.js$|\\.txt(\\.gz)?$)"
 
     print("Remove not gzip files...")
 
