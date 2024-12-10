@@ -302,7 +302,7 @@ export class OBDStatesComponent implements OnInit {
     }
 
     generateDownload() {
-        const theJSON = JSON.stringify(this.states.value);
+        const theJSON = JSON.stringify(this.stripEmptyProps(this.states.value));
         const uri = this.sanitizer.bypassSecurityTrustUrl("data:text/json;charset=UTF-8," + encodeURIComponent(theJSON));
         this.downloadHref = uri;
     }
@@ -325,7 +325,7 @@ export class OBDStatesComponent implements OnInit {
 
     onSubmit({value, valid}: { value: { states: Array<OBDState> }, valid: boolean }) {
         if (valid) {
-            const states: Array<OBDState> = this.clearEmptyProps(value.states);
+            const states: Array<OBDState> = this.stripEmptyProps(value.states);
             this.$api.updateStates(states).subscribe({
                 next: () => {
                     window.alert("States updated successfully.");
@@ -336,7 +336,7 @@ export class OBDStatesComponent implements OnInit {
         }
     }
 
-    private clearEmptyProps(arr: any): any {
+    private stripEmptyProps(arr: any): any {
         for (const i in arr) {
             if (typeof arr[i] === "object") {
                 if (arr[i]) {
@@ -344,7 +344,7 @@ export class OBDStatesComponent implements OnInit {
                         if (typeof arr[i][k] === "string" && (arr[i][k] === "" || arr[i][k] === null)) {
                             delete arr[i][k];
                         } else if (typeof arr[i][k] === "object") {
-                            arr[i][k] = this.clearEmptyProps(arr[i][k]);
+                            arr[i][k] = this.stripEmptyProps(arr[i][k]);
                         }
                     }
                 } else {
