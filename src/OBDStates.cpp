@@ -42,6 +42,16 @@ void OBDStates::setCustomFunctions(const std::map<const char *, const std::funct
     customFunctions.insert(begin(funcs), end(funcs));
 }
 
+void OBDStates::clearStates() {
+    if (!states.empty()) {
+        for (unsigned i = 0; i < states.size(); ++i) {
+            OBDState *state = states[i];
+            free(state);
+        }
+        states.clear();
+    }
+}
+
 void OBDStates::getStates(const std::function<bool(OBDState *)> &pred, std::vector<OBDState *> &states) {
     std::copy_if(
         this->states.begin(),

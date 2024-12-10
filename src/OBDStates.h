@@ -56,6 +56,8 @@ public:
 
     void addCustomFunction(const char *name, const std::function<double(double)> &func);
 
+    void clearStates();
+
     void getStates(const std::function<bool(OBDState *)> &pred, std::vector<OBDState *> &states);
 
     template<typename T>

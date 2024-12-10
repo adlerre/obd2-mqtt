@@ -138,7 +138,6 @@ OBDClass::OBDClass(): OBDStates(&elm327), elm327() {
 
 bool OBDClass::parseJSON(std::string &json) {
     bool success = false;
-    Serial.println(json.c_str());
     JsonDocument doc;
     if (!deserializeJson(doc, json)) {
         readJSON(doc);
@@ -212,6 +211,7 @@ std::string OBDClass::buildJSON() {
 }
 
 void OBDClass::readJSON(JsonDocument &doc) {
+    clearStates();
     const JsonArray array = doc.as<JsonArray>();
     for (JsonDocument stateObj: array) {
         if (stateObj["valueType"] == "bool") {
