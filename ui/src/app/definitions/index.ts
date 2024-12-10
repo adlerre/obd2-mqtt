@@ -17,6 +17,9 @@
 
 export * from "./configuration";
 export * from "./discoveredDevices";
+export * from "./homeAssistant";
 export * from "./modemInfo";
+export * from "./obdStates";
+export * from "./ota";
 export * from "./settings";
 export * from "./wifiInfo";

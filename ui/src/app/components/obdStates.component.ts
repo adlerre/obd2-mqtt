@@ -29,14 +29,14 @@ import {
 import {
     BuildInExpressionFuncs,
     BuildInExpressionVars,
+    DeviceClasses,
     NamedItem,
     OBDState,
     OBDStateType,
     ReadFunctions,
     ValueFormatFunctions,
     ValueTypes
-} from "../definitions/obdStates";
-import { DeviceClasses } from "../definitions/homeAssistant";
+} from "../definitions";
 import { DomSanitizer } from "@angular/platform-browser";
 
 export function expressionValidator(checkStates: boolean = true, allowedVariables: Array<string> = [],
