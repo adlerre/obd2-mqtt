@@ -23,10 +23,32 @@ OBDStates::OBDStates(ELM327 *elm327) {
     this->elm327 = elm327;
 }
 
-void OBDStates::setCheckPidSupport(bool enable) {
+void OBDStates::setCheckPidSupport(const bool enable) {
     this->checkPidSupport = enable;
     for (auto &state: states) {
         state->setCheckPidSupport(checkPidSupport);
+    }
+}
+
+void OBDStates::setVariableResolveFunction(const std::function<double(const char *)> &func) {
+    this->varResolveFunction = func;
+}
+
+void OBDStates::addCustomFunction(const char *name, const std::function<double(double)> &func) {
+    customFunctions.insert({name, func});
+}
+
+void OBDStates::setCustomFunctions(const std::map<const char *, const std::function<double(double)>> &funcs) {
+    customFunctions.insert(begin(funcs), end(funcs));
+}
+
+void OBDStates::clearStates() {
+    if (!states.empty()) {
+        for (unsigned i = 0; i < states.size(); ++i) {
+            OBDState *state = states[i];
+            free(state);
+        }
+        states.clear();
     }
 }
 
@@ -47,7 +69,7 @@ bool OBDStates::compareStates(const OBDState *a, const OBDState *b) {
 template<typename T>
 T *OBDStates::getStateByName(const char *name) {
     for (auto &state: states) {
-        if (state->getName() == name) {
+        if (strcmp(state->getName(), name) == 0) {
             return static_cast<T *>(state);
         }
     }
@@ -84,6 +106,25 @@ void OBDStates::setStateValue(const std::string &name, T value) {
 
 OBDState *OBDStates::getStateByName(const char *name) {
     return getStateByName<OBDState>(name);
+}
+
+double OBDStates::getStateValue(const char *name) {
+    auto *state = getStateByName(name);
+    if (state != nullptr) {
+        if (state->valueType() == "int") {
+            auto *is = reinterpret_cast<OBDStateInt *>(state);
+            return is->getValue();
+        }
+        if (state->valueType() == "float") {
+            auto *is = reinterpret_cast<OBDStateFloat *>(state);
+            return is->getValue();
+        }
+        if (state->valueType() == "bool") {
+            auto *is = reinterpret_cast<OBDStateBool *>(state);
+            return is->getValue();
+        }
+    }
+    return 0.0;
 }
 
 bool OBDStates::getStateValue(const char *name, bool defaultValue) {
@@ -128,7 +169,8 @@ OBDState *OBDStates::nextState() {
     if (!states.empty() && elm327 != nullptr && elm327->elm_port) {
         std::vector<OBDState *> readStates{};
         getStates([](const OBDState *state) {
-            return state->getType() == READ && state->isEnabled() &&
+            return state->isEnabled() &&
+                   (state->getType() == READ || state->getType() == CALC && state->hasCalcExpression()) &&
                    (state->getUpdateInterval() != -1 || state->getUpdateInterval() == -1 && state->getLastUpdate() ==
                     0);
         }, readStates);
@@ -136,7 +178,25 @@ OBDState *OBDStates::nextState() {
 
         OBDState &state = *readStates.at(0);
         if (state.getUpdateInterval() == -1 || state.getLastUpdate() + state.getUpdateInterval() < millis()) {
-            state.readValue();
+            // int aFreeInternalHeapSizeBefore = heap_caps_get_free_size(MALLOC_CAP_8BIT | MALLOC_CAP_INTERNAL);
+
+            if (state.getType() == READ) {
+                state.readValue();
+            } else if (state.getType() == CALC) {
+                state.calcValue(varResolveFunction, customFunctions);
+            }
+
+            // int aFreeInternalHeapSizeAfter = heap_caps_get_free_size(MALLOC_CAP_8BIT | MALLOC_CAP_INTERNAL);
+            // int aMinFreeInternalHeapSize =  heap_caps_get_minimum_free_size(MALLOC_CAP_8BIT | MALLOC_CAP_INTERNAL);
+            // Serial.print("heap: ");
+            // Serial.print(aFreeInternalHeapSizeBefore);
+            // Serial.print(", after ");
+            // Serial.print(aFreeInternalHeapSizeAfter);
+            // Serial.print(", delta ");
+            // Serial.print(aFreeInternalHeapSizeBefore - aFreeInternalHeapSizeAfter);
+            // Serial.print(", lowest free ");
+            // Serial.println(aMinFreeInternalHeapSize);
+
             return &state;
         }
     }

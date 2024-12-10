@@ -17,6 +17,7 @@
 #pragma once
 
 #include <ELMduino.h>
+#include <map>
 #include <OBDState.h>
 #include <vector>
 
@@ -26,7 +27,13 @@ class OBDStates {
 
     bool checkPidSupport = false;
 
+    std::function<double(const char *)> varResolveFunction = nullptr;
+
+    std::map<const char *, const std::function<double(double)>> customFunctions{};
+
     static bool compareStates(const OBDState *a, const OBDState *b);
+
+    void setCustomFunctions(const std::map<const char *, const std::function<double(double)>> &funcs);
 
     template<typename T>
     T getStateValue(const char *name, T empty);
@@ -45,12 +52,20 @@ public:
 
     void setCheckPidSupport(bool enable);
 
+    void setVariableResolveFunction(const std::function<double(const char *)> &func);
+
+    void addCustomFunction(const char *name, const std::function<double(double)> &func);
+
+    void clearStates();
+
     void getStates(const std::function<bool(OBDState *)> &pred, std::vector<OBDState *> &states);
 
     template<typename T>
     T *getStateByName(const char *name);
 
     OBDState *getStateByName(const char *name);
+
+    double getStateValue(const char *name);
 
     bool getStateValue(const char *name, bool defaultValue);
 

@@ -20,6 +20,7 @@ import { HttpClient, HttpEvent, HttpEventType, HttpHeaders, HttpRequest } from "
 import { Configuration, DiscoveredDevices, ModemInfo, Settings, WifiInfo } from "../definitions";
 import { distinctUntilChanged, last, map, Subject } from "rxjs";
 import { OTAMode } from "../definitions/ota";
+import { OBDState } from "../definitions/obdStates";
 
 @Injectable()
 export class ApiService {
@@ -49,6 +50,14 @@ export class ApiService {
 
     updateSettings(settings: Settings) {
         return this.$http.put<Settings>("/api/settings", settings);
+    }
+
+    states() {
+        return this.$http.get<Array<OBDState>>("/api/states");
+    }
+
+    updateStates(states: Array<OBDState>) {
+        return this.$http.put<Array<OBDState>>("/api/states", states);
     }
 
     discoveredDevices() {

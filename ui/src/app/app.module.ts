@@ -25,6 +25,7 @@ import { ApiService } from "./services/api.service";
 import { RouterModule } from "@angular/router";
 import { DeviceInfoComponent, OTAComponent, SettingsComponent } from "./components";
 import { NgbTypeaheadModule } from "@ng-bootstrap/ng-bootstrap";
+import { OBDStatesComponent } from "./components/obdStates.component";
 
 @NgModule({
     bootstrap: [AppComponent],
@@ -32,6 +33,7 @@ import { NgbTypeaheadModule } from "@ng-bootstrap/ng-bootstrap";
         AppComponent,
         DeviceInfoComponent,
         SettingsComponent,
+        OBDStatesComponent
     ],
     imports: [
         BrowserModule,
@@ -41,6 +43,7 @@ import { NgbTypeaheadModule } from "@ng-bootstrap/ng-bootstrap";
             [
                 {path: "", component: DeviceInfoComponent},
                 {path: "settings", component: SettingsComponent},
+                {path: "states", component: OBDStatesComponent},
                 {path: "ota", component: OTAComponent},
             ],
             {useHash: true}

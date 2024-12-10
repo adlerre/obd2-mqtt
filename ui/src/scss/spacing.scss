@@ -33,6 +33,16 @@ $spacing-max: 5 !default;
     margin: $space !important;
   }
 
+  .mx-#{$i} {
+    margin-left: $space !important;
+    margin-right: $space !important;
+  }
+
+  .my-#{$i} {
+    margin-top: $space !important;
+    margin-bottom: $space !important;
+  }
+
   .ms-#{$i} {
     margin-left: $space !important;
   }
@@ -51,6 +61,16 @@ $spacing-max: 5 !default;
 
   .p-#{$i} {
     padding: $space !important;
+  }
+
+  .px-#{$i} {
+    padding-left: $space !important;
+    padding-right: $space !important;
+  }
+
+  .py-#{$i} {
+    padding-top: $space !important;
+    padding-bottom: $space !important;
   }
 
   .ps-#{$i} {

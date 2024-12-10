@@ -20,7 +20,7 @@ import { ApiService } from "../services/api.service";
 import { distinctUntilChanged, Subject } from "rxjs";
 import { NgbProgressbarModule } from "@ng-bootstrap/ng-bootstrap";
 import { CommonModule } from "@angular/common";
-import { FileItem, OTAMode } from "../definitions/ota";
+import { FileItem, OTAMode } from "../definitions";
 import { FormControl, ReactiveFormsModule } from "@angular/forms";
 
 @Directive({standalone: true, selector: "[fileDropZone]"})

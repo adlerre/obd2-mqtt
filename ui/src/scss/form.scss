@@ -15,6 +15,10 @@
  *  59 Temple Place - Suite 330, Boston, MA  02111-1307 USA
  */
 
+[type=button]:not(:disabled), [type=reset]:not(:disabled), [type=submit]:not(:disabled), button:not(:disabled) {
+  cursor: pointer;
+}
+
 .form-control {
   display: block;
   width: 100%;
@@ -31,6 +35,11 @@
   border-radius: var(--ui-border-radius);
   box-shadow: var(--ui-box-shadow-inset);
   transition: border-color .15s ease-in-out, box-shadow .15s ease-in-out;
+
+  &:disabled {
+    background-color: var(--ui-secondary-bg);
+    opacity: 1;
+  }
 
   &:focus {
     color: var(--ui-body-color);
@@ -55,6 +64,11 @@
     float: left;
     margin-left: -1.5em;
   }
+}
+
+.form-check-inline {
+  display: inline-block;
+  margin-right: 1rem;
 }
 
 .form-check-input {
@@ -152,6 +166,23 @@
   }
 }
 
+.btn-group {
+  border-radius: var(--ui-border-radius);
+  position: relative;
+  display: inline-flex;
+  vertical-align: middle;
+
+  & > .btn-group:not(:last-child) > .btn, & > .btn.dropdown-toggle-split:first-child, & > .btn:not(:last-child):not(.dropdown-toggle) {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+  }
+
+  & > .btn {
+    position: relative;
+    flex: 1 1 auto;
+  }
+}
+
 .btn-primary {
   --ui-btn-color: #fff;
   --ui-btn-bg: #{$primary};
@@ -167,6 +198,23 @@
   --ui-btn-disabled-color: #fff;
   --ui-btn-disabled-bg: #{$primary};
   --ui-btn-disabled-border-color: #{$primary};
+}
+
+.btn-secondary {
+  --ui-btn-color: #fff;
+  --ui-btn-bg: #{$secondary};
+  --ui-btn-border-color: #{$secondary};
+  --ui-btn-hover-color: #fff;
+  --ui-btn-hover-bg: #{lighten($secondary, 15%)};
+  --ui-btn-hover-border-color: #{lighten($secondary, 10%)};
+  --ui-btn-focus-shadow-rgb: 58, 96, 154;
+  --ui-btn-active-color: #fff;
+  --ui-btn-active-bg: #{lighten($secondary, 10%)};
+  --ui-btn-active-border-color: #{lighten($secondary, 5%)};
+  --ui-btn-active-shadow: inset 0 3px 5px rgba(0, 0, 0, .125);
+  --ui-btn-disabled-color: #fff;
+  --ui-btn-disabled-bg: #{$secondary};
+  --ui-btn-disabled-border-color: #{$secondary};
 }
 
 .visually-hidden {
