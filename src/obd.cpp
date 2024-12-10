@@ -315,7 +315,7 @@ T *OBDClass::setFormatFuncByName(const char *funcName, T *state) {
         } else if (strcmp(funcName, "toMiles") == 0) {
             is
                     ->withValueFormatFuncName("toMiles")
-                    ->withValueFormatFunc([&](const int value) {
+                    ->withValueFormatFunc([](const int value) {
                         char str[16];
                         snprintf(str, sizeof(str), "%d", static_cast<int>(static_cast<float>(value) / KPH_TO_MPH));
                         return strdup(str);
@@ -326,7 +326,7 @@ T *OBDClass::setFormatFuncByName(const char *funcName, T *state) {
         if (strcmp(funcName, "toMiles") == 0) {
             is
                     ->withValueFormatFuncName("toMiles")
-                    ->withValueFormatFunc([&](const float value) {
+                    ->withValueFormatFunc([](const float value) {
                         char str[16];
                         snprintf(str, sizeof(str), "%4.2f", value / KPH_TO_MPH);
                         return strdup(str);
@@ -334,7 +334,7 @@ T *OBDClass::setFormatFuncByName(const char *funcName, T *state) {
         } else if (strcmp(funcName, "toGallons") == 0) {
             is
                     ->withValueFormatFuncName("toGallons")
-                    ->withValueFormatFunc([&](const float value) {
+                    ->withValueFormatFunc([](const float value) {
                         char str[16];
                         snprintf(str, sizeof(str), "%4.2f", value / LITER_TO_GALLON);
                         return strdup(str);
