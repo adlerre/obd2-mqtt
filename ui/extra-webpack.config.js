@@ -68,6 +68,19 @@ module.exports = {
                 response.send();
             });
 
+            devServer.app.get("/api/states", (_, response) => {
+                response.json(null);
+            });
+
+            devServer.app.put("/api/states", (request, response) => {
+                if (request.body) {
+                    console.log(JSON.parse(request.body));
+                } else {
+                    response.status(406);
+                }
+                response.send();
+            });
+
             devServer.app.get("/api/discoveredDevices", (_, response) => {
                 response.json({"device": [{"name": "OBDII", "mac": "11:22:de:ad:be:ef"}]});
             });
