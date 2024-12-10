@@ -231,7 +231,7 @@ void OBDState::toJSON(JsonDocument &doc) {
     doc["valueType"] = this->valueType();
     doc["enabled"] = this->isEnabled();
     doc["visible"] = this->isVisible();
-    doc["updateInterval"] = this->getUpdateInterval();
+    doc["interval"] = this->getUpdateInterval();
 
     doc["name"] = this->getName();
     doc["description"] = this->getDescription();
@@ -242,7 +242,7 @@ void OBDState::toJSON(JsonDocument &doc) {
     doc["diagnostic"] = this->isDiagnostic();
 
     if (this->type == CALC && strlen(this->calcExpression) != 0) {
-        doc["calcExpression"] = this->calcExpression;
+        doc["expr"] = this->calcExpression;
     }
 }
 

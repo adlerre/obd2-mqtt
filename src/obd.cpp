@@ -166,8 +166,8 @@ void OBDClass::fromJSON(T *state, JsonDocument &doc) {
             );
         }
     } else if (state->getType() == CALC) {
-        if (!doc["calcExpression"].isNull()) {
-            state->setCalcExpression(doc["calcExpression"].as<std::string>().c_str());
+        if (!doc["expr"].isNull()) {
+            state->setCalcExpression(doc["expr"].as<std::string>().c_str());
         }
     }
 
@@ -176,12 +176,12 @@ void OBDClass::fromJSON(T *state, JsonDocument &doc) {
     }
     if (!doc["value"]["func"].isNull()) {
         setFormatFuncByName<T>(doc["value"]["func"].as<std::string>().c_str(), state);
-    } else if (!doc["value"]["expression"].isNull()) {
-        state->setValueFormatExpression(doc["value"]["expression"].as<std::string>().c_str());
+    } else if (!doc["value"]["expr"].isNull()) {
+        state->setValueFormatExpression(doc["value"]["expr"].as<std::string>().c_str());
     }
 
     // is reset by setPIDSettings
-    state->setUpdateInterval(doc["updateInterval"].as<long>());
+    state->setUpdateInterval(doc["interval"].as<long>());
 }
 
 bool OBDClass::readStates(FS &fs) {
