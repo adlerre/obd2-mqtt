@@ -109,6 +109,8 @@ Diagnostic Output on all profiles:
 <img width="200" alt="Sensors2" src="assets/obd2-mqtt-ha-02.png">
 </p>
 
+More profiles can be found [here](profiles). 
+
 ### Custom OBD States
 
 On the OBD tab you can adjust the required states and upload and/or download the current profile.
