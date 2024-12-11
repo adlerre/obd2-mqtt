@@ -114,7 +114,10 @@ Diagnostic Output on all profiles:
 On the OBD tab you can adjust the required states and upload and/or download the current profile.
 There two types of states, __READ__ and __CALC__, both can be a value type of __BOOL__, __FLOAT__ or __INT__.
 
-<img width="200" src="assets/IMG_D89C3273DFE0-1.jpeg">
+<p>
+<img width="200" alt="OBD1" src="assets/obd2-mqtt-obd-01.png">
+<img width="200" alt="OBD2" src="assets/obd2-mqtt-obd-02.png">
+</p>
 
 #### READ
 The READ state is used to read PIDs, either using an internal function or by setting the PID codes, response, and value changes.<br />
