@@ -119,6 +119,48 @@ There two types of states, __READ__ and __CALC__, both can be a value type of __
 <img width="200" alt="OBD2" src="assets/obd2-mqtt-obd-02.png">
 </p>
 
+Options:
+
+* **enabled**
+
+  the state is enabled
+
+* **visible**
+
+  the state is visible
+
+* **Measurement**
+
+  if the state is a measurement 
+
+* **Diagnostic**
+
+  the state should be displayed as a diagnostic field
+
+* **Interval**
+
+  the update interval or -1 for onetime update 
+
+* **Name**
+  
+  the state name for mqtt
+
+* **Description**
+
+  the state description, is shown in Home Assistant as field description
+
+* **Icon**
+
+  the state icon name without leading __mdi:__
+
+* **Sensor Device Class**
+
+  the sensor device class, [see](https://developers.home-assistant.io/docs/core/entity/sensor/)
+
+* **Unit**
+
+  the unit for device class or custom one
+
 #### READ
 
 The READ state is used to read PIDs, either using an internal function or by setting the PID codes, response, and value
