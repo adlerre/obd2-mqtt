@@ -184,7 +184,7 @@ export class OBDStatesComponent implements OnInit {
             enabled: new FormControl<boolean>(true, Validators.required),
             visible: new FormControl<boolean>(true, Validators.required),
             interval: new FormControl<number>(1000, [Validators.required, Validators.min(-1)]),
-            name: new FormControl<string>(null, [Validators.required, Validators.maxLength(32)]),
+            name: new FormControl<string>(null, [Validators.required, Validators.maxLength(32), Validators.pattern("[a-zA-Z0-9_]+")]),
             description: new FormControl<string>(null, [Validators.required, Validators.maxLength(256)]),
             icon: new FormControl<string>(null, Validators.maxLength(32)),
             unit: new FormControl<string>(null, Validators.maxLength(8)),
