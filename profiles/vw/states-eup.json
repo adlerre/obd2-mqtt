@@ -10,7 +10,7 @@
     "icon": "battery",
     "unit": "V",
     "deviceClass": "voltage",
-    "measurement": false,
+    "measurement": true,
     "diagnostic": false,
     "expr": null,
     "readFunc": "batteryVoltage",
@@ -27,7 +27,7 @@
     "icon": "battery",
     "unit": "%",
     "deviceClass": "battery",
-    "measurement": false,
+    "measurement": true,
     "diagnostic": false,
     "expr": null,
     "pid": {
