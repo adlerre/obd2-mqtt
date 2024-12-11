@@ -71,7 +71,7 @@ curl -X PUT -H "Content-Type: application/json" -d @settings.json http://192.168
 
 ## Configure Sensors
 
-With shipped default profile following Sensors are included:
+The following sensors are included in the supplied standard profile:
 
 * Ambient Temperature
 * Battery Voltage
@@ -210,7 +210,7 @@ The CALC state can be used to calculate a value based on other states.
 ##### Expression
 
 Within an expression, all mathematical operators are allowed as well as binary operator __&__ (and) and __|__ (or),
-other states can be used to calculate the value. To do this use the state name with a leading __$__.
+other states can be used to calculate the value. To do this use the state name with a leading __$__.<br />
 It is also possible to use previous values and stored timestamps for this purpose.
 
 * **$millis**<br />
