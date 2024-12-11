@@ -1,3 +1,43 @@
+# [0.10.0](https://github.com/adlerre/obd2-mqtt/compare/v0.9.1...v0.10.0) (2024-12-11)
+
+
+### Bug Fixes
+
+* add definitions to index.ts ([b41d94a](https://github.com/adlerre/obd2-mqtt/commit/b41d94a4f45f6117aec53a505168366e5c2ce7f9))
+* add missing hint ([84ced62](https://github.com/adlerre/obd2-mqtt/commit/84ced627eb26438e9236b19bf746094ebb40fb3f))
+* add missing options to set measurement/diagnostic ([15746ae](https://github.com/adlerre/obd2-mqtt/commit/15746aea0efd95c7a8e86535bc997c5858f93476))
+* add pattern with allowed chars to name ([ea9e91d](https://github.com/adlerre/obd2-mqtt/commit/ea9e91d4b0d7e68e9e425b4a795c974ac0f2d85b))
+* clear old states before save ([493acb6](https://github.com/adlerre/obd2-mqtt/commit/493acb6e65ebd0e59d244951b4f0c5ba4aede161))
+* describe some more options ([280a964](https://github.com/adlerre/obd2-mqtt/commit/280a9647c3242db5eac678ac7310eeb20916ecf2))
+* fix code issues ([198c2d4](https://github.com/adlerre/obd2-mqtt/commit/198c2d437fee659043b9ea47c24d38a5868d217f))
+* fix crash on AP connect ([629540f](https://github.com/adlerre/obd2-mqtt/commit/629540f7428f4d0d89c01bfab37f575e457c89ba))
+* fix fuelRate state ([65befdb](https://github.com/adlerre/obd2-mqtt/commit/65befdb4a3b8e33fe80f6b114e69436ca736eb0f))
+* improve expression description ([6527840](https://github.com/adlerre/obd2-mqtt/commit/652784053ab07957f87988d1f82a78483d65ed4e))
+* isn't required to bind class ([66ad0b6](https://github.com/adlerre/obd2-mqtt/commit/66ad0b65331691759d98c63b21b28d7fe1ffa6d4))
+* name description ([ad669a4](https://github.com/adlerre/obd2-mqtt/commit/ad669a4e3a40bb63720331ba823c38143809d0f0))
+* oom on sim800l ([052323b](https://github.com/adlerre/obd2-mqtt/commit/052323bc1dd26778b894bed29af3014bb5811b99))
+* remove all .txt* to save some space ([5dd08c1](https://github.com/adlerre/obd2-mqtt/commit/5dd08c183f8f2036a2f1a1f7b4474799ef90a9e3))
+* remove unneeded variable ([460e28e](https://github.com/adlerre/obd2-mqtt/commit/460e28e99394e4b4c4aa2cace8963bba223905f2))
+* rename strip method and use also on generate download ([8098248](https://github.com/adlerre/obd2-mqtt/commit/80982481d484d80f145ecb653a05243bcdbafacc))
+* rewrite json parsing ([544e140](https://github.com/adlerre/obd2-mqtt/commit/544e14012183d40ca684991822b8d2fc3ef94e7c))
+* set measurement to true ([b6a9376](https://github.com/adlerre/obd2-mqtt/commit/b6a93761c5d3976ac647ead441d7a13a153ed7f3))
+* use strlcpy to prevent buffer overflow ([d108c77](https://github.com/adlerre/obd2-mqtt/commit/d108c772ef15e3f3e47626c0d30bf0bfbb684943))
+
+
+### Features
+
+* add api methods to read/write obd states ([c3dc2fc](https://github.com/adlerre/obd2-mqtt/commit/c3dc2fc606b7460fcbb5e8c0c09540f500fa60f5))
+* add profile for VW e-up! ([79c21a0](https://github.com/adlerre/obd2-mqtt/commit/79c21a0780a05857f820d0c835845880c0ee964f))
+* add profile with states in imperial format ([4f95adb](https://github.com/adlerre/obd2-mqtt/commit/4f95adbc296dbe06ed7e2f4477e4fbc24a42429c))
+* implement GUI to edit OBD states ([a08d260](https://github.com/adlerre/obd2-mqtt/commit/a08d26039016471a1a3f071375fe70100e0b182a))
+* implement load of obd states from json ([37e74bb](https://github.com/adlerre/obd2-mqtt/commit/37e74bb5d673adf7929b31d1eb7279987a5c41b7))
+* implement save of obd states to json ([6fe8dd7](https://github.com/adlerre/obd2-mqtt/commit/6fe8dd77ca82070474a0f2188ce8b673a7023498))
+* math expression parser, with var resolver and more ([867783b](https://github.com/adlerre/obd2-mqtt/commit/867783ba0561de81da0d566fcf0ecffe5eef9b8b))
+* remove measurement system support, build-in functions can be used ([8c49edd](https://github.com/adlerre/obd2-mqtt/commit/8c49edd16eca86e187dc5dccc951bff31635489d))
+* rework obd states to make it customizable ([022d620](https://github.com/adlerre/obd2-mqtt/commit/022d6208c84b19db559ea1e8e13f3f3414abb609))
+* save also states after ota update ([b0f9ca1](https://github.com/adlerre/obd2-mqtt/commit/b0f9ca18eba0782413d0f750d0a13a2e6f971904))
+* update README with some explanations ([ea3698d](https://github.com/adlerre/obd2-mqtt/commit/ea3698d538ce60831bd995c05648e9f3053eeb46))
+
 ## [0.9.1](https://github.com/adlerre/obd2-mqtt/compare/v0.9.0...v0.9.1) (2024-11-22)
 
 
