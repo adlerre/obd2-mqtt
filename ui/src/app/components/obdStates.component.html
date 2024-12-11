@@ -54,7 +54,7 @@
                                 </select>
                             </div>
                         </div>
-                        <div class="offset-sm-2 col-sm-10">
+                        <div class="offset-sm-2 col-sm-10 ps-1 pb-1">
                             <div class="form-check form-check-inline">
                                 <input type="checkbox" value="true" id="enabled-{{ i }}" formControlName="enabled"
                                        class="form-check-input">
@@ -64,6 +64,16 @@
                                 <input type="checkbox" value="true" id="visible-{{ i }}" formControlName="visible"
                                        class="form-check-input">
                                 <label for="visible-{{ i }}" class="form-check-label">visible</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input type="checkbox" value="true" id="measurement-{{ i }}" formControlName="measurement"
+                                       class="form-check-input">
+                                <label for="measurement-{{ i }}" class="form-check-label">Measurement</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input type="checkbox" value="true" id="diagnostic-{{ i }}" formControlName="diagnostic"
+                                       class="form-check-input">
+                                <label for="diagnostic-{{ i }}" class="form-check-label">Diagnostic</label>
                             </div>
                         </div>
                         <div class="row mb-2">
