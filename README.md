@@ -236,13 +236,6 @@ The CALC state can be used to calculate a value based on other states.
   "measurement": true,
   "diagnostic": false,
   "expr": "$distanceDriven + ($speed.ov + $speed) / 2 / 3600 * ($millis - $distanceDriven.lu) / 1000",
-  "pid": {
-    "service": 0,
-    "pid": 0,
-    "numResponses": 0,
-    "numExpectedBytes": 0,
-    "bias": 0
-  },
   "value": {
     "func": "toMiles"
   }
