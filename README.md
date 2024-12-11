@@ -250,26 +250,48 @@ Within an expression, all mathematical operators are allowed as well as binary o
 other states can be used to calculate the value. To do this use the state name with a leading __$__.<br />
 It is also possible to use previous values and stored timestamps for this purpose.
 
+Variables and it's substates:
+
 * **$millis**<br />
   *predefined*
 
   the current timestamp
 
-* **$speed**<br />
+* **$var**<br />
 
   the current value
 
-* **$speed.ov**<br />
+* **$var.ov**<br />
 
   the previous value
 
-* **$speed.pu**<br />
+* **$var.pu**<br />
 
   the previous updated timestamp
 
-* **$speed.lu**<br />
+* **$var.lu**<br />
 
   the last updated timestamp
+
+* **$var.a**<br />
+  *only for INT states* 
+
+   the first byte
+
+* **$var.b**<br />
+  *only for INT states*
+
+  the second byte
+
+* **$var.c**<br />
+  *only for INT states*
+
+  the third byte
+
+* **$var.d**<br />
+  *only for INT states*
+
+  the fourth byte
 
 There are also some internal mathematical functions like:
 
