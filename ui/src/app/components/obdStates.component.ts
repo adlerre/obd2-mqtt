@@ -55,7 +55,10 @@ export function expressionValidator(checkStates: boolean = true, allowedVariable
             for (const idx of Object.keys(parent.controls)) {
                 const ctrl = parent.get(idx)?.get("name");
                 if (ctrl && ctrl instanceof FormControl) {
-                    vars.push(ctrl.value);
+                    const enCtrl = parent.get(idx)?.get("enabled");
+                    if (enCtrl && enCtrl instanceof FormControl && enCtrl.value === true) {
+                        vars.push(ctrl.value);
+                    }
                 }
             }
         }
