@@ -120,9 +120,10 @@ There two types of states, __READ__ and __CALC__, both can be a value type of __
 </p>
 
 #### READ
-The READ state is used to read PIDs, either using an internal function or by setting the PID codes, response, and value changes.<br />
+
+The READ state is used to read PIDs, either using an internal function or by setting the PID codes, response, and value
+changes. The PID codes must be entered in decimal __NOT__ hexadecimal.<br />
 Option __scale factor__ can be a mathematical expression.<br />
-The PID codes must be entered in decimal __NOT__ hexadecimal.
 
 ##### Example
 
@@ -130,20 +131,20 @@ with internal function:
 
 ```json
 {
-    "type": 0,
-    "valueType": "float",
-    "enabled": true,
-    "visible": true,
-    "interval": 30000,
-    "name": "batteryVoltage",
-    "description": "Battery Voltage",
-    "icon": "battery",
-    "unit": "V",
-    "deviceClass": "voltage",
-    "measurement": true,
-    "diagnostic": false,
-    "expr": null,
-    "readFunc": "batteryVoltage"
+  "type": 0,
+  "valueType": "float",
+  "enabled": true,
+  "visible": true,
+  "interval": 30000,
+  "name": "batteryVoltage",
+  "description": "Battery Voltage",
+  "icon": "battery",
+  "unit": "V",
+  "deviceClass": "voltage",
+  "measurement": true,
+  "diagnostic": false,
+  "expr": null,
+  "readFunc": "batteryVoltage"
 }
 ```
 
@@ -151,63 +152,65 @@ or with PID codes and value changes:
 
 ```json
 {
-    "type": 0,
-    "valueType": "int",
-    "enabled": true,
-    "visible": true,
-    "interval": 100,
-    "name": "rpm",
-    "description": "Rounds per minute",
-    "icon": "engine",
-    "measurement": true,
-    "diagnostic": false,
-    "pid": {
-      "service": 1,
-      "pid": 12,
-      "numResponses": 1,
-      "numExpectedBytes": 2,
-      "scaleFactor": "1.0 / 4.0",
-      "bias": 0
-    }
+  "type": 0,
+  "valueType": "int",
+  "enabled": true,
+  "visible": true,
+  "interval": 100,
+  "name": "rpm",
+  "description": "Rounds per minute",
+  "icon": "engine",
+  "measurement": true,
+  "diagnostic": false,
+  "pid": {
+    "service": 1,
+    "pid": 12,
+    "numResponses": 1,
+    "numExpectedBytes": 2,
+    "scaleFactor": "1.0 / 4.0",
+    "bias": 0
+  }
 }
 ```
 
 #### CALC
+
 The CALC state can be used to calculate a value based on other states.
 
 ##### Example
 
 ```json
 {
-    "type": 1,
-    "valueType": "float",
-    "enabled": true,
-    "visible": true,
-    "interval": 100,
-    "name": "distanceDriven",
-    "description": "Calculated driven distance",
-    "icon": "map-marker-distance",
-    "unit": "mi",
-    "deviceClass": "distance",
-    "measurement": true,
-    "diagnostic": false,
-    "expr": "$distanceDriven + ($speed.ov + $speed) / 2 / 3600 * ($millis - $distanceDriven.lu) / 1000",
-    "pid": {
-      "service": 0,
-      "pid": 0,
-      "numResponses": 0,
-      "numExpectedBytes": 0,
-      "bias": 0
-    },
-    "value": {
-      "func": "toMiles"
-    }
+  "type": 1,
+  "valueType": "float",
+  "enabled": true,
+  "visible": true,
+  "interval": 100,
+  "name": "distanceDriven",
+  "description": "Calculated driven distance",
+  "icon": "map-marker-distance",
+  "unit": "mi",
+  "deviceClass": "distance",
+  "measurement": true,
+  "diagnostic": false,
+  "expr": "$distanceDriven + ($speed.ov + $speed) / 2 / 3600 * ($millis - $distanceDriven.lu) / 1000",
+  "pid": {
+    "service": 0,
+    "pid": 0,
+    "numResponses": 0,
+    "numExpectedBytes": 0,
+    "bias": 0
+  },
+  "value": {
+    "func": "toMiles"
+  }
 }
 ```
 
 ##### Expression
 
-Within an expression, other states can be used to calculate the value. To do this use the state name with a leading $.
+Within an expression, all mathematical operators are allowed as well as binary operator __&__ (and) and __|__ (or),
+other states can be used to calculate the value. To do this use the state name with a leading __$__.
 It is also possible to use previous values and stored timestamps for this purpose.
 
 * **$millis**<br />
@@ -216,7 +219,7 @@ It is also possible to use previous values and stored timestamps for this purpos
   the current timestamp
 
 * **$speed**<br />
-  
+
   the current value
 
 * **$speed.ov**<br />
@@ -249,14 +252,17 @@ two parameter functions:
 
 as well as internal functions:
 
-* afRatio - air flow ratio by fuel type
-* density - density by fuel type
-* numDTCs - number of DTCs, is required to call monitor status first. see [default profile](profiles/states-imperial.json)
+* __afRatio__ - air flow ratio by fuel type
+* __density__ - density by fuel type
+* __numDTCs__ - number of DTCs, is required to call monitor status first.
+  see [default profile](profiles/states-imperial.json)
 
 ##### Value Format
 
-Can be used with simple __printf__ compatible expression, such as %d for __int__ or %.2f for __float__ output. If you leave this field blank, the default values are used.<br />
-Or you can use the format expression to perform some calculations. Within this expression, only $value (for the current value) is allowed.
+Can be used with simple __printf__ compatible expression, such as %d for __int__ or %.2f for __float__ output. If you
+leave this field blank, the default values are used.<br />
+Or you can use the format expression to perform some calculations. Within this expression, only $value (for the current
+value) is allowed.
 There are also some built-in functions for formatting values.
 
 * **toBitStr**<br />
