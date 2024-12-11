@@ -14,14 +14,6 @@
  *  If not, write to the Free Software Foundation Inc.,
  *  59 Temple Place - Suite 330, Boston, MA  02111-1307 USA
  */
-export enum MeasurementSystems {
-    METRIC = 0,
-    IMPERIAL = 1
-}
-
-export interface GeneralSettings {
-    measurementSystem?: number;
-}
 
 export interface WiFiSettings {
     ssid?: string;
@@ -82,7 +74,6 @@ export interface MQTTSettings {
 }
 
 export interface Settings {
-    general?: GeneralSettings;
     wifi?: WiFiSettings;
     mobile?: MobileSettings;
     obd2?: OBD2Settings;

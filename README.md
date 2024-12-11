@@ -69,15 +69,15 @@ pio run --target uploadfs -e T-Call-A7670X-V1-0
 curl -X PUT -H "Content-Type: application/json" -d @settings.json http://192.168.4.1/api/settings
 ```
 
-## Supported Sensors
+## Configure Sensors
 
-This sensors only available if your car support.
+The following sensors are included in the supplied standard profile:
 
 * Ambient Temperature
 * Battery Voltage
 * Calculated average speed
 * Calculated consumption
-* Calculated consumption per 100km or MPG
+* Calculated consumption per 100km
 * Calculated driven distance
 * Check Engine Light
 * Engine Coolant Temperature
@@ -88,13 +88,14 @@ This sensors only available if your car support.
 * Intake Air Temperature
 * Kilometer per Hour
 * Mass Air Flow
+* Odometer
 * Oil Temperature
 * Pedal Position
 * Rounds per minute
 * Throttle
 * Top Speed ;-)
 
-Diagnostic Output:
+Diagnostic Output on all profiles:
 
 * CPU Temperature (ESP)
 * Free Memory (ESP)
@@ -107,6 +108,220 @@ Diagnostic Output:
 <img width="200" alt="Sensors1" src="assets/obd2-mqtt-ha-01.png">
 <img width="200" alt="Sensors2" src="assets/obd2-mqtt-ha-02.png">
 </p>
+
+### Custom OBD States
+
+On the OBD tab you can adjust the required states and upload and/or download the current profile.
+There two types of states, __READ__ and __CALC__, both can be a value type of __BOOL__, __FLOAT__ or __INT__.
+
+<p>
+<img width="200" alt="OBD1" src="assets/obd2-mqtt-obd-01.png">
+<img width="200" alt="OBD2" src="assets/obd2-mqtt-obd-02.png">
+</p>
+
+Options:
+
+* **enabled**
+
+  the state is enabled
+
+* **visible**
+
+  the state is visible
+
+* **Measurement**
+
+  if the state is a measurement 
+
+* **Diagnostic**
+
+  the state should be displayed as a diagnostic field
+
+* **Interval**
+
+  the update interval or -1 for onetime update 
+
+* **Name**
+  
+  the state name, only letters, numbers and underscore are allowed 
+
+* **Description**
+
+  the state description, is shown in Home Assistant as field description
+
+* **Icon**
+
+  the state icon name without leading __mdi:__
+
+* **Sensor Device Class**
+
+  the sensor device class, [see](https://developers.home-assistant.io/docs/core/entity/sensor/)
+
+* **Unit**
+
+  the unit for device class or custom one
+
+#### READ
+
+The READ state is used to read PIDs, either using an internal function or by setting the PID codes, response, and value
+changes. The PID codes must be entered in decimal __NOT__ hexadecimal.<br />
+Option __scale factor__ can be a mathematical expression.<br />
+
+##### Example
+
+with internal function:
+
+```json
+{
+  "type": 0,
+  "valueType": "float",
+  "enabled": true,
+  "visible": true,
+  "interval": 30000,
+  "name": "batteryVoltage",
+  "description": "Battery Voltage",
+  "icon": "battery",
+  "unit": "V",
+  "deviceClass": "voltage",
+  "measurement": true,
+  "diagnostic": false,
+  "expr": null,
+  "readFunc": "batteryVoltage"
+}
+```
+
+or with PID codes and value changes:
+
+```json
+{
+  "type": 0,
+  "valueType": "int",
+  "enabled": true,
+  "visible": true,
+  "interval": 100,
+  "name": "rpm",
+  "description": "Rounds per minute",
+  "icon": "engine",
+  "measurement": true,
+  "diagnostic": false,
+  "pid": {
+    "service": 1,
+    "pid": 12,
+    "numResponses": 1,
+    "numExpectedBytes": 2,
+    "scaleFactor": "1.0 / 4.0",
+    "bias": 0
+  }
+}
+```
+
+#### CALC
+
+The CALC state can be used to calculate a value based on other states.
+
+##### Example
+
+```json
+{
+  "type": 1,
+  "valueType": "float",
+  "enabled": true,
+  "visible": true,
+  "interval": 100,
+  "name": "distanceDriven",
+  "description": "Calculated driven distance",
+  "icon": "map-marker-distance",
+  "unit": "mi",
+  "deviceClass": "distance",
+  "measurement": true,
+  "diagnostic": false,
+  "expr": "$distanceDriven + ($speed.ov + $speed) / 2 / 3600 * ($millis - $distanceDriven.lu) / 1000",
+  "pid": {
+    "service": 0,
+    "pid": 0,
+    "numResponses": 0,
+    "numExpectedBytes": 0,
+    "bias": 0
+  },
+  "value": {
+    "func": "toMiles"
+  }
+}
+```
+
+##### Expression
+
+Within an expression, all mathematical operators are allowed as well as binary operator __&__ (and) and __|__ (or),
+other states can be used to calculate the value. To do this use the state name with a leading __$__.<br />
+It is also possible to use previous values and stored timestamps for this purpose.
+
+* **$millis**<br />
+  *predefined*
+
+  the current timestamp
+
+* **$speed**<br />
+
+  the current value
+
+* **$speed.ov**<br />
+
+  the previous value
+
+* **$speed.pu**<br />
+
+  the previous updated timestamp
+
+* **$speed.lu**<br />
+
+  the last updated timestamp
+
+There are also some internal mathematical functions like:
+
+single parameter functions:
+
+* sin, cos, tan
+* asin, acos, atan
+* sinh, cosh, tanh
+* asinh, acosh, atanh
+* ln, log, exp
+* sqrt, sqr
+* round, int
+
+two parameter functions:
+
+* min, max
+
+as well as internal functions:
+
+* __afRatio__ - air flow ratio by fuel type
+* __density__ - density by fuel type
+* __numDTCs__ - number of DTCs, is required to call monitor status first.
+  see [default profile](profiles/states-imperial.json)
+
+##### Value Format
+
+Can be used with simple __printf__ compatible expression, such as %d for __int__ or %.2f for __float__ output. If you
+leave this field blank, the default values are used.<br />
+Or you can use the format expression to perform some calculations. Within this expression, only $value (for the current
+value) is allowed.
+There are also some built-in functions for formatting values.
+
+* **toBitStr**<br />
+
+  Format as Bit String
+
+* **toMiles**<br />
+
+  Convert km to mi
+
+* **toGallons**<br />
+
+  Convert L to gal
+
+* **toMPG**<br />
+
+  Convert L/100km to MPG
 
 ## If you are afraid of the Internet...
 

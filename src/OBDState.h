@@ -18,6 +18,8 @@
 #pragma once
 #include <ELMduino.h>
 #include <functional>
+#include <map>
+#include <ArduinoJson.h>
 
 typedef enum {
     READ,
@@ -30,11 +32,11 @@ protected:
 
     OBDStateType type = READ;
 
-    const char *name{};
-    const char *description{};
-    const char *icon{};
-    const char *unit{};
-    const char *deviceClass{};
+    char name[32] = "\0";
+    char description[128] = "\0";
+    char icon[32] = "\0";
+    char unit[8] = "\0";
+    char deviceClass[32] = "\0";
     bool measurement = true;
     bool diagnostic = false;
 
@@ -43,12 +45,16 @@ protected:
     uint8_t numResponses = 0;
     uint8_t numExpectedBytes = 0;
     double scaleFactor = 1;
+    char scaleFactorExpression[256] = "\0";
     float bias = 0;
+
+    char calcExpression[256] = "\0";
 
     bool init = false;
     bool checkPidSupport = false;
     bool supported = true;
     bool enabled = true;
+    bool visible = true;
     bool processing = false;
 
     long updateInterval = 1000;
@@ -62,6 +68,10 @@ protected:
     void setLastUpdate(long timestamp);
 
 public:
+    void *operator new(size_t size);
+
+    void operator delete(void *ptr);
+
     OBDState(OBDStateType type, const char *name, const char *description, const char *icon,
              const char *unit = "", const char *deviceClass = "", bool measurement = true, bool diagnostic = false);
 
@@ -69,7 +79,7 @@ public:
 
     OBDStateType getType() const;
 
-    virtual char *valueType();
+    virtual const char *valueType() const;
 
     void setELM327(ELM327 *elm327);
 
@@ -87,6 +97,10 @@ public:
 
     bool isDiagnostic() const;
 
+    virtual void setCalcExpression(const char *expression);
+
+    virtual bool hasCalcExpression() const;
+
     uint32_t supportedPIDs(const uint8_t &service, const uint16_t &pid) const;
 
     bool isPIDSupported(const uint8_t &service, const uint16_t &pid) const;
@@ -95,9 +109,19 @@ public:
                         const uint8_t &numResponses, const uint8_t &numExpectedBytes, const double &scaleFactor = 1,
                         const float &bias = 0);
 
+    void setPIDSettings(const uint8_t &service, const uint16_t &pid,
+                        const uint8_t &numResponses, const uint8_t &numExpectedBytes,
+                        const char *scaleFactorExpression = nullptr,
+                        const float &bias = 0);
+
     virtual OBDState *withPIDSettings(const uint8_t &service, const uint16_t &pid,
                                       const uint8_t &numResponses, const uint8_t &numExpectedBytes,
                                       const double &scaleFactor = 1,
+                                      const float &bias = 0);
+
+    virtual OBDState *withPIDSettings(const uint8_t &service, const uint16_t &pid,
+                                      const uint8_t &numResponses, const uint8_t &numExpectedBytes,
+                                      const char *scaleFactorExpression = nullptr,
                                       const float &bias = 0);
 
     bool isInit() const;
@@ -112,6 +136,12 @@ public:
 
     virtual OBDState *withEnabled(bool enable);
 
+    bool isVisible() const;
+
+    void setVisible(bool visible);
+
+    virtual OBDState *withVisible(bool visible);
+
     bool isProcessing() const;
 
     void setUpdateInterval(long interval);
@@ -125,6 +155,11 @@ public:
     long getLastUpdate() const;
 
     virtual void readValue();
+
+    virtual void calcValue(const std::function<double(const char *)> &func,
+                           const std::map<const char *, const std::function<double(double)>> &funcs = {});
+
+    virtual void toJSON(JsonDocument &doc);
 };
 
 template<typename T>
@@ -134,11 +169,17 @@ protected:
 
     T value;
 
+    char readFunctionName[32] = "\0";
+
     std::function<T()> readFunction = nullptr;
 
     std::function<void(TypedOBDState *)> postProcessFunction = nullptr;
 
-    const char *valueFormat = "%d";
+    char valueFormat[16] = "%d";
+
+    char valueFormatExpression[256] = "\0";
+
+    char valueFormatFunctionName[32] = "\0";
 
     std::function<char *(T)> valueFormatFunction = nullptr;
 
@@ -147,14 +188,21 @@ public:
                   const char *unit = "", const char *deviceClass = "", bool measurement = true,
                   bool diagnostic = false);
 
-    char *valueType() override;
+    const char *valueType() const override;
 
     TypedOBDState *withPIDSettings(const uint8_t &service, const uint16_t &pid,
                                    const uint8_t &numResponses, const uint8_t &numExpectedBytes,
                                    const double &scaleFactor = 1,
                                    const float &bias = 0) override;
 
+    TypedOBDState *withPIDSettings(const uint8_t &service, const uint16_t &pid,
+                                   const uint8_t &numResponses, const uint8_t &numExpectedBytes,
+                                   const char *scaleFactorExpression = nullptr,
+                                   const float &bias = 0) override;
+
     TypedOBDState *withEnabled(bool enable) override;
+
+    TypedOBDState *withVisible(bool visible) override;
 
     virtual T getOldValue();
 
@@ -166,19 +214,36 @@ public:
 
     TypedOBDState *withUpdateInterval(long interval) override;
 
+    void setReadFuncName(const char *funcName);
+
+    virtual TypedOBDState *withReadFuncName(const char *funcName);
+
     void setReadFunc(const std::function<T()> &func);
 
     virtual TypedOBDState *withReadFunc(const std::function<T()> &func);
 
     void readValue() override;
 
+    virtual TypedOBDState *withCalcExpression(const char *expression);
+
+    void calcValue(const std::function<double(const char *)> &func,
+                   const std::map<const char *, const std::function<double(double)>> &funcs) override;
+
     virtual void setPostProcessFunc(const std::function<void(TypedOBDState *)> &postProcessFunction);
 
-    virtual TypedOBDState *withPostProcessFunc(std::function<void(TypedOBDState *)> postProcessFunction);
+    virtual TypedOBDState *withPostProcessFunc(const std::function<void(TypedOBDState *)> &postProcessFunction);
 
     virtual void setValueFormat(const char *format);
 
     virtual TypedOBDState *withValueFormat(const char *format);
+
+    virtual void setValueFormatExpression(const char *expression);
+
+    virtual TypedOBDState *withValueFormatExpression(const char *expression);
+
+    virtual void setValueFormatFuncName(const char *funcName);
+
+    virtual TypedOBDState *withValueFormatFuncName(const char *funcName);
 
     virtual void setValueFormatFunc(const std::function<char *(T)> &valueFormatFunction);
 
@@ -191,6 +256,8 @@ public:
      * @return the formated value
      */
     virtual char *formatValue();
+
+    void toJSON(JsonDocument &doc) override;
 };
 
 class OBDStateBool final : public TypedOBDState<bool> {
@@ -198,24 +265,39 @@ public:
     OBDStateBool(OBDStateType type, const char *name, const char *description, const char *icon,
                  const char *unit = "", const char *deviceClass = "", bool measurement = true, bool diagnostic = false);
 
-    char *valueType() override;
+    const char *valueType() const override;
 
     OBDStateBool *withPIDSettings(const uint8_t &service, const uint16_t &pid,
                                   const uint8_t &numResponses, const uint8_t &numExpectedBytes,
                                   const double &scaleFactor = 1,
                                   const float &bias = 0) override;
 
+    OBDStateBool *withPIDSettings(const uint8_t &service, const uint16_t &pid,
+                                  const uint8_t &numResponses, const uint8_t &numExpectedBytes,
+                                  const char *scaleFactorExpression = nullptr,
+                                  const float &bias = 0) override;
+
     OBDStateBool *withEnabled(bool enable) override;
+
+    OBDStateBool *withVisible(bool visible) override;
 
     OBDStateBool *withUpdateInterval(long interval) override;
 
+    OBDStateBool *withReadFuncName(const char *funcName) override;
+
     OBDStateBool *withReadFunc(const std::function<bool()> &func) override;
 
-    OBDStateBool *withPostProcessFunc(const std::function<void(TypedOBDState *)> &postProcessFunction);
+    OBDStateBool *withCalcExpression(const char *expression) override;
+
+    OBDStateBool *withPostProcessFunc(const std::function<void(TypedOBDState *)> &postProcessFunction) override;
 
     OBDStateBool *withValueFormat(const char *format) override;
 
-    OBDStateBool *withValueFormatFunc(const std::function<char *(bool)> &valueFormatFunction);
+    OBDStateBool *withValueFormatExpression(const char *expression) override;
+
+    OBDStateBool *withValueFormatFuncName(const char *funcName) override;
+
+    OBDStateBool *withValueFormatFunc(const std::function<char *(bool)> &valueFormatFunction) override;
 };
 
 class OBDStateFloat final : public TypedOBDState<float> {
@@ -224,24 +306,39 @@ public:
                   const char *unit = "", const char *deviceClass = "", bool measurement = true,
                   bool diagnostic = false);
 
-    char *valueType() override;
+    const char *valueType() const override;
 
     OBDStateFloat *withPIDSettings(const uint8_t &service, const uint16_t &pid,
                                    const uint8_t &numResponses, const uint8_t &numExpectedBytes,
                                    const double &scaleFactor = 1,
                                    const float &bias = 0) override;
 
+    OBDStateFloat *withPIDSettings(const uint8_t &service, const uint16_t &pid,
+                                   const uint8_t &numResponses, const uint8_t &numExpectedBytes,
+                                   const char *scaleFactorExpression = nullptr,
+                                   const float &bias = 0) override;
+
     OBDStateFloat *withEnabled(bool enable) override;
+
+    OBDStateFloat *withVisible(bool visible) override;
 
     OBDStateFloat *withUpdateInterval(long interval) override;
 
+    OBDStateFloat *withReadFuncName(const char *funcName) override;
+
     OBDStateFloat *withReadFunc(const std::function<float()> &func) override;
 
-    OBDStateFloat *withPostProcessFunc(const std::function<void(TypedOBDState *)> &postProcessFunction);
+    OBDStateFloat *withCalcExpression(const char *expression) override;
+
+    OBDStateFloat *withPostProcessFunc(const std::function<void(TypedOBDState *)> &postProcessFunction) override;
 
     OBDStateFloat *withValueFormat(const char *format) override;
 
-    OBDStateFloat *withValueFormatFunc(const std::function<char *(float)> &valueFormatFunction);
+    OBDStateFloat *withValueFormatExpression(const char *expression) override;
+
+    OBDStateFloat *withValueFormatFuncName(const char *funcName) override;
+
+    OBDStateFloat *withValueFormatFunc(const std::function<char *(float)> &valueFormatFunction) override;
 };
 
 class OBDStateInt final : public TypedOBDState<int> {
@@ -249,22 +346,37 @@ public:
     OBDStateInt(OBDStateType type, const char *name, const char *description, const char *icon,
                 const char *unit = "", const char *deviceClass = "", bool measurement = true, bool diagnostic = false);
 
-    char *valueType() override;
+    const char *valueType() const override;
 
     OBDStateInt *withPIDSettings(const uint8_t &service, const uint16_t &pid,
                                  const uint8_t &numResponses, const uint8_t &numExpectedBytes,
                                  const double &scaleFactor = 1,
                                  const float &bias = 0) override;
 
+    OBDStateInt *withPIDSettings(const uint8_t &service, const uint16_t &pid,
+                                 const uint8_t &numResponses, const uint8_t &numExpectedBytes,
+                                 const char *scaleFactorExpression = nullptr,
+                                 const float &bias = 0) override;
+
     OBDStateInt *withEnabled(bool enable) override;
+
+    OBDStateInt *withVisible(bool visible) override;
 
     OBDStateInt *withUpdateInterval(long interval) override;
 
+    OBDStateInt *withReadFuncName(const char *funcName);
+
     OBDStateInt *withReadFunc(const std::function<int()> &func) override;
 
-    OBDStateInt *withPostProcessFunc(const std::function<void(TypedOBDState *)> &postProcessFunction);
+    OBDStateInt *withCalcExpression(const char *expression) override;
+
+    OBDStateInt *withPostProcessFunc(const std::function<void(TypedOBDState *)> &postProcessFunction) override;
 
     OBDStateInt *withValueFormat(const char *format) override;
 
-    OBDStateInt *withValueFormatFunc(const std::function<char *(int)> &valueFormatFunction);
+    OBDStateInt *withValueFormatExpression(const char *expression) override;
+
+    OBDStateInt *withValueFormatFuncName(const char *funcName) override;
+
+    OBDStateInt *withValueFormatFunc(const std::function<char *(int)> &valueFormatFunction) override;
 };

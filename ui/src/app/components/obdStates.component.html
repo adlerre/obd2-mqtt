@@ -1,0 +1,363 @@
+<!--
+  ~ This program is free software; you can use it, redistribute it
+  ~ and / or modify it under the terms of the GNU General Public License
+  ~ (GPL) as published by the Free Software Foundation; either version 3
+  ~ of the License or (at your option) any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful, but
+  ~  WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~  GNU General Public License for more details.
+  ~
+  ~  You should have received a copy of the GNU General Public License
+  ~  along with this program, in a file called gpl.txt or license.txt.
+  ~  If not, write to the Free Software Foundation Inc.,
+  ~  59 Temple Place - Suite 330, Boston, MA  02111-1307 USA
+  -->
+
+<div id="states">
+    <div class="d-flex my-2 justify-content-end">
+        <div class="btn-group">
+            <a class="btn btn-primary" [href]="downloadHref" download="states.json" (click)="generateDownload()">&#x2B07; Download</a>
+            <div class="btn btn-secondary p-0">
+                <label for="states-upload" class="d-inline-block py-1 px-2">&#x2B06; Upload</label>
+                <input type="file" id="states-upload" name="states-upload" accept="application/json"
+                       (change)="onFileChange($event)" [hidden]="true"
+                >
+            </div>
+        </div>
+    </div>
+    <form novalidate (ngSubmit)="onSubmit(form)" [formGroup]="form">
+        <ng-container *ngFor="let state of states.controls; let i = index">
+            <fieldset [formGroup]="state" id="state-{{ i }}" class="mt-0">
+                <div class="row">
+                    <div class="col-sm-10 pe-md-0">
+                        <div class="row mb-2">
+                            <label for="type-{{ i }}" class="col-sm-2 col-form-label">Type</label>
+                            <div class="col-sm-10">
+                                <select class="form-control form-select" id="type-{{ i }}" formControlName="type"
+                                        (change)="onTypeChange($event, i)"
+                                        [ngClass]="{'is-invalid':state.controls.type.errors}">
+                                    <option *ngFor="let type of getTypes()" [value]="type.value">{{ type.key }}
+                                    </option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row mb-2">
+                            <label for="valueType-{{ i }}" class="col-sm-2 col-form-label">Value Type</label>
+                            <div class="col-sm-10">
+                                <select class="form-control form-select" id="valueType-{{ i }}"
+                                        formControlName="valueType"
+                                        [ngClass]="{'is-invalid':state.controls.valueType.errors}">
+                                    <option *ngFor="let type of getValueTypes()" [value]="type.value">{{ type.key }}
+                                    </option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="offset-sm-2 col-sm-10 ps-1 pb-1">
+                            <div class="form-check form-check-inline">
+                                <input type="checkbox" value="true" id="enabled-{{ i }}" formControlName="enabled"
+                                       class="form-check-input">
+                                <label for="enabled-{{ i }}" class="form-check-label">enabled</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input type="checkbox" value="true" id="visible-{{ i }}" formControlName="visible"
+                                       class="form-check-input">
+                                <label for="visible-{{ i }}" class="form-check-label">visible</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input type="checkbox" value="true" id="measurement-{{ i }}" formControlName="measurement"
+                                       class="form-check-input">
+                                <label for="measurement-{{ i }}" class="form-check-label">Measurement</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input type="checkbox" value="true" id="diagnostic-{{ i }}" formControlName="diagnostic"
+                                       class="form-check-input">
+                                <label for="diagnostic-{{ i }}" class="form-check-label">Diagnostic</label>
+                            </div>
+                        </div>
+                        <div class="row mb-2">
+                            <label for="interval-{{ i }}" class="col-sm-2 control-label">Interval</label>
+                            <div class="col-sm-10">
+                                <input formControlName="interval" type="number" id="interval-{{ i }}"
+                                       autocapitalize="off"
+                                       autocorrect="off"
+                                       placeholder="Interval"
+                                       class="form-control"
+                                       [ngClass]="{'is-invalid': state.controls.interval.errors}"
+                                >
+                            </div>
+                        </div>
+                        <div class="row mb-2">
+                            <label for="name-{{ i }}" class="col-sm-2 control-label">Name</label>
+                            <div class="col-sm-10">
+                                <input formControlName="name" type="text" id="name-{{ i }}" autocapitalize="off"
+                                       autocorrect="off"
+                                       placeholder="Name"
+                                       class="form-control"
+                                       [ngClass]="{'is-invalid': state.controls.name.errors}"
+                                >
+                            </div>
+                        </div>
+                        <div class="row mb-2">
+                            <label for="description-{{ i }}" class="col-sm-2 control-label">Description</label>
+                            <div class="col-sm-10">
+                                <input formControlName="description" type="text" id="description-{{ i }}"
+                                       autocapitalize="off"
+                                       autocorrect="off"
+                                       placeholder="Description"
+                                       class="form-control"
+                                       [ngClass]="{'is-invalid': state.controls.description.errors}"
+                                >
+                            </div>
+                        </div>
+                        <div class="row mb-2">
+                            <label for="icon-{{ i }}" class="col-sm-2 control-label">Icon</label>
+                            <div class="col-sm-10">
+                                <input formControlName="icon" type="text" id="icon-{{ i }}" autocapitalize="off"
+                                       autocorrect="off"
+                                       placeholder="Icon"
+                                       class="form-control"
+                                       [ngClass]="{'is-invalid': state.controls.icon.errors}"
+                                >
+                            </div>
+                        </div>
+                        <div class="row mb-2">
+                            <label for="deviceClass-{{ i }}" class="col-sm-2 col-form-label">Sensor Device Class /
+                                Unit</label>
+                            <div class="col-sm-5 pe-md-1">
+                                <select class="form-control form-select" id="deviceClass-{{ i }}"
+                                        formControlName="deviceClass"
+                                        [ngClass]="{'is-invalid':state.controls.deviceClass.errors}">
+                                    <option value="">none</option>
+                                    <option *ngFor="let dc of getDeviceClasses()"
+                                            [value]="dc.name">{{ dc.description }}
+                                    </option>
+                                </select>
+                            </div>
+                            <div class="col-sm-5 ps-md-1">
+                                @if (getDeviceClassUnits(state.controls.deviceClass.value).length > 0) {
+                                    <select class="form-control form-select" id="unit-{{ i }}" formControlName="unit"
+                                            [ngClass]="{'is-invalid':state.controls.unit.errors}">
+                                        <option value="">none</option>
+                                        <option *ngFor="let unit of getDeviceClassUnits(state.controls.deviceClass.value)"
+                                                [value]="unit">{{ unit }}
+                                        </option>
+                                    </select>
+                                } @else {
+                                    <input formControlName="unit" type="text" id="unit-{{ i }}" autocapitalize="off"
+                                           autocorrect="off"
+                                           placeholder="Unit"
+                                           class="form-control"
+                                           [ngClass]="{'is-invalid': state.controls.unit.errors}"
+                                    >
+                                }
+                            </div>
+                        </div>
+                        @if (state.controls.type.value === 0) {
+                            @if (state.controls.pid) {
+                                <div class="row mb-2">
+                                    <label for="readFunc-{{ i }}" class="col-sm-2 col-form-label">Read Function</label>
+                                    <div class="col-sm-10">
+                                        <select class="form-control form-select" id="readFunc-{{ i }}"
+                                                formControlName="readFunc"
+                                                (change)="onReadFunctionChange($event, i)"
+                                                [ngClass]="{'is-invalid':state.controls.readFunc.errors}">
+                                            <option value="">none</option>
+                                            <option *ngFor="let func of getReadFunctions()"
+                                                    [value]="func.name">{{ func.description }}
+                                        </select>
+                                    </div>
+                                </div>
+                                <ng-container formGroupName="pid">
+                                    <div class="row mb-2">
+                                        <label for="service-{{ i }}" class="col-sm-2 col-form-label">Service /
+                                            PID</label>
+                                        <div class="col-sm-5 pe-md-1">
+                                            <input formControlName="service" type="number" id="service-{{ i }}"
+                                                   autocapitalize="off"
+                                                   autocorrect="off"
+                                                   placeholder="Service"
+                                                   class="form-control"
+                                                   [ngClass]="{'is-invalid': state.controls.pid.controls.service.errors}"
+                                            >
+                                        </div>
+                                        <div class="col-sm-5 ps-md-1">
+                                            <input formControlName="pid" type="number" id="pid-{{ i }}"
+                                                   autocapitalize="off"
+                                                   autocorrect="off"
+                                                   placeholder="PID"
+                                                   class="form-control"
+                                                   [ngClass]="{'is-invalid': state.controls.pid.controls.pid.errors}"
+                                            >
+                                        </div>
+                                    </div>
+                                    <div class="row mb-2">
+                                        <label for="numResponses-{{ i }}" class="col-sm-2 col-form-label">Responses /
+                                            Expected
+                                            Bytes</label>
+                                        <div class="col-sm-5 pe-md-1">
+                                            <input formControlName="numResponses" type="number"
+                                                   id="numResponses-{{ i }}"
+                                                   autocapitalize="off"
+                                                   autocorrect="off"
+                                                   placeholder="Number of Responses"
+                                                   class="form-control"
+                                                   [ngClass]="{'is-invalid': state.controls.pid.controls.numResponses.errors}"
+                                            >
+                                        </div>
+                                        <div class="col-sm-5 ps-md-1">
+                                            <input formControlName="numExpectedBytes" type="number"
+                                                   id="numExpectedBytes-{{ i }}" autocapitalize="off"
+                                                   autocorrect="off"
+                                                   placeholder="Number of expected Bytes"
+                                                   class="form-control"
+                                                   [ngClass]="{'is-invalid': state.controls.pid.controls.numExpectedBytes.errors}"
+                                            >
+                                        </div>
+                                    </div>
+                                    <div class="row mb-2">
+                                        <label for="scaleFactor-{{ i }}" class="col-sm-2 col-form-label">Scale factor /
+                                            Bias</label>
+                                        <div class="col-sm-5 pe-md-1">
+                                            <input formControlName="scaleFactor" type="text" id="scaleFactor-{{ i }}"
+                                                   autocapitalize="off"
+                                                   autocorrect="off"
+                                                   placeholder="Scale Factor"
+                                                   class="form-control"
+                                                   [ngClass]="{'is-invalid': state.controls.pid.controls.scaleFactor.errors}"
+                                            >
+                                        </div>
+                                        <div class="col-sm-5 ps-md-1">
+                                            <input formControlName="bias" type="number" id="bias-{{ i }}"
+                                                   autocapitalize="off"
+                                                   autocorrect="off"
+                                                   placeholder="Bias"
+                                                   class="form-control"
+                                                   [ngClass]="{'is-invalid': state.controls.pid.controls.bias.errors}"
+                                            >
+                                        </div>
+                                    </div>
+                                </ng-container>
+                            }
+                        } @else if (state.controls.type.value === 1) {
+                            <div class="row mb-2">
+                                <label for="calc-expr-{{ i }}" class="col-sm-2 control-label">Expression</label>
+                                <div class="col-sm-10">
+                                    <textarea formControlName="expr" type="text" id="calc-expr-{{ i }}"
+                                              autocapitalize="off"
+                                              autocorrect="off"
+                                              placeholder="Expression"
+                                              class="form-control"
+                                              [ngClass]="{'is-invalid': state.controls.expr.errors}"
+                                    ></textarea>
+                                    @if (state.controls.expr.errors?.invalidExpression) {
+                                        @if (state.controls.expr.errors?.invalidVars !== null) {
+                                            <p class="text-danger mt-1 mb-1">
+                                                Invalid variable:
+                                                @for (err of state.controls.expr.errors.invalidVars; track err + i) {
+                                                    <span>{{ err }}</span>
+                                                }
+                                            </p>
+                                        }
+                                        @if (state.controls.expr.errors?.invalidVarExtension !== null) {
+                                            <p class="text-danger mt-1 mb-1">
+                                                Invalid variable extension:
+                                                @for (err of state.controls.expr.errors.invalidVarExtension; track err + i) {
+                                                    <span>{{ err }}</span>
+                                                }
+                                            </p>
+                                        }
+                                        @if (state.controls.expr.errors?.invalidFuncs !== null) {
+                                            <p class="text-danger mt-1 mb-1">
+                                                Invalid function:
+                                                @for (err of state.controls.expr.errors.invalidFuncs; track err + i) {
+                                                    <span>{{ err }}</span>
+                                                }
+                                            </p>
+                                        }
+                                    }
+                                </div>
+                            </div>
+                        }
+                        <ng-container formGroupName="value">
+                            <div class="row mb-2">
+                                <label for="formatFunc-{{ i }}" class="col-sm-2 col-form-label">Format Function</label>
+                                <div class="col-sm-10">
+                                    <select class="form-control form-select" id="formatFunc-{{ i }}"
+                                            formControlName="func"
+                                            (change)="onValueFormatFuncChange($event, i)"
+                                            [ngClass]="{'is-invalid':state.controls.value.controls.func.errors}">
+                                        <option value="">none</option>
+                                        <option *ngFor="let func of getValueFormatFunctions()"
+                                                [value]="func.name">{{ func.description }}
+                                        </option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="row mb-2">
+                                <label for="valueFormat-{{ i }}" class="col-sm-2 col-form-label">Format / Format
+                                    Expression</label>
+                                <div class="col-sm-5 pe-md-1">
+                                    <input formControlName="format" type="text" id="valueFormat-{{ i }}"
+                                           autocapitalize="off"
+                                           autocorrect="off"
+                                           placeholder="Value Format"
+                                           class="form-control"
+                                           [ngClass]="{'is-invalid': state.controls.value.controls.format.errors}"
+                                    >
+                                </div>
+                                <div class="col-sm-5 ps-md-1">
+                                    <input formControlName="expr" type="text" id="val-expr-{{ i }}"
+                                           autocapitalize="off"
+                                           autocorrect="off"
+                                           placeholder="Format Expression"
+                                           class="form-control"
+                                           [ngClass]="{'is-invalid': state.controls.value.controls.expr.errors}"
+                                    >
+                                    @if (state.controls.value.controls.expr.errors?.invalidExpression) {
+                                        @if (state.controls.value.controls.expr.errors?.invalidVars !== null) {
+                                            <p class="text-danger mt-1 mb-1">
+                                                Invalid variable:
+                                                @for (err of state.controls.value.controls.expr.errors.invalidVars; track err + i) {
+                                                    <span>{{ err }}</span>
+                                                }
+                                            </p>
+                                        }
+                                        @if (state.controls.value.controls.expr.errors?.invalidVarExtension !== null) {
+                                            <p class="text-danger mt-1 mb-1">
+                                                Invalid variable extension:
+                                                @for (err of state.controls.value.controls.expr.errors.invalidVarExtension; track err + i) {
+                                                    <span>{{ err }}</span>
+                                                }
+                                            </p>
+                                        }
+                                        @if (state.controls.value.controls.expr.errors?.invalidFuncs !== null) {
+                                            <p class="text-danger mt-1 mb-1">
+                                                Invalid function:
+                                                @for (err of state.controls.value.controls.expr.errors.invalidFuncs; track err + i) {
+                                                    <span>{{ err }}</span>
+                                                }
+                                            </p>
+                                        }
+                                    }
+                                </div>
+                            </div>
+                        </ng-container>
+                    </div>
+                    <div class="col-sm-2 ps-md-2 d-flex d-sm-block justify-content-end">
+                        <div class="btn-group">
+                            <button class="btn btn-primary" id="add-state-{{ i }}" name="add-state-{{ i }}"
+                                    (click)="onAddSate(i)">&#x271A;</button>
+                            <button class="btn btn-secondary" id="remove-state-{{ i }}" name="remove-state-{{ i }}"
+                                    (click)="onRemoveState(i)" [disabled]="states.length === 1">&#x2715;</button>
+                        </div>
+                    </div>
+                </div>
+            </fieldset>
+        </ng-container>
+        <div class="d-flex justify-content-end mb-2">
+            <input type="submit" class="btn btn-primary me-2" value="Save" [disabled]="!form.valid">
+        </div>
+    </form>
+</div>
