@@ -348,6 +348,9 @@ export class OBDStatesComponent implements OnInit {
                             delete arr[i][k];
                         } else if (typeof arr[i][k] === "object") {
                             arr[i][k] = this.stripEmptyProps(arr[i][k]);
+                            if (!arr[i][k]) {
+                                delete arr[i][k];
+                            }
                         }
                     }
                 } else {
