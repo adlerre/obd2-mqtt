@@ -143,7 +143,7 @@ Options:
 
 * **Name**
   
-  the state name for mqtt
+  the state name, only letters, numbers and underscore are allowed 
 
 * **Description**
 
