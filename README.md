@@ -118,7 +118,8 @@ There two types of states, __READ__ and __CALC__, both can be a value type of __
 
 #### READ
 The READ state is used to read PIDs, either using an internal function or by setting the PID codes, response, and value changes.<br />
-Option __scale factor__ can be a mathematical expression.
+Option __scale factor__ can be a mathematical expression.<br />
+The PID codes must be entered in decimal __NOT__ hexadecimal.
 
 ##### Example
 
