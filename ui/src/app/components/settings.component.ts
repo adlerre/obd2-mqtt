@@ -44,6 +44,7 @@ import {
     OperatorFunction,
     Subject
 } from "rxjs";
+import { ToastService } from "../services/toast.service";
 
 @Component({
     selector: "ui-settings",
@@ -87,7 +88,7 @@ export class SettingsComponent implements OnInit {
 
     protected readonly locationIntervals = locationIntervals;
 
-    constructor(private $api: ApiService) {
+    constructor(private $api: ApiService, private toast: ToastService) {
         this.wifi = new FormGroup({
             ssid: new FormControl("", Validators.maxLength(64)),
             password: new FormControl("", [Validators.minLength(8), Validators.maxLength(32)])
@@ -201,9 +202,17 @@ export class SettingsComponent implements OnInit {
         if (valid) {
             this.$api.updateSettings(value).subscribe({
                 next: () => {
-                    window.alert("Settings updated successfully.");
+                    this.toast.show({
+                        text: "Settings updated successfully.",
+                        classname: "bg-success text-light",
+                        delay: 10000
+                    });
                 }, error: (err) => {
-                    window.alert(err.message);
+                    this.toast.show({
+                        text: err.message,
+                        classname: "bg-danger text-light",
+                        delay: 10000
+                    });
                 }
             });
         }

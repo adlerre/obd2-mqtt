@@ -1,4 +1,4 @@
-/*!
+/*
  * This program is free software; you can use it, redistribute it
  * and / or modify it under the terms of the GNU General Public License
  * (GPL) as published by the Free Software Foundation; either version 3
@@ -15,15 +15,28 @@
  *  59 Temple Place - Suite 330, Boston, MA  02111-1307 USA
  */
 
-@import "functions";
-@import "variables";
-@import "color";
-@import "display";
-@import "elements";
-@import "flex";
-@import "grid";
-@import "navigation";
-@import "form";
-@import "spacing";
-@import "toast";
-@import "dropdown";
+import { Injectable, TemplateRef } from "@angular/core";
+
+export interface Toast {
+    template?: TemplateRef<any>;
+    text?: string;
+    classname?: string;
+    delay?: number;
+}
+
+@Injectable({providedIn: "root"})
+export class ToastService {
+    toasts: Array<Toast> = [];
+
+    show(toast: Toast) {
+        this.toasts.push(toast);
+    }
+
+    remove(toast: Toast) {
+        this.toasts = this.toasts.filter((t) => t !== toast);
+    }
+
+    clear() {
+        this.toasts.splice(0, this.toasts.length);
+    }
+}
