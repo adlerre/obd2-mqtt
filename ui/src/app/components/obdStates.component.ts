@@ -38,6 +38,7 @@ import {
     ValueTypes
 } from "../definitions";
 import { DomSanitizer } from "@angular/platform-browser";
+import { ToastService } from "../services/toast.service";
 
 export function expressionValidator(checkStates: boolean = true, allowedVariables: Array<string> = [],
                                     allowedFunctions: Array<string> = []): ValidatorFn {
@@ -165,7 +166,7 @@ export class OBDStatesComponent implements OnInit {
 
     downloadHref: any;
 
-    constructor(private $api: ApiService, private sanitizer: DomSanitizer) {
+    constructor(private $api: ApiService, private sanitizer: DomSanitizer, private toast: ToastService) {
         this.states = new FormArray([]);
         this.form = new FormGroup({states: this.states});
     }
@@ -306,8 +307,8 @@ export class OBDStatesComponent implements OnInit {
 
     generateDownload() {
         const theJSON = JSON.stringify(this.stripEmptyProps(this.states.value));
-        const uri = this.sanitizer.bypassSecurityTrustUrl("data:text/json;charset=UTF-8," + encodeURIComponent(theJSON));
-        this.downloadHref = uri;
+        this.downloadHref = this.sanitizer
+            .bypassSecurityTrustUrl("data:text/json;charset=UTF-8," + encodeURIComponent(theJSON));
     }
 
     onFileChange(event: Event) {
@@ -331,9 +332,17 @@ export class OBDStatesComponent implements OnInit {
             const states: Array<OBDState> = this.stripEmptyProps(value.states);
             this.$api.updateStates(states).subscribe({
                 next: () => {
-                    window.alert("States updated successfully.");
+                    this.toast.show({
+                        text: "States updated successfully.",
+                        classname: "bg-success text-light",
+                        delay: 10000
+                    });
                 }, error: (err) => {
-                    window.alert(err.message);
+                    this.toast.show({
+                        text: err.message,
+                        classname: "bg-danger text-light",
+                        delay: 10000
+                    });
                 }
             });
         }

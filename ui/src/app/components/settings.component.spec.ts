@@ -22,6 +22,7 @@ import { SettingsComponent } from "./settings.component";
 import { of } from "rxjs";
 import { ReactiveFormsModule } from "@angular/forms";
 import { NgbTypeaheadModule } from "@ng-bootstrap/ng-bootstrap";
+import { ToastService } from "../services/toast.service";
 
 const testSettings: Settings = {
     wifi: {
@@ -52,7 +53,8 @@ export class MockApiService {
 }
 
 describe("SettingsComponent", () => {
-    let component: SettingsComponent, fixture: ComponentFixture<SettingsComponent>, service: ApiService;
+    let component: SettingsComponent, fixture: ComponentFixture<SettingsComponent>, service: ApiService,
+        toast: ToastService;
     const getElement: (selector: string) => HTMLElement = (selector) =>
         fixture.elementRef.nativeElement.querySelector(selector);
 
@@ -61,17 +63,18 @@ describe("SettingsComponent", () => {
             TestBed.configureTestingModule({
                 declarations: [SettingsComponent],
                 imports: [NgbTypeaheadModule, ReactiveFormsModule],
-                providers: [{provide: ApiService, useClass: MockApiService}],
+                providers: [{provide: ApiService, useClass: MockApiService}, ToastService],
                 teardown: {destroyAfterEach: true},
             }).compileComponents();
         })
     );
 
-    beforeEach(inject([ApiService], (apiService: ApiService) => {
+    beforeEach(inject([ApiService, ToastService], (apiService: ApiService, toastService: ToastService) => {
         fixture = TestBed.createComponent(SettingsComponent);
         component = fixture.componentInstance;
 
         service = apiService;
+        toast = toastService;
 
         fixture.detectChanges();
     }));
@@ -101,7 +104,7 @@ describe("SettingsComponent", () => {
     });
 
     it("should update done", () => {
-        spyOn(window, "alert");
+        const spyToast = spyOn(toast, "show");
 
         expect(getElement("#settings")).toBeTruthy();
 
@@ -129,7 +132,11 @@ describe("SettingsComponent", () => {
         expect(submitBtn.disabled).toBeFalse();
         submitBtn?.click();
 
-        expect(window.alert).toHaveBeenCalledWith("Settings updated successfully.");
+        expect(spyToast).toHaveBeenCalledWith({
+            text: "Settings updated successfully.",
+            classname: "bg-success text-light",
+            delay: 10000
+        });
     });
 
 });

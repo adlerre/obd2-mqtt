@@ -1,0 +1,49 @@
+/*!
+ * This program is free software; you can use it, redistribute it
+ * and / or modify it under the terms of the GNU General Public License
+ * (GPL) as published by the Free Software Foundation; either version 3
+ * of the License or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but
+ *  WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program, in a file called gpl.txt or license.txt.
+ *  If not, write to the Free Software Foundation Inc.,
+ *  59 Temple Place - Suite 330, Boston, MA  02111-1307 USA
+ */
+
+.toast {
+  --ui-toast-zindex: 1090;
+  --ui-toast-padding-x: 0.75rem;
+  --ui-toast-padding-y: 0.5rem;
+  --ui-toast-spacing: 1.5rem;
+  --ui-toast-max-width: 350px;
+  --ui-toast-font-size: 0.875rem;
+  --ui-toast-color: ;
+  --ui-toast-bg: rgba(var(--ui-body-bg-rgb), 0.85);
+  --ui-toast-border-width: var(--ui-border-width);
+  --ui-toast-border-color: var(--ui-border-color-translucent);
+  --ui-toast-border-radius: var(--ui-border-radius);
+  --ui-toast-box-shadow: var(--ui-box-shadow);
+  --ui-toast-header-color: var(--ui-secondary-color);
+  --ui-toast-header-bg: rgba(var(--ui-body-bg-rgb), 0.85);
+  --ui-toast-header-border-color: var(--ui-border-color-translucent);
+  width: var(--ui-toast-max-width);
+  max-width: 100%;
+  font-size: var(--ui-toast-font-size);
+  color: var(--ui-toast-color);
+  pointer-events: auto;
+  background-color: var(--ui-toast-bg);
+  background-clip: padding-box;
+  border: var(--ui-toast-border-width) solid var(--ui-toast-border-color);
+  box-shadow: var(--ui-toast-box-shadow);
+  border-radius: var(--ui-toast-border-radius);
+}
+
+.toast-body {
+  padding: var(--ui-toast-padding-x);
+  word-wrap: break-word;
+}

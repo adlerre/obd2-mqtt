@@ -26,14 +26,16 @@ import { RouterModule } from "@angular/router";
 import { DeviceInfoComponent, OTAComponent, SettingsComponent } from "./components";
 import { NgbTypeaheadModule } from "@ng-bootstrap/ng-bootstrap";
 import { OBDStatesComponent } from "./components/obdStates.component";
+import { ToastsComponent } from "./components/toasts.component";
+import { ToastService } from "./services/toast.service";
 
 @NgModule({
     bootstrap: [AppComponent],
     declarations: [
         AppComponent,
         DeviceInfoComponent,
-        SettingsComponent,
-        OBDStatesComponent
+        OBDStatesComponent,
+        SettingsComponent
     ],
     imports: [
         BrowserModule,
@@ -47,11 +49,13 @@ import { OBDStatesComponent } from "./components/obdStates.component";
                 {path: "ota", component: OTAComponent},
             ],
             {useHash: true}
-        )
+        ),
+        ToastsComponent
     ],
     providers: [
         provideHttpClient(withInterceptorsFromDi()),
-        ApiService
+        ApiService,
+        ToastService
     ]
 })
 export class AppModule {
