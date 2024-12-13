@@ -67,6 +67,7 @@ struct MQTTSettings {
     int protocol;
     char hostname[64];
     unsigned int port;
+    bool secure;
     char username[32];
     char password[32];
     unsigned int dataInterval;
@@ -151,6 +152,10 @@ public:
     unsigned int getMQTTPort() const;
 
     void setMQTTPort(unsigned int port);
+
+    bool getMQTTSecure() const;
+
+    void setMQTTSecure(bool secure);
 
     String getMQTTUsername() const;
 

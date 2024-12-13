@@ -116,6 +116,7 @@ export class SettingsComponent implements OnInit {
                 )
             ]),
             port: new FormControl<number>(1883, [Validators.min(1), Validators.max(65384)]),
+            secure: new FormControl<boolean>(false),
             username: new FormControl("", Validators.maxLength(32)),
             password: new FormControl("", Validators.maxLength(32)),
             dataInterval: new FormControl<number>(1),

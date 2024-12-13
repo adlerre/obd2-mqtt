@@ -45,6 +45,9 @@ class GSM {
     unsigned int reconnectAttempts;
     int networkMode;
 
+    TinyGsmClient *client = nullptr;
+    TinyGsmClientSecure *secureClient = nullptr;
+
     /**
      * Hard reset modem. Seems to crash after long runs.
      */
@@ -53,7 +56,6 @@ class GSM {
 public:
     Stream &stream;
     TinyGsm modem;
-    TinyGsmClient client;
 
     /**
      * Convert signal quality value to RSSI
@@ -66,6 +68,14 @@ public:
     static int convertSQToRSSI(int signalQuality);
 
     explicit GSM(Stream &stream);
+
+    /**
+     * Returns the underlying TinyGSM*Client
+     *
+     * @param useSecure <code>true</code> if a secured connection should be used
+     * @return the client pointer
+     */
+    Client *getClient(bool useSecure = false);
 
     /**
      * Returns the ip address.

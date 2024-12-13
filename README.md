@@ -69,6 +69,13 @@ pio run --target uploadfs -e T-Call-A7670X-V1-0
 curl -X PUT -H "Content-Type: application/json" -d @settings.json http://192.168.4.1/api/settings
 ```
 
+## Settings
+
+Configure Wi-Fi, Mobile settings according to your needs. Set the detected ELM327 device and optionally select the
+protocol for faster initialization.<br />
+Set up the MQTT configuration with your data. __If you want to use TLS/SSL on a SIM800 device, you need to know that
+only SSL 2/3 and TLS 1.0 are supported.__
+
 ## Configure Sensors
 
 The following sensors are included in the supplied standard profile:
@@ -109,7 +116,7 @@ Diagnostic Output on all profiles:
 <img width="200" alt="Sensors2" src="assets/obd2-mqtt-ha-02.png">
 </p>
 
-More profiles can be found [here](profiles). 
+More profiles can be found [here](profiles).
 
 ### Custom OBD States
 
@@ -133,7 +140,7 @@ Options:
 
 * **Measurement**
 
-  if the state is a measurement 
+  if the state is a measurement
 
 * **Diagnostic**
 
@@ -141,11 +148,11 @@ Options:
 
 * **Interval**
 
-  the update interval or -1 for onetime update 
+  the update interval or -1 for onetime update
 
 * **Name**
-  
-  the state name, only letters, numbers and underscore are allowed 
+
+  the state name, only letters, numbers and underscore are allowed
 
 * **Description**
 
@@ -274,9 +281,9 @@ Variables and it's substates:
   the last updated timestamp
 
 * **$var.a**<br />
-  *only for INT states* 
+  *only for INT states*
 
-   the first byte
+  the first byte
 
 * **$var.b**<br />
   *only for INT states*
@@ -339,8 +346,3 @@ There are also some built-in functions for formatting values.
 * **toMPG**<br />
 
   Convert L/100km to MPG
-
-## If you are afraid of the Internet...
-
-...and don't want to expose your MQTT broker on the Internet, use a free MQTT provider and take a look
-on [mqtt-proxy](tools/mqtt-proxy) tool.

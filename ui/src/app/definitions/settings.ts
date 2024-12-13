@@ -65,6 +65,7 @@ export interface MQTTSettings {
     protocol?: MQTTProtocol;
     hostname: string;
     port?: number;
+    secure?: boolean;
     username?: string;
     password?: string;
     dataInterval?: number;

@@ -28,10 +28,13 @@ std::string MQTT::createFieldTopic(const std::string &field) const {
     return stripChars((!identifier.empty() ? identifier : maintopic) + "_" + field);
 }
 
-MQTT::MQTT(Client &client): wsClient(nullptr), wsStreamClient(nullptr) {
-    this->client = &client;
+MQTT::MQTT(): client(nullptr), wsClient(nullptr), wsStreamClient(nullptr) {
     mqtt.setKeepAlive(60);
     mqtt.setBufferSize(MQTT_MAX_PACKET_SIZE);
+}
+
+void MQTT::setClient(Client *client) {
+    this->client = client;
 }
 
 bool MQTT::connect(const char *clientId, const char *broker, const unsigned int port, const char *username,
