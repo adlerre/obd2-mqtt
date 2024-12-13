@@ -32,12 +32,36 @@ int GSM::convertSQToRSSI(int signalQuality) {
     return signalQuality;
 }
 
-GSM::GSM(Stream &stream) : stream(stream), modem(TinyGsm(stream)), client(TinyGsmClient(modem)) {
+GSM::GSM(Stream &stream) : stream(stream), modem(TinyGsm(stream)) {
     ipAddress = "";
     reconnectAttempts = 0;
 #if defined(LILYGO_T_A7670) or defined(LILYGO_T_CALL_A7670_V1_0) or defined(LILYGO_T_CALL_A7670_V1_1) or defined(LILYGO_T_A7608X)
     networkMode = MODEM_NETWORK_AUTO;
 #endif
+}
+
+Client *GSM::getClient(const bool useSecure) {
+    if (useSecure) {
+        if (client != nullptr) {
+            free(client);
+        }
+        if (secureClient == nullptr) {
+#if defined(SIM800L_IP5306_VERSION_20190610) or defined(SIM800L_AXP192_VERSION_20200327) or defined(SIM800C_AXP192_VERSION_20200609) or defined(SIM800L_IP5306_VERSION_20200811)
+            Serial.println("WARNING: SIM800 devices supports only SSL 2/3 and TLS 1.0");
+#endif
+            secureClient = new TinyGsmClientSecure(modem);
+        }
+
+        return secureClient;
+    }
+
+    if (secureClient != nullptr) {
+        free(secureClient);
+    }
+    if (client == nullptr) {
+        client = new TinyGsmClient(modem);
+    }
+    return client;
 }
 
 void GSM::resetModem() {

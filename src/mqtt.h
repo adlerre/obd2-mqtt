@@ -60,10 +60,15 @@ class MQTT {
 public:
     /**
      * Constructor of MQTT Helper
+     */
+    MQTT();
+
+    /**
+     * Set client (Wi-Fi or TinyGSM)
      *
      * @param client the client
      */
-    explicit MQTT(Client &client);
+    void setClient(Client *client);
 
     /**
      * Connect to broker

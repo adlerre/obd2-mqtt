@@ -59,7 +59,7 @@ GSM gsm(debugger);
 GSM gsm(SerialAT);
 #endif
 
-MQTT mqtt(gsm.client);
+MQTT mqtt = MQTT();
 
 std::atomic_bool wifiAPStarted{false};
 std::atomic_bool wifiAPInUse{false};
@@ -749,6 +749,7 @@ void setup() {
     OBD.connect();
 
     if (!Settings.getMQTTHostname().isEmpty()) {
+        mqtt.setClient(gsm.getClient(Settings.getMQTTSecure()));
         mqtt.setIdentifier(!stripChars(OBD.vin()).empty() ? OBD.vin() : OBD.getConnectedBTAddress());
 
         xTaskCreatePinnedToCore(outputTask, "OutputTask", 9216, nullptr, 10, &outputTaskHdl, 0);

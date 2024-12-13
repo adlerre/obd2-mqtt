@@ -39,6 +39,7 @@ void SettingsClass::readJson(JsonDocument &doc) {
     mqtt.protocol = doc["mqtt"]["protocol"] | 0; // USE_MQTT as default
     strlcpy(mqtt.hostname, doc["mqtt"]["hostname"] | "", sizeof(mqtt.hostname));
     mqtt.port = doc["mqtt"]["port"] | (mqtt.protocol == 0 ? 1883 : 1884);
+    mqtt.secure = doc["mqtt"]["secure"] | false;
     strlcpy(mqtt.username, doc["mqtt"]["username"] | "", sizeof(mqtt.username));
     strlcpy(mqtt.password, doc["mqtt"]["password"] | "", sizeof(mqtt.password));
     mqtt.dataInterval = doc["mqtt"]["dataInterval"] | 1;
@@ -65,6 +66,7 @@ void SettingsClass::writeJson(JsonDocument &doc) {
     doc["mqtt"]["protocol"] = mqtt.protocol;
     doc["mqtt"]["hostname"] = mqtt.hostname;
     doc["mqtt"]["port"] = mqtt.port;
+    doc["mqtt"]["secure"] = mqtt.secure;
     doc["mqtt"]["username"] = mqtt.username;
     doc["mqtt"]["password"] = mqtt.password;
     doc["mqtt"]["dataInterval"] = mqtt.dataInterval;
@@ -244,6 +246,14 @@ unsigned int SettingsClass::getMQTTPort() const {
 
 void SettingsClass::setMQTTPort(unsigned int port) {
     mqtt.port = port;
+}
+
+bool SettingsClass::getMQTTSecure() const {
+    return mqtt.secure;
+}
+
+void SettingsClass::setMQTTSecure(const bool secure) {
+    mqtt.secure = secure;
 }
 
 String SettingsClass::getMQTTUsername() const {
