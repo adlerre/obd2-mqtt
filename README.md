@@ -194,7 +194,6 @@ with internal function:
   "deviceClass": "voltage",
   "measurement": true,
   "diagnostic": false,
-  "expr": null,
   "readFunc": "batteryVoltage"
 }
 ```
