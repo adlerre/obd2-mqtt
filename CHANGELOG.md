@@ -1,3 +1,19 @@
+# [0.11.0](https://github.com/adlerre/obd2-mqtt/compare/v0.10.0...v0.11.0) (2024-12-13)
+
+
+### Bug Fixes
+
+* add link to profiles folder ([8a15776](https://github.com/adlerre/obd2-mqtt/commit/8a157764e692410db4d64d8be08ab12b0164959e))
+* add missing description how to use single bytes from var's ([e38c52c](https://github.com/adlerre/obd2-mqtt/commit/e38c52c0dd6f7fffe97d68effcf1461c08d7aa70))
+* strip also empty objects ([96f8adc](https://github.com/adlerre/obd2-mqtt/commit/96f8adc0de2cdd9304d29316dbc9ae9826f79dde))
+* use only enabled var ([7c5c89d](https://github.com/adlerre/obd2-mqtt/commit/7c5c89d558a169b82204239eea2c902ab2178835))
+
+
+### Features
+
+* add support for TLS/SSL connections to MQTT/WS ([#37](https://github.com/adlerre/obd2-mqtt/issues/37)) ([278ec15](https://github.com/adlerre/obd2-mqtt/commit/278ec158b92d3b6c97ef745009a8621264bb0349))
+* use (nice) toast instead of alert ([#36](https://github.com/adlerre/obd2-mqtt/issues/36)) ([2405372](https://github.com/adlerre/obd2-mqtt/commit/24053722537ad4dfba43ce4054aab404686184a3))
+
 # [0.10.0](https://github.com/adlerre/obd2-mqtt/compare/v0.9.1...v0.10.0) (2024-12-11)
 
 
