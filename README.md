@@ -10,7 +10,9 @@
     * (optional) [RP-SMA to IPX cable](https://www.amazon.de/dp/B0B9RXDLNN)
     * (optional) [Antenna](https://www.amazon.de/dp/B0B2DCXL5N) (work's for me) or other
     * (optional) a 3D Printer for the [case](3d-files)
-* a [ELM327 OBD Bluetooth Adapter](https://de.aliexpress.com/item/1005005775562398.html) or any other
+* a [ELM327 OBD Bluetooth Adapter](https://www.amazon.de/gp/product/B0BG4W6MLD) or any other
+    * if you want to use [this](https://de.aliexpress.com/item/1005005775562398.html) cheap adapter, you should set the
+      right connection protocol or be patience
 * a SIM Card - i use one
   from [fraenk](https://fraenk.page.link/?link=https%3A%2F%2Ffraenk.de%2Fdeeplink%2Fmgm%3FfriendCode%3DRENA45&apn=de.congstar.fraenk&amv=1040000&imv=1.4&isi=1493980266&ibi=de.congstar.fraenk&ius=fraenk&ofl=https%3A%2F%2Ffraenk.de)
 * and the most important thing, a car
