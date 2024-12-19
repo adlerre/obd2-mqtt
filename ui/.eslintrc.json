@@ -44,6 +44,7 @@
         "@angular-eslint/no-output-native": "off",
         "@angular-eslint/no-output-on-prefix": "error",
         "@angular-eslint/no-output-rename": "off",
+        "@angular-eslint/prefer-standalone": "off",
         "@angular-eslint/use-pipe-transform-interface": "error",
         "@angular-eslint/use-lifecycle-interface": "error",
         "@typescript-eslint/ban-types": "off",
