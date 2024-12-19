@@ -30,3 +30,20 @@ To screw case use M2 * 12mm.
 * [Step file](esp32-sim800%20v2.step)
 * [Complete STL](esp32-sim800%20v2-complete.stl)
 * *.stl files
+
+## For A7670 boards with battery and external GPS/4G antenna
+
+If you have a case without Micro USB, make the SMA layer visible and export the part.
+
+Used parts:
+
+* [SMA cable/extension](https://www.amazon.de/dp/B0B9RYL56H)
+* [external antenna](https://www.amazon.de/dp/B07JZJRW5L)
+
+To screw case use M2 * 12mm/20mm.
+
+* [View model](esp32-a76xx-with-2-sma.html.zip)
+* [FreeCAD file](esp32-a76xx-with-2-sma.FCStd)
+* [Step file](esp32-a76xx-with-2-sma.step)
+* [Complete STL](esp32-a76xx-with-2-sma-complete.stl)
+* *.stl files
