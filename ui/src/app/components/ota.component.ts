@@ -110,7 +110,6 @@ export class FileDropZoneDirective {
     selector: "ui-ota",
     templateUrl: "./ota.component.html",
     styleUrls: ["./ota.component.scss"],
-    standalone: true,
     imports: [CommonModule, ReactiveFormsModule, NgbProgressbarModule, FileDropZoneDirective],
     encapsulation: ViewEncapsulation.None
 })

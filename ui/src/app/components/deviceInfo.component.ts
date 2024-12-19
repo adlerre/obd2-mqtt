@@ -21,7 +21,8 @@ import { ApiService } from "../services/api.service";
 
 @Component({
     selector: "ui-device-info",
-    templateUrl: "./deviceInfo.component.html"
+    templateUrl: "./deviceInfo.component.html",
+    standalone: false
 })
 export class DeviceInfoComponent implements OnInit {
 

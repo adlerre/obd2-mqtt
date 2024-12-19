@@ -156,7 +156,8 @@ export function expressionValidator(checkStates: boolean = true, allowedVariable
 
 @Component({
     selector: "ui-obd-states",
-    templateUrl: "./obdStates.component.html"
+    templateUrl: "./obdStates.component.html",
+    standalone: false
 })
 export class OBDStatesComponent implements OnInit {
 

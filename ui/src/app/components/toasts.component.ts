@@ -23,7 +23,6 @@ import { NgbToastModule } from "@ng-bootstrap/ng-bootstrap";
 
 @Component({
     selector: "ui-toast",
-    standalone: true,
     imports: [NgbToastModule, NgTemplateOutlet],
     template: `
         @for (toast of toastService.toasts; track toast) {
@@ -44,7 +43,7 @@ import { NgbToastModule } from "@ng-bootstrap/ng-bootstrap";
     host: {
         class: "toast-container p-3",
         style: "position: fixed; top: 0; right: 0; z-index: 1200"
-    },
+    }
 })
 export class ToastsComponent {
     toastService = inject(ToastService);

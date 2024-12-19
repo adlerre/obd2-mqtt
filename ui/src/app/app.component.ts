@@ -23,7 +23,8 @@ import { DOCUMENT } from "@angular/common";
     selector: "ui-root",
     templateUrl: "./app.component.html",
     styleUrls: ["./app.component.scss"],
-    encapsulation: ViewEncapsulation.None
+    encapsulation: ViewEncapsulation.None,
+    standalone: false
 })
 export class AppComponent implements OnInit {
 
