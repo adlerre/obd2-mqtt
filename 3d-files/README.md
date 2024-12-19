@@ -42,8 +42,8 @@ Used parts:
 
 To screw case use M2 * 12mm/20mm.
 
-* [View model](esp32-a76xx-with-2-sma.html.zip)
-* [FreeCAD file](esp32-a76xx-with-2-sma.FCStd)
-* [Step file](esp32-a76xx-with-2-sma.step)
-* [Complete STL](esp32-a76xx-with-2-sma-complete.stl)
+* [View model](esp32-a76xx-with-battery-2-sma.html.zip)
+* [FreeCAD file](esp32-a76xx-with-battery-2-sma.FCStd)
+* [Step file](esp32-a76xx-with-battery-2-sma.step)
+* [Complete STL](esp32-a76xx-with-battery-2-sma-complete.stl)
 * *.stl files
