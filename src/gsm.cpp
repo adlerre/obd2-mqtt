@@ -24,6 +24,19 @@
 #include "device_simA76xx.h"
 #endif
 
+#if defined(LILYGO_GPS_SHIELD)
+#define BOARD_GPS_TX_PIN                    21
+#define BOARD_GPS_RX_PIN                    22
+
+#ifndef SerialGPS
+#define SerialGPS Serial2
+#endif
+
+#include <TinyGPS++.h>
+
+TinyGPSPlus gps;
+#endif
+
 #ifdef BOARD_BAT_ADC_PIN
 #include <vector>
 #include <algorithm>
@@ -316,7 +329,7 @@ bool GSM::hasGSMLocation() {
 }
 
 bool GSM::hasGPSLocation() {
-#if defined TINY_GSM_MODEM_HAS_GPS
+#if defined(TINY_GSM_MODEM_HAS_GPS) || defined(LILYGO_GPS_SHIELD)
     return true;
 #else
     return false;
@@ -334,6 +347,8 @@ void GSM::enableGPS() {
 
     modem.setGPSBaud(115200);
 #endif
+#elif defined LILYGO_GPS_SHIELD
+    SerialGPS.begin(9600, SERIAL_8N1, BOARD_GPS_RX_PIN, BOARD_GPS_TX_PIN);
 #endif
 }
 
@@ -392,6 +407,19 @@ bool GSM::readGPSLocation(float &gpsLatitude, float &gpsLongitude, float &gpsAcc
         gpsAccuracy = gps_accuracy;
     } else {
         return false;
+    }
+#elif defined(LILYGO_GPS_SHIELD)
+    while (SerialGPS.available()) {
+        int c = SerialGPS.read();
+        if (gps.encode(c)) {
+            if (gps.location.isValid()) {
+                gpsLatitude = gps.location.lat();
+                gpsLongitude = gps.location.lng();
+                gpsAccuracy = 5;
+            } else {
+                return false;
+            }
+        }
     }
 #endif
     return true;
