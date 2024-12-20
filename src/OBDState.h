@@ -32,11 +32,11 @@ protected:
 
     OBDStateType type = READ;
 
-    char name[32] = "\0";
-    char description[128] = "\0";
-    char icon[32] = "\0";
-    char unit[8] = "\0";
-    char deviceClass[32] = "\0";
+    char name[33] = "\0";
+    char description[129] = "\0";
+    char icon[33] = "\0";
+    char unit[9] = "\0";
+    char deviceClass[33] = "\0";
     bool measurement = true;
     bool diagnostic = false;
 
@@ -45,10 +45,10 @@ protected:
     uint8_t numResponses = 0;
     uint8_t numExpectedBytes = 0;
     double scaleFactor = 1;
-    char scaleFactorExpression[256] = "\0";
+    char scaleFactorExpression[257] = "\0";
     float bias = 0;
 
-    char calcExpression[256] = "\0";
+    char calcExpression[257] = "\0";
 
     bool init = false;
     bool checkPidSupport = false;
@@ -169,17 +169,17 @@ protected:
 
     T value;
 
-    char readFunctionName[32] = "\0";
+    char readFunctionName[33] = "\0";
 
     std::function<T()> readFunction = nullptr;
 
     std::function<void(TypedOBDState *)> postProcessFunction = nullptr;
 
-    char valueFormat[16] = "%d";
+    char valueFormat[17] = "%d";
 
-    char valueFormatExpression[256] = "\0";
+    char valueFormatExpression[257] = "\0";
 
-    char valueFormatFunctionName[32] = "\0";
+    char valueFormatFunctionName[33] = "\0";
 
     std::function<char *(T)> valueFormatFunction = nullptr;
 
