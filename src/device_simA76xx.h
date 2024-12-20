@@ -229,3 +229,9 @@
 #else
 #error "Use ArduinoIDE, please open the macro definition corresponding to the board above <utilities.h>"
 #endif
+
+#if defined(LILYGO_NO_GPS)
+#ifdef TINY_GSM_MODEM_HAS_GPS
+#undef TINY_GSM_MODEM_HAS_GPS
+#endif
+#endif
