@@ -44,32 +44,32 @@ namespace ArduinoJson {
 #define SETTINGS_FILE "/settings.json"
 
 struct WiFiSettings {
-    char ssid[64];
-    char password[32];
+    char ssid[65];
+    char password[33];
 };
 
 struct MobileSettings {
     int networkMode;
-    char pin[4];
-    char apn[64];
-    char username[32];
-    char password[32];
+    char pin[5];
+    char apn[65];
+    char username[33];
+    char password[33];
 };
 
 struct OBD2Settings {
-    char name[64];
-    char mac[18];
+    char name[65];
+    char mac[19];
     bool checkPIDSupport;
     char protocol;
 };
 
 struct MQTTSettings {
     int protocol;
-    char hostname[64];
+    char hostname[65];
     unsigned int port;
     bool secure;
-    char username[32];
-    char password[32];
+    char username[33];
+    char password[33];
     unsigned int dataInterval;
     unsigned int diagnosticInterval;
     unsigned int discoveryInterval;
