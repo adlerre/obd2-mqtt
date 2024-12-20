@@ -1,3 +1,10 @@
+# [0.13.0](https://github.com/adlerre/obd2-mqtt/compare/v0.12.0...v0.13.0) (2024-12-20)
+
+
+### Features
+
+* add a7670x with external GPS shield ([#38](https://github.com/adlerre/obd2-mqtt/issues/38)) ([7c8b9ab](https://github.com/adlerre/obd2-mqtt/commit/7c8b9abb7cecb5b97ad9e8d9c565e615bbe1f2f3))
+
 # [0.12.0](https://github.com/adlerre/obd2-mqtt/compare/v0.11.0...v0.12.0) (2024-12-20)
 
 
