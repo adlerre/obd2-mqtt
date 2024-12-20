@@ -22,6 +22,7 @@ export const DEVICES = [
     "SIM800L_IP5306_VERSION_20200811",
     "T-A7670X",
     "T-A7670X-NO-GPS",
+    "T-A7670X-GPS-SHIELD",
     "T-Call-A7670X-V1-0",
     "T-Call-A7670X-V1-1",
     "T-A7608X"
