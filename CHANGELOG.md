@@ -1,19 +1,3 @@
-# [0.12.0](https://github.com/adlerre/obd2-mqtt/compare/v0.11.0...v0.12.0) (2024-12-20)
-
-
-### Bug Fixes
-
-* add default profile for metrical measurement system ([88bdade](https://github.com/adlerre/obd2-mqtt/commit/88bdadebbb1a39c961a1c55d473dedd239b34889))
-* fix lint rule ([8225c35](https://github.com/adlerre/obd2-mqtt/commit/8225c35c94ab16361bb704215bde81af417fbbb6))
-* migrate to Angular 19 ([19e8cf7](https://github.com/adlerre/obd2-mqtt/commit/19e8cf74d32667d6e05b4097acb5110c079612aa))
-
-
-### Features
-
-* add A7670 devices without GPS to build matrix ([ef22554](https://github.com/adlerre/obd2-mqtt/commit/ef225540ad379a8e7f7b5f17c64760321860cf11))
-* add support for A7670 devices without GPS ([e7570a6](https://github.com/adlerre/obd2-mqtt/commit/e7570a6a829e0ab2b04b6a0c6f0e5e85066ebad0))
-* add support for internal battery ([5df6930](https://github.com/adlerre/obd2-mqtt/commit/5df6930439dcee4cf266380ab8e628031be39605))
-
 # [0.11.0](https://github.com/adlerre/obd2-mqtt/compare/v0.10.0...v0.11.0) (2024-12-13)
 
 
