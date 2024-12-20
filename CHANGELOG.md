@@ -1,3 +1,10 @@
+## [0.13.1](https://github.com/adlerre/obd2-mqtt/compare/v0.13.0...v0.13.1) (2024-12-20)
+
+
+### Bug Fixes
+
+* fix string lengths to match with gui ([#40](https://github.com/adlerre/obd2-mqtt/issues/40)) ([68a1e8f](https://github.com/adlerre/obd2-mqtt/commit/68a1e8f623feacc0ee04806218e58271d39c402b))
+
 # [0.13.0](https://github.com/adlerre/obd2-mqtt/compare/v0.12.0...v0.13.0) (2024-12-20)
 
 
