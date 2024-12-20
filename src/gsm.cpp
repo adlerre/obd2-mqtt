@@ -24,6 +24,12 @@
 #include "device_simA76xx.h"
 #endif
 
+#ifdef BOARD_BAT_ADC_PIN
+#include <vector>
+#include <algorithm>
+#include <numeric>
+#endif
+
 int GSM::convertSQToRSSI(int signalQuality) {
     if (signalQuality > 0 && signalQuality <= 32) {
         return (111 - signalQuality * 2 - 2) * -1;
@@ -389,4 +395,31 @@ bool GSM::readGPSLocation(float &gpsLatitude, float &gpsLongitude, float &gpsAcc
     }
 #endif
     return true;
+}
+
+bool GSM::hasBattery() {
+#ifdef BOARD_BAT_ADC_PIN
+    return true;
+#else
+    return false;
+#endif
+}
+
+unsigned int GSM::getBatteryVoltage() {
+#ifdef BOARD_BAT_ADC_PIN
+    std::vector<uint32_t> data;
+    for (int i = 0; i < 30; ++i) {
+        uint32_t val = analogReadMilliVolts(BOARD_BAT_ADC_PIN);
+        data.push_back(val);
+        delay(30);
+    }
+    std::sort(data.begin(), data.end());
+    data.erase(data.begin());
+    data.pop_back();
+    int sum = std::accumulate(data.begin(), data.end(), 0);
+    double average = static_cast<double>(sum) / data.size();
+    return static_cast<unsigned int>(average * 2);
+#else
+    return 0;
+#endif
 }

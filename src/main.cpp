@@ -366,6 +366,12 @@ bool sendDiagnosticDiscoveryData() {
                                                   "diagnostic", "device_tracker", "gps", true);
     }
 
+    if (GSM::hasBattery()) {
+        allSendsSuccessed |= mqtt.sendTopicConfig("", "internalBatteryVoltage", "Internal Battery Voltage", "battery",
+                                                  "mV",
+                                                  "voltage", "", "diagnostic");
+    }
+
     DEBUG_PORT.printf("...%s (%dms)\n", allSendsSuccessed ? "done" : "failed", millis() - start);
 
     return allSendsSuccessed;
@@ -479,6 +485,11 @@ bool sendDiagnosticData() {
     if (GSM::isUseGPRS() && signalQuality != SQ_NOT_KNOWN) {
         sprintf(tmp_char, "%d", GSM::convertSQToRSSI(signalQuality));
         allSendsSuccessed |= mqtt.sendTopicUpdate("signalQuality", std::string(tmp_char));
+    }
+
+    if (GSM::hasBattery()) {
+        sprintf(tmp_char, "%d", gsm.getBatteryVoltage());
+        allSendsSuccessed |= mqtt.sendTopicUpdate("internalBatteryVoltage", std::string(tmp_char));
     }
 
     DEBUG_PORT.printf("...%s (%dms)\n", allSendsSuccessed ? "done" : "failed", millis() - start);

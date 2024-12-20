@@ -167,4 +167,19 @@ public:
      * @param gpsAccuracy the accuracy
      */
     bool readGPSLocation(float &gpsLatitude, float &gpsLongitude, float &gpsAccuracy);
+
+
+    /**
+     * Returns if battery is supported.
+     *
+     * @return <code>true</code> if supported
+     */
+    static bool hasBattery();
+
+    /**
+     * Reads the battery voltage.
+     *
+     * @return the battery voltage in mV
+     */
+    unsigned int getBatteryVoltage();
 };
