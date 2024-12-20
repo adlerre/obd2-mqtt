@@ -246,6 +246,7 @@ jobs:
             SIM800C_AXP192_VERSION_20200609,
             SIM800L_IP5306_VERSION_20200811,
             T-A7670X,
+            T-A7670X-NO-GPS,
             T-Call-A7670X-V1-0,
             T-Call-A7670X-V1-1,
             T-A7608X
