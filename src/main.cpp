@@ -126,7 +126,7 @@ void WiFiAPStationDisconnected(WiFiEvent_t event, WiFiEventInfo_t info) {
 
     if (wifiAPStaConnected == 0) {
         DEBUG_PORT.println("WiFi AP all clients disconnected. Start all other task.");
-        OBD.begin(Settings.getOBD2Name(OBD_ADP_NAME), Settings.getOBD2MAC(), LittleFS, Settings.getOBD2Protocol(),
+        OBD.begin(Settings.getOBD2Name(OBD_ADP_NAME), Settings.getOBD2MAC(), Settings.getOBD2Protocol(),
                   Settings.getOBD2CheckPIDSupport());
         OBD.connect(true);
         wifiAPInUse = false;
@@ -742,6 +742,7 @@ void setup() {
     }
 
     Settings.readSettings(LittleFS);
+    OBD.readStates(LittleFS);
 
     // disable Watch Dog for Core 0 - should fix crashes
     disableCore0WDT();
@@ -754,7 +755,7 @@ void setup() {
     gsm.connectToNetwork();
     gsm.enableGPS();
 
-    OBD.begin(Settings.getOBD2Name(OBD_ADP_NAME), Settings.getOBD2MAC(), LittleFS, Settings.getOBD2Protocol(),
+    OBD.begin(Settings.getOBD2Name(OBD_ADP_NAME), Settings.getOBD2MAC(), Settings.getOBD2Protocol(),
               Settings.getOBD2CheckPIDSupport());
     OBD.onDevicesDiscovered(onBTDevicesDiscovered);
     OBD.connect();

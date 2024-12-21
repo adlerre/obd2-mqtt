@@ -69,7 +69,6 @@
 class OBDClass : public OBDStates {
     BluetoothSerial serialBt;
     ELM327 elm327;
-    FS *fs{};
 
     bool initDone = false;
     bool stopConnect = false;
@@ -112,9 +111,7 @@ public:
 
     bool writeStates(FS &fs);
 
-    void initStates();
-
-    void begin(const String &devName, const String &devMac, FS &fs, char protocol = AUTOMATIC, bool checkPidSupport = false);
+    void begin(const String &devName, const String &devMac, char protocol = AUTOMATIC, bool checkPidSupport = false);
 
     void end();
 
