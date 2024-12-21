@@ -1,3 +1,10 @@
+## [0.13.2](https://github.com/adlerre/obd2-mqtt/compare/v0.13.1...v0.13.2) (2024-12-21)
+
+
+### Bug Fixes
+
+* read OBD states earlier to prevent empty GUI ([#41](https://github.com/adlerre/obd2-mqtt/issues/41)) ([0658e23](https://github.com/adlerre/obd2-mqtt/commit/0658e23840642998042169154b6f65d71d9229fe))
+
 ## [0.13.1](https://github.com/adlerre/obd2-mqtt/compare/v0.13.0...v0.13.1) (2024-12-20)
 
 
