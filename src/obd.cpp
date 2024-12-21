@@ -387,11 +387,10 @@ BTScanResults *OBDClass::discoverBtDevices() {
     return nullptr;
 }
 
-void OBDClass::begin(const String &devName, const String &devMac, FS &fs, const char protocol,
+void OBDClass::begin(const String &devName, const String &devMac, const char protocol,
                      const bool checkPidSupport) {
     this->devName = devName;
     this->devMac = devMac;
-    this->fs = &fs;
     this->protocol = protocol;
     this->checkPidSupport = checkPidSupport;
     stopConnect = false;
@@ -505,10 +504,7 @@ connect:
     Serial.println("Connected to ELM327");
 
     if (!reconnect) {
-        if (fs != nullptr) {
-            readStates(*fs);
-            setCheckPidSupport(this->checkPidSupport);
-        }
+        setCheckPidSupport(this->checkPidSupport);
 
         Serial.println("Try to get VIN...");
         char vin[18];
