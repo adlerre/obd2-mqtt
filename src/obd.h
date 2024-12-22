@@ -79,7 +79,6 @@ class OBDClass : public OBDStates {
     bool checkPidSupport = false;
 
     std::string connectedBTAddress;
-    std::string VIN;
 
     std::function<void(BTScanResults *scanResult)> devDiscoveredCallback = nullptr;
 
@@ -120,8 +119,6 @@ public:
     void loop();
 
     void onDevicesDiscovered(const std::function<void(BTScanResults *scanResult)> &callable);
-
-    std::string vin() const;
 
     std::string getConnectedBTAddress() const;
 };

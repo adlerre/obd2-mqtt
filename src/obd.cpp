@@ -505,26 +505,6 @@ connect:
 
     if (!reconnect) {
         setCheckPidSupport(this->checkPidSupport);
-
-        Serial.println("Try to get VIN...");
-        char vin[18];
-        int8_t status;
-        int retryCount = 0;
-        while ((status = elm327.get_vin_blocking(vin)) != ELM_SUCCESS && retryCount < 3) {
-            Serial.println("...failed to obtain VIN...");
-            delay(500);
-            retryCount++;
-        }
-
-        if (status == ELM_SUCCESS) {
-            VIN = std::string(vin);
-            if (!VIN.empty()) {
-                Serial.printf("...VIN %s obtained.\n", VIN.c_str());
-            } else {
-                Serial.println("...VIN is empty.");
-            }
-        }
-
         initDone = true;
     }
 }
@@ -543,10 +523,6 @@ void OBDClass::onDevicesDiscovered(const std::function<void(BTScanResults *scanR
 
 std::string OBDClass::getConnectedBTAddress() const {
     return connectedBTAddress;
-}
-
-std::string OBDClass::vin() const {
-    return VIN;
 }
 
 OBDClass OBD;

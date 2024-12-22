@@ -400,11 +400,6 @@ bool sendStaticDiagnosticDiscoveryData() {
         allSendsSuccessed = true;
     }
 
-    if (!OBD.vin().empty()) {
-        allSendsSuccessed |= mqtt.sendTopicConfig("", "VIN", "Vehicle Identification Number", "car", "", "", "", "",
-                                                  "diagnostic");
-    }
-
     DEBUG_PORT.printf("...%s (%dms)\n", allSendsSuccessed ? "done" : "failed", millis() - start);
 
     return allSendsSuccessed;
@@ -536,11 +531,6 @@ bool sendStaticDiagnosticData() {
         }
     } else {
         allSendsSuccessed = true;
-    }
-
-    if (!OBD.vin().empty()) {
-        sprintf(tmp_char, "%s", OBD.vin().c_str());
-        allSendsSuccessed |= mqtt.sendTopicUpdate("VIN", std::string(tmp_char));
     }
 
     DEBUG_PORT.printf("...%s (%dms)\n", allSendsSuccessed ? "done" : "failed", millis() - start);
@@ -762,7 +752,7 @@ void setup() {
 
     if (!Settings.getMQTTHostname().isEmpty()) {
         mqtt.setClient(gsm.getClient(Settings.getMQTTSecure()));
-        mqtt.setIdentifier(!stripChars(OBD.vin()).empty() ? OBD.vin() : OBD.getConnectedBTAddress());
+        mqtt.setIdentifier(OBD.getConnectedBTAddress());
 
         xTaskCreatePinnedToCore(outputTask, "OutputTask", 9216, nullptr, 10, &outputTaskHdl, 0);
     }
