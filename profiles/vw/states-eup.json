@@ -12,7 +12,6 @@
     "deviceClass": "voltage",
     "measurement": true,
     "diagnostic": false,
-    "expr": null,
     "readFunc": "batteryVoltage",
     "value": {}
   },
@@ -29,13 +28,35 @@
     "deviceClass": "battery",
     "measurement": true,
     "diagnostic": false,
-    "expr": null,
     "pid": {
       "service": 34,
       "pid": 652,
       "numResponses": 1,
       "numExpectedBytes": 1,
       "scaleFactor": "100.0 / 255.0",
+      "bias": 0
+    },
+    "value": {}
+  },
+  {
+    "type": 0,
+    "valueType": "int",
+    "enabled": true,
+    "visible": true,
+    "interval": 100,
+    "name": "speed",
+    "description": "Kilometer per Hour",
+    "icon": "speedometer",
+    "unit": "km/h",
+    "deviceClass": "speed",
+    "measurement": true,
+    "diagnostic": false,
+    "pid": {
+      "service": 34,
+      "pid": 62477,
+      "numResponses": 1,
+      "numExpectedBytes": 1,
+      "scaleFactor": "1",
       "bias": 0
     },
     "value": {}
