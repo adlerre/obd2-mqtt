@@ -1,3 +1,10 @@
+# [0.14.0](https://github.com/adlerre/obd2-mqtt/compare/v0.13.2...v0.14.0) (2024-12-22)
+
+
+### Features
+
+* remove unnecessary reading of VIN ([2c2dc56](https://github.com/adlerre/obd2-mqtt/commit/2c2dc564bd4271f809a3fa5fbd9cc15fc46df7e6))
+
 ## [0.13.2](https://github.com/adlerre/obd2-mqtt/compare/v0.13.1...v0.13.2) (2024-12-21)
 
 
