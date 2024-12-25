@@ -4,7 +4,7 @@
 
 * an installed Home Assistant with Mosquitto Broker
 * (optional) an installed PlatformIO
-* (optional) an installed NodeJS and NPM
+* (optional) an installed Node.js and NPM
 * a ESP32 with [SIM800L](https://de.aliexpress.com/item/33045221960.html)
   or [A7670](https://de.aliexpress.com/item/1005006477044118.html)
     * (optional) [RP-SMA to IPX cable](https://www.amazon.de/dp/B0B9RXDLNN)
@@ -12,10 +12,21 @@
     * (optional) a 3D Printer for the [case](3d-files)
 * a [ELM327 OBD Bluetooth Adapter](https://www.amazon.de/gp/product/B0BG4W6MLD) or any other
     * if you want to use [this](https://de.aliexpress.com/item/1005005775562398.html) cheap adapter, you should set the
-      right connection protocol or be patience
-* a SIM Card - i use one
+      right connection protocol or have patience
+* a SIM Card - I use one
   from [fraenk](https://fraenk.page.link/?link=https%3A%2F%2Ffraenk.de%2Fdeeplink%2Fmgm%3FfriendCode%3DRENA45&apn=de.congstar.fraenk&amv=1040000&imv=1.4&isi=1493980266&ibi=de.congstar.fraenk&ius=fraenk&ofl=https%3A%2F%2Ffraenk.de)
 * and the most important thing, a car
+
+## Supported Devices
+
+| Product                                                                         | Environment                                                          | Case                                                                                                                                                                             |
+|---------------------------------------------------------------------------------|----------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [T-Call SIM800L](https://lilygo.cc/products/t-call-v1-4?variant=42868250869941) | SIM800L_IP5306_VERSION_20190610 <br/>SIM800L_IP5306_VERSION_20200811 | [Case](3d-files/esp32-sim800%20v2-complete.stl)                                                                                                                                  |
+| T-Call SIM800C                                                                  | SIM800L_AXP192_VERSION_20200327<br/>SIM800C_AXP192_VERSION_20200609  | [Case](3d-files/esp32-sim800%20v2-complete.stl)                                                                                                                                  |
+| [T-Call A7670](https://lilygo.cc/products/t-call-v1-4?variant=43440642719925)   | T-Call-A7670X-V1-0<br/>T-Call-A7670X-V1-1                            | [Case with internal GPS/LTE](3d-files/esp32-a76xx-gps-complete.stl)<br/>[Case with external GPS/LTE](3d-files/esp32-a76xx-with-2-sma-complete.stl)                               |
+| [T-A7670E/G/SA R2](https://lilygo.cc/products/t-sim-a7670e)                     | T-A7670X                                                             | [Case with internal GPS/LTE](3d-files/esp32-a76xx-with-battery-internal-gps-complete.stl)<br/>[Case with external GPS/LTE](3d-files/esp32-a76xx-with-battery-2-sma-complete.stl) |
+| [T-A7670E/G/SA R2 without GPS](https://lilygo.cc/products/t-sim-a7670e)         | T-A7670X-NO-GPS                                                      | [Case with internalLTE](3d-files/esp32-a76xx-with-battery-internal-gps-complete.stl)                                                                                             |
+| [T-A7670G with GPS Shield](https://lilygo.cc/products/t-sim-a7670e)             | T-A7670X-GPS-SHIELD                                                  | [Case with internal GPS/LTE](3d-files/esp32-a76xx-with-battery-internal-gps-complete.stl)<br/>[Case with external GPS/LTE](3d-files/esp32-a76xx-with-battery-2-sma-complete.stl) |
 
 ## Getting started
 
@@ -26,7 +37,7 @@ the [Web Installer](https://adlerre.github.io/obd2-mqtt/).
 
 ### Update Settings or Firmware & Filesystem
 
-* connect to WiFi Access Point starts with name OBD2-MQTT- followed from device MAC
+* connect to Wi-Fi Access Point starts with name OBD2-MQTT- followed from device MAC
 * open Browser and navigate to http://192.168.4.1
 * change settings to your needs and reboot afterward __OR__ update to new firmware and filesystem
 
