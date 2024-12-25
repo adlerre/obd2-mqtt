@@ -47,3 +47,15 @@ To screw case use M2 * 12mm/20mm.
 * [Step file](esp32-a76xx-with-battery-2-sma.step)
 * [Complete STL](esp32-a76xx-with-battery-2-sma-complete.stl)
 * *.stl files
+
+## For A7670 boards with battery and internal GPS/4G antenna
+
+If you have a case without Micro USB, make the SMA layer visible and export the part.
+
+To screw case use M2 * 12mm/20mm.
+
+* [View model](esp32-a76xx-with-battery-internal-gps.html.zip)
+* [FreeCAD file](esp32-a76xx-with-battery-internal-gps.FCStd)
+* [Step file](esp32-a76xx-with-battery-internal-gps.step)
+* [Complete STL](esp32-a76xx-with-battery-internal-gps-complete.stl)
+* *.stl files
