@@ -1,3 +1,17 @@
+# [0.15.0](https://github.com/adlerre/obd2-mqtt/compare/v0.14.0...v0.15.0) (2025-01-03)
+
+
+### Bug Fixes
+
+* bump lib versions ([e6dcbc5](https://github.com/adlerre/obd2-mqtt/commit/e6dcbc574b1b0a005d5782dd8a117064de9bd228))
+* bump versions ([4f273bc](https://github.com/adlerre/obd2-mqtt/commit/4f273bc4d69f5bb694a449065d6edd30fed752d9))
+* reduce firmware binary size ([70d26a0](https://github.com/adlerre/obd2-mqtt/commit/70d26a0c27cb21b2170b80a51483b110d5d4f3e7))
+
+
+### Features
+
+* auto/low battery sleep ([#42](https://github.com/adlerre/obd2-mqtt/issues/42)) ([321bd41](https://github.com/adlerre/obd2-mqtt/commit/321bd4171ce3c285428fdf04076bcae98c31707d))
+
 # [0.14.0](https://github.com/adlerre/obd2-mqtt/compare/v0.13.2...v0.14.0) (2024-12-22)
 
 
