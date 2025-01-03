@@ -103,15 +103,9 @@ size_t getESPHeapSize() {
     return heap_caps_get_free_size(MALLOC_CAP_8BIT);
 }
 
-void lightSleep(uint32_t ms) {
-    esp_sleep_enable_timer_wakeup(ms * 1000);
-    // esp_sleep_pd_config(ESP_PD_DOMAIN_RTC_PERIPH, ESP_PD_OPTION_ON);
-    esp_light_sleep_start();
-}
-
 void deepSleep(uint32_t ms) {
     esp_sleep_enable_timer_wakeup(ms * 1000);
-    // esp_sleep_pd_config(ESP_PD_DOMAIN_RTC_PERIPH, ESP_PD_OPTION_ON);
+    esp_sleep_pd_config(ESP_PD_DOMAIN_RTC_PERIPH, ESP_PD_OPTION_ON);
     esp_deep_sleep_start();
 }
 
