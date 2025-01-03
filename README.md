@@ -88,6 +88,7 @@ Configure Wi-Fi, Mobile settings according to your needs. Set the detected ELM32
 protocol for faster initialization.<br />
 Set up the MQTT configuration with your data. __If you want to use TLS/SSL on a SIM800 device, you need to know that
 only SSL 2/3 and TLS 1.0 are supported.__
+For devices with a battery, you can set the automatic sleep timeout (no data/ignition off) and the sleep duration.
 
 ## Configure Sensors
 

@@ -33,11 +33,16 @@
 #define BUILD_GIT_COMMIT_HASH ""
 #endif
 
+#define MIN_VOLTAGE_LEVEL       3300
+#define LOW_VOLTAGE_LEVEL       3600            // Sleep shutdown voltage
+
 #include <LittleFS.h>
 
 #define FORMAT_LITTLEFS_IF_FAILED true
 
 #define DISCOVERED_DEVICES_FILE "/discovered_devices.json"
+
+#include <numeric>
 
 #include "settings.h"
 #include "helper.h"
@@ -67,6 +72,9 @@ std::atomic<unsigned int> wifiAPStaConnected{0};
 
 std::atomic<unsigned long> startTime{0};
 
+std::vector<uint32_t> batteryVoltages;
+std::atomic<unsigned long> batteryTime{0};
+
 std::atomic_bool allDiscoverySend{false};
 std::atomic_bool allDiagnosticDiscoverySend{false};
 std::atomic_bool allStaticDiagnosticDiscoverySend{false};
@@ -93,6 +101,18 @@ TaskHandle_t stateTaskHdl;
 
 size_t getESPHeapSize() {
     return heap_caps_get_free_size(MALLOC_CAP_8BIT);
+}
+
+void lightSleep(uint32_t ms) {
+    esp_sleep_enable_timer_wakeup(ms * 1000);
+    // esp_sleep_pd_config(ESP_PD_DOMAIN_RTC_PERIPH, ESP_PD_OPTION_ON);
+    esp_light_sleep_start();
+}
+
+void deepSleep(uint32_t ms) {
+    esp_sleep_enable_timer_wakeup(ms * 1000);
+    // esp_sleep_pd_config(ESP_PD_DOMAIN_RTC_PERIPH, ESP_PD_OPTION_ON);
+    esp_deep_sleep_start();
 }
 
 void WiFiAPStart(WiFiEvent_t event, WiFiEventInfo_t info) {
@@ -229,6 +249,17 @@ void startHttpServer() {
         }
     );
 
+    server.on("/api/hasBattery", HTTP_GET, [](AsyncWebServerRequest *request) {
+        std::string payload;
+        JsonDocument doc;
+
+        doc["hasBattery"] = GSM::hasBattery();
+
+        serializeJson(doc, payload);
+
+        request->send(200, "application/json", payload.c_str());
+    });
+
     server.on("/api/wifi", HTTP_GET, [](AsyncWebServerRequest *request) {
         std::string payload;
         JsonDocument wifiInfo;
@@ -262,10 +293,9 @@ void startHttpServer() {
     });
 
     server.on("/api/discoveredDevices", HTTP_GET, [](AsyncWebServerRequest *request) {
-        JsonDocument doc;
-
         File file = LittleFS.open(DISCOVERED_DEVICES_FILE, FILE_READ);
         if (file && !file.isDirectory()) {
+            JsonDocument doc;
             if (!deserializeJson(doc, file)) {
                 std::string payload;
                 serializeJson(doc, payload);
@@ -483,7 +513,7 @@ bool sendDiagnosticData() {
     }
 
     if (GSM::hasBattery()) {
-        sprintf(tmp_char, "%d", gsm.getBatteryVoltage());
+        sprintf(tmp_char, "%d", GSM::getBatteryVoltage());
         allSendsSuccessed |= mqtt.sendTopicUpdate("internalBatteryVoltage", std::string(tmp_char));
     }
 
@@ -496,7 +526,6 @@ bool sendStaticDiagnosticData() {
     const unsigned long start = millis();
     bool allSendsSuccessed = false;
 
-    char tmp_char[50];
     DEBUG_PORT.print("Send static diagnostic data...");
 
     std::vector<OBDState *> states{};
@@ -506,6 +535,7 @@ bool sendStaticDiagnosticData() {
     }, states);
     if (!states.empty()) {
         for (auto &state: states) {
+            char tmp_char[50];
             if (state->getLastUpdate() + state->getUpdateInterval() > millis()) {
                 continue;
             }
@@ -655,6 +685,41 @@ void mqttSendData() {
 [[noreturn]] void outputTask(void *parameters) {
     unsigned long checkInterval = 0;
     for (;;) {
+        if (GSM::hasBattery() && GSM::isBatteryUsed()) {
+            const unsigned int batVoltage = GSM::getBatteryVoltage();
+            if (batVoltage > MIN_VOLTAGE_LEVEL) {
+                int sum = std::accumulate(batteryVoltages.begin(), batteryVoltages.end(), 0);
+                double avgBat = static_cast<double>(sum) / batteryVoltages.size();
+                if (millis() > batteryTime + 5000) {
+                    if (batteryVoltages.size() > 10) {
+                        batteryVoltages.erase(batteryVoltages.begin());
+                    }
+                    batteryVoltages.push_back(batVoltage);
+                    batteryTime = millis();
+                }
+                const bool drain = batteryVoltages.size() > 10 && batVoltage < (avgBat - 10);
+
+                const double avgLU = OBD.avgLastUpdate([](const OBDState *state) {
+                    return state->isEnabled() &&
+                           state->getType() == READ && state->getUpdateInterval() > 0 &&
+                           state->getUpdateInterval() <= 5 * 60 * 1000;
+                });
+
+                if (batVoltage < LOW_VOLTAGE_LEVEL || (drain && avgLU > Settings.getSleepTimeout() * 1000)) {
+                    if (batVoltage < LOW_VOLTAGE_LEVEL) {
+                        DEBUG_PORT.println("Battery has low voltage.");
+                    }
+                    DEBUG_PORT.println("Take a nap...");
+
+                    WiFi.disconnect(true);
+                    OBD.end();
+                    gsm.powerOff();
+
+                    deepSleep(Settings.getSleepDuration() * 1000);
+                }
+            }
+        }
+
         if (!wifiAPInUse) {
             if (!gsm.checkNetwork()) {
                 continue;

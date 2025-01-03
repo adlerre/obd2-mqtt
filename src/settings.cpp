@@ -22,6 +22,9 @@
 SettingsClass::SettingsClass() = default;
 
 void SettingsClass::readJson(JsonDocument &doc) {
+    general.sleepTimeout = doc["general"]["sleepTimeout"] | 5 * 60;
+    general.sleepDuration = doc["general"]["sleepTime"] | 60 * 60;
+
     strlcpy(wifi.ssid, doc["wifi"]["ssid"] | "", sizeof(wifi.ssid));
     strlcpy(wifi.password, doc["wifi"]["password"] | "", sizeof(wifi.password));
 
@@ -49,6 +52,9 @@ void SettingsClass::readJson(JsonDocument &doc) {
 }
 
 void SettingsClass::writeJson(JsonDocument &doc) {
+    doc["general"]["sleepTimeout"] = general.sleepTimeout;
+    doc["general"]["sleepTime"] = general.sleepDuration;
+
     doc["wifi"]["ssid"] = wifi.ssid;
     doc["wifi"]["password"] = wifi.password;
 
@@ -128,6 +134,22 @@ bool SettingsClass::parseJson(std::string json) {
     }
 
     return success;
+}
+
+int SettingsClass::getSleepTimeout() const {
+    return general.sleepTimeout;
+}
+
+void SettingsClass::setSleepTimeout(const int timeout) {
+    general.sleepTimeout = timeout;
+}
+
+int SettingsClass::getSleepDuration() const {
+    return general.sleepDuration;
+}
+
+void SettingsClass::setSleepDuration(const int time) {
+    general.sleepDuration = time;
 }
 
 String SettingsClass::getWiFiAPSSID(const String &alternate) const {

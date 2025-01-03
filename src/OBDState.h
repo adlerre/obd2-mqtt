@@ -63,6 +63,8 @@ protected:
 
     long lastUpdate = 0;
 
+    int8_t updateStatus = 0;
+
     void setPreviousUpdate(long timestamp);
 
     void setLastUpdate(long timestamp);
@@ -364,7 +366,7 @@ public:
 
     OBDStateInt *withUpdateInterval(long interval) override;
 
-    OBDStateInt *withReadFuncName(const char *funcName);
+    OBDStateInt *withReadFuncName(const char *funcName) override;
 
     OBDStateInt *withReadFunc(const std::function<int()> &func) override;
 

@@ -69,7 +69,11 @@ export class SettingsComponent implements OnInit {
 
     discoveredDevices: DiscoveredDevices | undefined;
 
+    hasBattery: boolean | undefined;
+
     form: FormGroup;
+
+    general: FormGroup;
 
     wifi: FormGroup;
 
@@ -92,6 +96,10 @@ export class SettingsComponent implements OnInit {
     protected readonly locationIntervals = locationIntervals;
 
     constructor(private $api: ApiService, private toast: ToastService) {
+        this.general = new FormGroup({
+            sleepTimeout: new FormControl<number>(5 * 60, Validators.min(60)),
+            sleepDuration: new FormControl<number>(60 * 60, Validators.min(300)),
+        });
         this.wifi = new FormGroup({
             ssid: new FormControl("", Validators.maxLength(64)),
             password: new FormControl("", [Validators.minLength(8), Validators.maxLength(32)])
@@ -129,6 +137,7 @@ export class SettingsComponent implements OnInit {
         });
 
         this.form = new FormGroup({
+            general: this.general,
             wifi: this.wifi,
             mobile: this.mobile,
             obd2: this.obd2,
@@ -138,6 +147,7 @@ export class SettingsComponent implements OnInit {
 
     ngOnInit(): void {
         this.$api.configuration().subscribe((configuration: Configuration) => this.configuration = configuration);
+        this.$api.hasBattery().subscribe(res => this.hasBattery = res.hasBattery);
         this.$api.settings().subscribe(settings => this.form.patchValue(settings));
         this.$api.discoveredDevices()
             .pipe(catchError(() => of({} as DiscoveredDevices)))

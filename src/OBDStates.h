@@ -83,5 +83,7 @@ public:
 
     void listStates() const;
 
+    double avgLastUpdate(const std::function<bool(OBDState *)> &pred);
+
     OBDState *nextState();
 };

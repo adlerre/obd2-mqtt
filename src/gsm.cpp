@@ -38,8 +38,6 @@ TinyGPSPlus gps;
 #endif
 
 #ifdef BOARD_BAT_ADC_PIN
-#include <vector>
-#include <algorithm>
 #include <numeric>
 #endif
 
@@ -248,6 +246,10 @@ restart:
     }
 }
 
+void GSM::powerOff() {
+    modem.poweroff();
+}
+
 bool GSM::checkNetwork(bool resetConnection) {
     // Make sure we're still registered on the network
     if (!modem.isNetworkConnected() || resetConnection) {
@@ -433,20 +435,18 @@ bool GSM::hasBattery() {
 #endif
 }
 
+bool GSM::isBatteryUsed() {
+#ifdef BOARD_BAT_ADC_PIN
+    pinMode(BOARD_BAT_ADC_PIN, INPUT);
+    return digitalRead(BOARD_BAT_ADC_PIN) == HIGH;
+#else
+    return true;
+#endif
+}
+
 unsigned int GSM::getBatteryVoltage() {
 #ifdef BOARD_BAT_ADC_PIN
-    std::vector<uint32_t> data;
-    for (int i = 0; i < 30; ++i) {
-        uint32_t val = analogReadMilliVolts(BOARD_BAT_ADC_PIN);
-        data.push_back(val);
-        delay(30);
-    }
-    std::sort(data.begin(), data.end());
-    data.erase(data.begin());
-    data.pop_back();
-    int sum = std::accumulate(data.begin(), data.end(), 0);
-    double average = static_cast<double>(sum) / data.size();
-    return static_cast<unsigned int>(average * 2);
+    return analogReadMilliVolts(BOARD_BAT_ADC_PIN) * 2;
 #else
     return 0;
 #endif

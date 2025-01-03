@@ -43,6 +43,11 @@ namespace ArduinoJson {
 
 #define SETTINGS_FILE "/settings.json"
 
+struct GeneralSettings {
+    int sleepTimeout;
+    int sleepDuration;
+};
+
 struct WiFiSettings {
     char ssid[65];
     char password[33];
@@ -77,6 +82,7 @@ struct MQTTSettings {
 };
 
 class SettingsClass {
+    GeneralSettings general{};
     WiFiSettings wifi{};
     MobileSettings mobile{};
     OBD2Settings obd2{};
@@ -96,6 +102,14 @@ public:
     std::string buildJson();
 
     bool parseJson(std::string json);
+
+    int getSleepTimeout() const;
+
+    void setSleepTimeout(int timeout);
+
+    int getSleepDuration() const;
+
+    void setSleepDuration(int time);
 
     String getWiFiAPSSID(const String &alternate = String()) const;
 

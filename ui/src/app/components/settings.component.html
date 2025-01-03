@@ -21,6 +21,33 @@
 
 <div id="settings">
     <form novalidate (ngSubmit)="onSubmit(form)" [formGroup]="form">
+        @if (hasBattery) {
+            <fieldset [formGroup]="general">
+                <legend>General</legend>
+                <div class="row mb-2">
+                    <label for="sleepTimeout" class="col-sm-2 control-label">Auto sleep timeout (sec)</label>
+                    <div class="col-sm-10">
+                        <input formControlName="sleepTimeout" type="number" id="sleepTimeout" autocapitalize="off"
+                               autocorrect="off"
+                               placeholder="Auto shutdown timeout"
+                               class="form-control"
+                               [ngClass]="{'is-invalid': general.controls.sleepTimeout.errors}"
+                        >
+                    </div>
+                </div>
+                <div class="row mb-2">
+                    <label for="sleepDuration" class="col-sm-2 control-label">Sleep duration (sec)</label>
+                    <div class="col-sm-10">
+                        <input formControlName="sleepDuration" type="number" id="sleepDuration" autocapitalize="off"
+                               autocorrect="off"
+                               placeholder="Sleep duration"
+                               class="form-control"
+                               [ngClass]="{'is-invalid': general.controls.sleepDuration.errors}"
+                        >
+                    </div>
+                </div>
+            </fieldset>
+        }
         <fieldset [formGroup]="wifi">
             <legend>WiFi Access Point</legend>
             <div class="row mb-2">
