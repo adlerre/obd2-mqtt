@@ -104,6 +104,11 @@ public:
     void connectToNetwork();
 
     /**
+     * Power off modem.
+     */
+    void powerOff();
+
+    /**
      * Checks if network is connected else wise a reconnect is done.
      *
      * @return <code>true</code> if network is active or <code>false</code> on a failure
@@ -176,10 +181,12 @@ public:
      */
     static bool hasBattery();
 
+    static bool isBatteryUsed();
+
     /**
      * Reads the battery voltage.
      *
      * @return the battery voltage in mV
      */
-    unsigned int getBatteryVoltage();
+    static unsigned int getBatteryVoltage();
 };

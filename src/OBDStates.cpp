@@ -18,6 +18,7 @@
 #include "OBDStates.h"
 #include <Arduino.h>
 #include <algorithm>
+#include <numeric>
 
 OBDStates::OBDStates(ELM327 *elm327) {
     this->elm327 = elm327;
@@ -163,6 +164,18 @@ void OBDStates::listStates() const {
     for (auto &state: states) {
         Serial.printf("%s: %d %d\n", state->getName(), state->getType(), state->isEnabled());
     }
+}
+
+double OBDStates::avgLastUpdate(const std::function<bool(OBDState *)> &pred) {
+    std::vector<OBDState *> readStates{};
+    getStates(pred, readStates);
+
+    std::vector<uint32_t> data;
+    for (auto &state: readStates) {
+        data.push_back(millis() - state->getLastUpdate());
+    }
+    int sum = std::accumulate(data.begin(), data.end(), 0);
+    return static_cast<double>(sum) / data.size();
 }
 
 OBDState *OBDStates::nextState() {

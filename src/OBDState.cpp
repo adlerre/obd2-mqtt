@@ -368,13 +368,17 @@ void TypedOBDState<T>::readValue() {
 
                 this->lastUpdate = millis();
                 this->processing = false;
+                this->updateStatus = elm327->nb_rx_state;
             } else if (elm327->nb_rx_state == ELM_NO_DATA) {
                 this->value = 0;
-                this->lastUpdate = millis();
+                if (this->updateStatus != ELM_NO_DATA) {
+                    this->lastUpdate = millis();
+                }
                 this->processing = false;
+                this->updateStatus = elm327->nb_rx_state;
             } else if (elm327->nb_rx_state != ELM_GETTING_MSG) {
-                this->lastUpdate = millis();
                 this->processing = false;
+                this->updateStatus = elm327->nb_rx_state;
             }
         }
     }

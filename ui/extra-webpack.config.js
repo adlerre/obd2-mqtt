@@ -81,6 +81,13 @@ module.exports = {
                 response.send();
             });
 
+            devServer.app.get("/api/hasBattery", (_, response) => {
+                const hasBattery = {
+                    hasBattery: true
+                };
+                response.json(hasBattery);
+            });
+
             devServer.app.get("/api/discoveredDevices", (_, response) => {
                 response.json({"device": [{"name": "OBDII", "mac": "11:22:de:ad:be:ef"}]});
             });
