@@ -1,3 +1,15 @@
+# [0.16.0](https://github.com/adlerre/obd2-mqtt/compare/v0.15.0...v0.16.0) (2025-01-05)
+
+
+### Bug Fixes
+
+* prevent accidentally sleep on AP usage ([8a73c5e](https://github.com/adlerre/obd2-mqtt/commit/8a73c5e5e9d3545ec26687697bdd6bbd05030bbb))
+
+
+### Features
+
+* enter sleep mode on multiple OBD connection errors ([30ab171](https://github.com/adlerre/obd2-mqtt/commit/30ab1717e368c023d409bd428ad7036ef94b1fed))
+
 # [0.15.0](https://github.com/adlerre/obd2-mqtt/compare/v0.14.0...v0.15.0) (2025-01-03)
 
 
