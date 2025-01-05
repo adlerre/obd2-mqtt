@@ -679,42 +679,42 @@ void mqttSendData() {
 [[noreturn]] void outputTask(void *parameters) {
     unsigned long checkInterval = 0;
     for (;;) {
-        if (GSM::hasBattery() && GSM::isBatteryUsed()) {
-            const unsigned int batVoltage = GSM::getBatteryVoltage();
-            if (batVoltage > MIN_VOLTAGE_LEVEL) {
-                int sum = std::accumulate(batteryVoltages.begin(), batteryVoltages.end(), 0);
-                double avgBat = static_cast<double>(sum) / batteryVoltages.size();
-                if (millis() > batteryTime + 5000) {
-                    if (batteryVoltages.size() > 10) {
-                        batteryVoltages.erase(batteryVoltages.begin());
+        if (!wifiAPInUse) {
+            if (GSM::hasBattery() && GSM::isBatteryUsed()) {
+                const unsigned int batVoltage = GSM::getBatteryVoltage();
+                if (batVoltage > MIN_VOLTAGE_LEVEL) {
+                    const int sum = std::accumulate(batteryVoltages.begin(), batteryVoltages.end(), 0);
+                    const double avgBat = static_cast<double>(sum) / batteryVoltages.size();
+                    if (millis() > batteryTime + 5000) {
+                        if (batteryVoltages.size() > 10) {
+                            batteryVoltages.erase(batteryVoltages.begin());
+                        }
+                        batteryVoltages.push_back(batVoltage);
+                        batteryTime = millis();
                     }
-                    batteryVoltages.push_back(batVoltage);
-                    batteryTime = millis();
-                }
-                const bool drain = batteryVoltages.size() > 10 && batVoltage < (avgBat - 10);
+                    const bool drain = batteryVoltages.size() > 10 && batVoltage < (avgBat - 10);
 
-                const double avgLU = OBD.avgLastUpdate([](const OBDState *state) {
-                    return state->isEnabled() &&
-                           state->getType() == READ && state->getUpdateInterval() > 0 &&
-                           state->getUpdateInterval() <= 5 * 60 * 1000;
-                });
+                    const double avgLU = OBD.avgLastUpdate([](const OBDState *state) {
+                        return state->isEnabled() &&
+                               state->getType() == READ && state->getUpdateInterval() > 0 &&
+                               state->getUpdateInterval() <= 5 * 60 * 1000;
+                    });
 
-                if (batVoltage < LOW_VOLTAGE_LEVEL || (drain && avgLU > Settings.getSleepTimeout() * 1000)) {
-                    if (batVoltage < LOW_VOLTAGE_LEVEL) {
-                        DEBUG_PORT.println("Battery has low voltage.");
+                    if (batVoltage < LOW_VOLTAGE_LEVEL || (drain && avgLU > Settings.getSleepTimeout() * 1000)) {
+                        if (batVoltage < LOW_VOLTAGE_LEVEL) {
+                            DEBUG_PORT.println("Battery has low voltage.");
+                        }
+                        DEBUG_PORT.println("Take a nap...");
+
+                        WiFi.disconnect(true);
+                        OBD.end();
+                        gsm.powerOff();
+
+                        deepSleep(Settings.getSleepDuration() * 1000);
                     }
-                    DEBUG_PORT.println("Take a nap...");
-
-                    WiFi.disconnect(true);
-                    OBD.end();
-                    gsm.powerOff();
-
-                    deepSleep(Settings.getSleepDuration() * 1000);
                 }
             }
-        }
 
-        if (!wifiAPInUse) {
             if (!gsm.checkNetwork()) {
                 continue;
             }
