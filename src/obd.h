@@ -80,6 +80,10 @@ class OBDClass : public OBDStates {
 
     std::string connectedBTAddress;
 
+    std::function<void()> connectedCallback = nullptr;
+
+    std::function<void()> connectErrorCallback = nullptr;
+
     std::function<void(BTScanResults *scanResult)> devDiscoveredCallback = nullptr;
 
     BTScanResults *discoverBtDevices();
@@ -117,6 +121,10 @@ public:
     void connect(bool reconnect = false);
 
     void loop();
+
+    void onConnected(const std::function<void()> &callback);
+
+    void onConnectError(const std::function<void()> &callback);
 
     void onDevicesDiscovered(const std::function<void(BTScanResults *scanResult)> &callable);
 

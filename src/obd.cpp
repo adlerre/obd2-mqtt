@@ -421,6 +421,9 @@ connect:
 
         if (btDeviceList == nullptr) {
             Serial.println("Didn't find any devices");
+            if (connectErrorCallback) {
+                connectErrorCallback();
+            }
         } else {
             BTAddress addr;
             int channel = 0;
@@ -498,10 +501,17 @@ connect:
         delay(BT_DISCOVER_TIME);
         Serial.println("Restarting OBD connect.");
         serialBt.end();
+        if (connectErrorCallback) {
+            connectErrorCallback();
+        }
         goto connect;
     }
 
     Serial.println("Connected to ELM327");
+
+    if (connectedCallback) {
+        connectedCallback();
+    }
 
     if (!reconnect) {
         setCheckPidSupport(this->checkPidSupport);
@@ -515,6 +525,14 @@ void OBDClass::loop() {
     } else {
         delay(500);
     }
+}
+
+void OBDClass::onConnected(const std::function<void()> &callback) {
+    connectedCallback = callback;
+}
+
+void OBDClass::onConnectError(const std::function<void()> &callback) {
+    connectErrorCallback = callback;
 }
 
 void OBDClass::onDevicesDiscovered(const std::function<void(BTScanResults *scanResult)> &callable) {

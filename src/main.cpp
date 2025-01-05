@@ -70,6 +70,8 @@ std::atomic_bool wifiAPStarted{false};
 std::atomic_bool wifiAPInUse{false};
 std::atomic<unsigned int> wifiAPStaConnected{0};
 
+std::atomic<int> obdConnectErrors{0};
+
 std::atomic<unsigned long> startTime{0};
 
 std::vector<uint32_t> batteryVoltages;
@@ -304,6 +306,18 @@ void startHttpServer() {
     });
 
     server.begin(LittleFS);
+}
+
+void onOBDConnected() {
+    obdConnectErrors = 0;
+}
+
+void onOBDConnectError() {
+    ++obdConnectErrors;
+    if (GSM::hasBattery() && GSM::isBatteryUsed() && obdConnectErrors > 10) {
+        DEBUG_PORT.println("Take a nap...");
+        deepSleep(Settings.getSleepDuration() * 1000);
+    }
 }
 
 void onBTDevicesDiscovered(BTScanResults *btDeviceList) {
@@ -804,6 +818,8 @@ void setup() {
     gsm.connectToNetwork();
     gsm.enableGPS();
 
+    OBD.onConnected(onOBDConnected);
+    OBD.onConnectError(onOBDConnectError);
     OBD.begin(Settings.getOBD2Name(OBD_ADP_NAME), Settings.getOBD2MAC(), Settings.getOBD2Protocol(),
               Settings.getOBD2CheckPIDSupport());
     OBD.onDevicesDiscovered(onBTDevicesDiscovered);
