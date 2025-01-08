@@ -38,6 +38,10 @@ const testModemInfo: ModemInfo = {
 
 export class MockApiService {
 
+    version() {
+        return of("1.0.0");
+    }
+
     wifiInfo() {
         return of<WifiInfo>(testWiFiInfo);
     }
@@ -84,8 +88,9 @@ describe("DeviceInfoComponent", () => {
         expect(getElement("#deviceInfo")).toBeTruthy();
 
         const legends = getElements("legend");
-        expect(legends.length).toBe(2);
-        expect(legends[0].textContent).toBe("WiFi Info");
-        expect(legends[1].textContent).toBe("Modem Info");
+        expect(legends.length).toBe(3);
+        expect(legends[0].textContent).toBe("Firmware");
+        expect(legends[1].textContent).toBe("WiFi Info");
+        expect(legends[2].textContent).toBe("Modem Info");
     });
 });

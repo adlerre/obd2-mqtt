@@ -111,6 +111,14 @@ void deepSleep(uint32_t ms) {
     esp_deep_sleep_start();
 }
 
+String getVersion() {
+    auto version = String(BUILD_GIT_BRANCH);
+    if (!version.startsWith("v")) {
+        version += " (" + String(BUILD_GIT_COMMIT_HASH) + ")";
+    }
+    return version;
+}
+
 void WiFiAPStart(WiFiEvent_t event, WiFiEventInfo_t info) {
     wifiAPStarted = true;
     DEBUG_PORT.println("WiFi AP started.");
@@ -173,6 +181,10 @@ void startWiFiAP() {
 }
 
 void startHttpServer() {
+    server.on("/api/version", HTTP_GET, [](AsyncWebServerRequest *request) {
+        request->send(200, "text/plain", getVersion());
+    });
+
     server.on("/api/settings", HTTP_GET, [](AsyncWebServerRequest *request) {
         request->send(200, "application/json", Settings.buildJson().c_str());
     });
