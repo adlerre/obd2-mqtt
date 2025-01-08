@@ -17,10 +17,8 @@
 
 import { Injectable } from "@angular/core";
 import { HttpClient, HttpEvent, HttpEventType, HttpHeaders, HttpRequest } from "@angular/common/http";
-import { Configuration, DiscoveredDevices, ModemInfo, Settings, WifiInfo } from "../definitions";
+import { Configuration, DiscoveredDevices, ModemInfo, OBDState, OTAMode, Settings, WifiInfo } from "../definitions";
 import { distinctUntilChanged, last, map, Subject } from "rxjs";
-import { OTAMode } from "../definitions/ota";
-import { OBDState } from "../definitions/obdStates";
 
 @Injectable()
 export class ApiService {
@@ -34,6 +32,10 @@ export class ApiService {
 
     reboot() {
         return this.$http.post("/api/reboot?reboot=true", {}, {responseType: "text"});
+    }
+
+    version() {
+        return this.$http.get("/api/version", {responseType: "text"});
     }
 
     wifiInfo() {

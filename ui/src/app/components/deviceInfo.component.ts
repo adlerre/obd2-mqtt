@@ -26,6 +26,8 @@ import { ApiService } from "../services/api.service";
 })
 export class DeviceInfoComponent implements OnInit {
 
+    version: string | undefined;
+
     wifiInfo: WifiInfo | undefined;
 
     modemInfo: ModemInfo | undefined;
@@ -34,6 +36,7 @@ export class DeviceInfoComponent implements OnInit {
     }
 
     ngOnInit(): void {
+        this.$api.version().subscribe(ver => this.version = ver);
         this.$api.wifiInfo().subscribe((wi) => this.wifiInfo = wi);
         this.$api.modemInfo().subscribe((mi) => this.modemInfo = mi);
     }

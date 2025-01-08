@@ -16,6 +16,13 @@
   -->
 
 <div id="deviceInfo">
+    <fieldset *ngIf="version">
+        <legend>Firmware</legend>
+        <dl class="row">
+            <dt class="col-sm-3">Version</dt>
+            <dd class="col-sm-9">{{ version }}</dd>
+        </dl>
+    </fieldset>
     <fieldset *ngIf="wifiInfo">
         <legend>WiFi Info</legend>
         <dl class="row">
