@@ -1,3 +1,10 @@
+# [0.17.0](https://github.com/adlerre/obd2-mqtt/compare/v0.16.0...v0.17.0) (2025-01-08)
+
+
+### Features
+
+* show firmware version on UI ([#44](https://github.com/adlerre/obd2-mqtt/issues/44)) ([9d086e0](https://github.com/adlerre/obd2-mqtt/commit/9d086e07ef617dc11b05469af44b247fc0dac37e))
+
 # [0.16.0](https://github.com/adlerre/obd2-mqtt/compare/v0.15.0...v0.16.0) (2025-01-05)
 
 
