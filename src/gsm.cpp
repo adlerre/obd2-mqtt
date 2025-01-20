@@ -39,7 +39,17 @@ TinyGPSPlus gps;
 
 #ifdef BOARD_BAT_ADC_PIN
 #include <numeric>
+#if defined(LILYGO_T_A7670) || defined(LILYGO_T_A7608X)
+#include "driver/rtc_io.h"
+#include "driver/adc.h"
+
+#include "esp32/ulp.h"
+#include "soc/soc.h"
+#define ULP_START_OFFSET 32
 #endif
+#endif
+
+#include "soc/adc_periph.h"
 
 int GSM::convertSQToRSSI(int signalQuality) {
     if (signalQuality > 0 && signalQuality <= 32) {
@@ -47,6 +57,165 @@ int GSM::convertSQToRSSI(int signalQuality) {
     }
 
     return signalQuality;
+}
+
+int GSM::adcPeriphNum(const gpio_num_t pin) {
+    for (int periph = 0; periph < SOC_ADC_PERIPH_NUM; ++periph) {
+        for (int channel = 0; channel < SOC_ADC_MAX_CHANNEL_NUM; ++channel) {
+            if (adc_channel_io_map[periph][channel] == pin) return periph;
+        }
+    }
+    return -1;
+}
+
+int GSM::adcChannelNum(const gpio_num_t pin) {
+    for (int periph = 0; periph < SOC_ADC_PERIPH_NUM; ++periph) {
+        for (int channel = 0; channel < SOC_ADC_MAX_CHANNEL_NUM; ++channel) {
+            if (adc_channel_io_map[periph][channel] == pin) return channel;
+        }
+    }
+    return -1;
+}
+
+void GSM::ulpInit(unsigned int threshold, unsigned int highThreshold, int wakeupPeriod) {
+#if defined(BOARD_BAT_ADC_PIN) && defined(LILYGO_T_A7670) || defined(LILYGO_T_A7608X)
+    unsigned int idx = adcPeriphNum(static_cast<gpio_num_t>(BOARD_BAT_ADC_PIN));
+
+    if (idx == 0) {
+        unsigned int channel = adcChannelNum(static_cast<gpio_num_t>(BOARD_BAT_ADC_PIN));
+
+        // ULP program
+        // @see https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/system/ulp_macros.html
+        const ulp_insn_t program[] = {
+            I_MOVI(R0, 0),
+            I_MOVI(R1, 0),
+            I_MOVI(R2, 0),
+            I_MOVI(R3, 0),
+
+            M_LABEL(1),
+            /* */I_ADDI(R0, R0, 1), // increment cycle counter (reg. R0)
+            /* */I_ADC(R3, idx, channel), // read ADC value to reg. R3
+            /* */I_ADDR(R1, R1, R3), // add ADC value from reg R3 to reg. R1
+            /* */I_DELAY(40000), // delay 5 ms
+            M_BL(1, 4), // if cycle counter is less than 4, go to LABEL 1
+
+            I_RSHI(R3, R1, 2), // divide accumulated ADC value in reg. R1 by 4 and save it to reg. R1
+            I_MOVR(R1, R3),
+            I_MOVR(R0, R1),
+            I_MOVI(R3, 0),
+            M_BGE(1, highThreshold),
+            I_MOVI(R0, 1), // set address offset
+            I_ST(R1, R0, 0), // RTC_SLOW_MEM [R0 + 0] = R1;
+
+            M_LABEL(2),
+            /* */I_STAGE_RST(),
+            /* */M_LABEL(3),
+            /*  */I_MOVI(R0, 200), // R0 = n * 1000 / 5, where n is the number of seconds to delay, 200 = 1 s
+            /*  */M_LABEL(4),
+            /*   */ // since ULP runs at 8 MHz
+            /*   */ // 40000 cycles correspond to 5 ms (max possible delay is 65535 cycles or 8.19 ms)
+            /*   */I_DELAY(40000),
+            /*   */I_SUBI(R0, R0, 1), // R0 --;
+            /*  */M_BGE(4, 1), // } while (R0 >= 1); ... jump to label 3 if R0 > 0
+            /*  */I_STAGE_INC(1),
+            /* */M_BSLT(3, 5), // if stage counter is less than 5, jump to label 3
+
+            /* */I_MOVI(R0, 0), // reset R0
+            /* */I_MOVI(R2, 0), // reset R2
+            /* */I_MOVI(R3, 0), // reset R3
+
+            /* */M_LABEL(5),
+            /*  */I_ADDI(R0, R0, 1), // increment cycle counter (reg. R0)
+            /*  */I_ADC(R3, idx, channel), // read ADC value to reg. R3
+            /*  */I_ADDR(R2, R2, R3), // add ADC value from reg R3 to reg. R2
+            /*  */I_DELAY(40000),
+            /* */M_BL(5, 4), // if cycle counter is less than 4, go to LABEL 4
+
+            /* */I_RSHI(R3, R2, 2), // divide accumulated ADC value in reg. R2 by 4 and save it to reg. R2
+            /* */I_MOVR(R2, R3),
+            /* */I_MOVI(R0, 2), // set address offset
+            /* */I_ST(R2, R0, 0), // RTC_SLOW_MEM [R0 + 0] = R2;
+
+            /* */I_SUBR(R3, R2, R1), // R3 = R2 - R1
+            /* */I_MOVI(R0, 0), // set address offset
+            /* */I_ST(R3, R0, 0), // RTC_SLOW_MEM [R0 + 0] = R0;
+            /* */I_MOVR(R0, R3),
+            /* */M_BXF(2), // on ALU overflow jump to label 2
+            /* */M_BGE(6, threshold), // R0 < threshold (mV) ... jump to label 5
+            M_BX(2), // while (1)
+
+            M_LABEL(6),
+            /* */I_MOVI(R0, 0),
+            /* */ // check is allowed to wake up
+            /* */I_RD_REG(RTC_CNTL_LOW_POWER_ST_REG, RTC_CNTL_RDY_FOR_WAKEUP_S, RTC_CNTL_RDY_FOR_WAKEUP_S),
+            /* */M_BGE(7, 1), // if allowed to wake up jump to label 6
+            M_BX(6), // else jump to label 5
+
+            M_LABEL(7),
+            /* */I_WAKE(), // WAKEUP ESP32
+
+            I_END(), // END ULP timer
+            I_HALT() // STOP ULP PROCESS
+        };
+
+        size_t ulpSize = sizeof(program) / sizeof(ulp_insn_t);
+
+        uint32_t threshold_result = 0;
+        const esp_sleep_wakeup_cause_t wakeup_reason = esp_sleep_get_wakeup_cause();
+        switch (wakeup_reason) {
+            case ESP_SLEEP_WAKEUP_EXT0:
+                Serial.println("Wakeup caused by external signal using RTC_IO");
+                break;
+            case ESP_SLEEP_WAKEUP_EXT1:
+                Serial.println("Wakeup caused by external signal using RTC_CNTL");
+                break;
+            case ESP_SLEEP_WAKEUP_TIMER:
+                Serial.println("Wakeup caused by timer");
+                break;
+            case ESP_SLEEP_WAKEUP_TOUCHPAD:
+                Serial.println("Wakeup caused by touchpad");
+                break;
+            case ESP_SLEEP_WAKEUP_ULP:
+                Serial.println("Wakeup caused by ULP program");
+                Serial.printf("threshold result = %d\n", RTC_SLOW_MEM[0] & 0xFFF);
+                break;
+            default:
+                Serial.printf("Wakeup was not caused by deep sleep: %d\n", wakeup_reason);
+                break;
+        }
+
+        // Clear rtc memory
+        memset(RTC_SLOW_MEM, 0, CONFIG_ULP_COPROC_RESERVE_MEM);
+
+        // Load ULP program
+        ESP_ERROR_CHECK(ulp_process_macros_and_load(ULP_START_OFFSET, program, &ulpSize));
+        if (wakeupPeriod > 0) {
+            ESP_ERROR_CHECK(ulp_set_wakeup_period(0, wakeupPeriod * 1000 * 1000));
+        }
+
+        // Run ULP program
+        ESP_ERROR_CHECK(ulp_run(ULP_START_OFFSET));
+    }
+#endif
+}
+
+void GSM::ulpPrepareSleep() {
+#if defined(BOARD_BAT_ADC_PIN) && defined(LILYGO_T_A7670) || defined(LILYGO_T_A7608X)
+    unsigned int idx = adcPeriphNum(static_cast<gpio_num_t>(BOARD_BAT_ADC_PIN));
+
+    if (idx == 0) {
+        unsigned int channel = adcChannelNum(static_cast<gpio_num_t>(BOARD_BAT_ADC_PIN));
+
+        // configure channel for ulp usage
+        adc1_config_channel_atten(static_cast<adc1_channel_t>(channel), ADC_ATTEN_DB_12);
+        adc1_config_width(ADC_WIDTH_BIT_12);
+        // @FIXME read adc value before ULP enable, fixes reading issues in deep sleep
+        adc1_get_raw(static_cast<adc1_channel_t>(channel));
+        adc1_ulp_enable();
+
+        ESP_ERROR_CHECK(esp_sleep_enable_ulp_wakeup());
+    }
+#endif
 }
 
 GSM::GSM(Stream &stream) : stream(stream), modem(TinyGsm(stream)) {
@@ -248,6 +417,11 @@ restart:
 
 void GSM::powerOff() {
     modem.poweroff();
+
+    // check if not response
+    while (modem.testAT()) {
+        delay(500);
+    }
 }
 
 bool GSM::checkNetwork(bool resetConnection) {
@@ -440,7 +614,7 @@ bool GSM::isBatteryUsed() {
     pinMode(BOARD_BAT_ADC_PIN, INPUT);
     return digitalRead(BOARD_BAT_ADC_PIN) == HIGH;
 #else
-    return true;
+    return false;
 #endif
 }
 
@@ -450,4 +624,11 @@ unsigned int GSM::getBatteryVoltage() {
 #else
     return 0;
 #endif
+}
+
+void GSM::deepSleep(uint32_t ms) {
+    esp_sleep_enable_timer_wakeup(ms * 1000);
+    esp_sleep_pd_config(ESP_PD_DOMAIN_RTC_PERIPH, ESP_PD_OPTION_ON);
+    ulpPrepareSleep();
+    esp_deep_sleep_start();
 }

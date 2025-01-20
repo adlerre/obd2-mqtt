@@ -49,6 +49,27 @@ class GSM {
     TinyGsmClientSecure *secureClient = nullptr;
 
     /**
+     * Returns the ADC index for given GPIO.
+     *
+     * @param pin the GPIO num
+     * @return <code>-1</code> if nothing found or the ADC index
+     */
+    static int adcPeriphNum(gpio_num_t pin);
+
+    /**
+     * Returns the ADC channel for given GPIO.
+     *
+     * @param pin the GPIO num
+     * @return <code>-1</code> if nothing found or the ADC channel
+     */
+    static int adcChannelNum(gpio_num_t pin);
+
+    /**
+     * Prepares ULP for deep sleep.
+     */
+    static void ulpPrepareSleep();
+
+    /**
      * Hard reset modem. Seems to crash after long runs.
      */
     void resetModem();
@@ -66,6 +87,17 @@ public:
      * @see https://m2msupport.net/m2msupport/atcsq-signal-quality/
      */
     static int convertSQToRSSI(int signalQuality);
+
+    /**
+     * Inits the ULP code
+     *
+     * @param threshold this value must differ from first ULP reading, default 10mV
+     * @param highThreshold if above this value, initial measurement is done again, default 3000mV
+     * @param wakeupPeriod the number of seconds to restart ULP program
+     *
+     * @note You must init the ULP within setup() routine to get ADC reading working.
+     */
+    static void ulpInit(unsigned int threshold = 10, unsigned int highThreshold = 3000, int wakeupPeriod = -1);
 
     explicit GSM(Stream &stream);
 
@@ -173,7 +205,6 @@ public:
      */
     bool readGPSLocation(float &gpsLatitude, float &gpsLongitude, float &gpsAccuracy);
 
-
     /**
      * Returns if battery is supported.
      *
@@ -181,6 +212,11 @@ public:
      */
     static bool hasBattery();
 
+    /**
+     * Returns if battery is in use.
+     *
+     * @return <code>true</code> if used
+     */
     static bool isBatteryUsed();
 
     /**
@@ -189,4 +225,11 @@ public:
      * @return the battery voltage in mV
      */
     static unsigned int getBatteryVoltage();
+
+    /**
+     * Enter deep sleep.
+     *
+     * @param ms the number of milliseconds to wait before wakeup
+     */
+    static void deepSleep(uint32_t ms);
 };

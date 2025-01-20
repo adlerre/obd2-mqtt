@@ -105,10 +105,19 @@ size_t getESPHeapSize() {
     return heap_caps_get_free_size(MALLOC_CAP_8BIT);
 }
 
-void deepSleep(uint32_t ms) {
-    esp_sleep_enable_timer_wakeup(ms * 1000);
-    esp_sleep_pd_config(ESP_PD_DOMAIN_RTC_PERIPH, ESP_PD_OPTION_ON);
-    esp_deep_sleep_start();
+void deepSleep(const int sec) {
+    DEBUG_PORT.println("Prepare nap...");
+    WiFi.disconnect(true);
+    OBD.end();
+    gsm.powerOff();
+    if (outputTaskHdl != nullptr) {
+        vTaskDelete(outputTaskHdl);
+    }
+    if (stateTaskHdl != nullptr) {
+        vTaskDelete(stateTaskHdl);
+    }
+    DEBUG_PORT.println("...ZzZzZz.");
+    GSM::deepSleep(sec * 1000);
 }
 
 String getVersion() {
@@ -326,9 +335,8 @@ void onOBDConnected() {
 
 void onOBDConnectError() {
     ++obdConnectErrors;
-    if (GSM::hasBattery() && GSM::isBatteryUsed() && obdConnectErrors > 10) {
-        DEBUG_PORT.println("Take a nap...");
-        deepSleep(Settings.getSleepDuration() * 1000);
+    if (GSM::hasBattery() && GSM::isBatteryUsed() && obdConnectErrors > 5) {
+        deepSleep(Settings.getSleepDuration());
     }
 }
 
@@ -730,13 +738,7 @@ void mqttSendData() {
                         if (batVoltage < LOW_VOLTAGE_LEVEL) {
                             DEBUG_PORT.println("Battery has low voltage.");
                         }
-                        DEBUG_PORT.println("Take a nap...");
-
-                        WiFi.disconnect(true);
-                        OBD.end();
-                        gsm.powerOff();
-
-                        deepSleep(Settings.getSleepDuration() * 1000);
+                        deepSleep(Settings.getSleepDuration());
                     }
                 }
             }
@@ -815,6 +817,9 @@ void setup() {
         DEBUG_PORT.println("LittleFS Mount Failed");
         return;
     }
+
+    // init the coprozessor
+    GSM::ulpInit();
 
     Settings.readSettings(LittleFS);
     OBD.readStates(LittleFS);
