@@ -1,3 +1,16 @@
+# [0.18.0](https://github.com/adlerre/obd2-mqtt/compare/v0.17.0...v0.18.0) (2025-01-20)
+
+
+### Bug Fixes
+
+* bump versions ([3eb340f](https://github.com/adlerre/obd2-mqtt/commit/3eb340f2520f9791e9497547b2a4eeb2e3b05b9d))
+* bump versions ([7d5e444](https://github.com/adlerre/obd2-mqtt/commit/7d5e444b2c2ce9df34fe8d4cca08d44697761c41))
+
+
+### Features
+
+* wake up from deep sleep on external power source ([#46](https://github.com/adlerre/obd2-mqtt/issues/46)) ([f92ec1b](https://github.com/adlerre/obd2-mqtt/commit/f92ec1b9482ef18949507a76c5ba3daa3cb04dcc))
+
 # [0.17.0](https://github.com/adlerre/obd2-mqtt/compare/v0.16.0...v0.17.0) (2025-01-08)
 
 
