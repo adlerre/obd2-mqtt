@@ -1,3 +1,16 @@
+# [0.19.0](https://github.com/adlerre/obd2-mqtt/compare/v0.18.0...v0.19.0) (2025-01-31)
+
+
+### Bug Fixes
+
+* bump versions ([27049f3](https://github.com/adlerre/obd2-mqtt/commit/27049f30b8a10f5b405d8779cb3ecec36bb023e2))
+* bump versions ([627fe64](https://github.com/adlerre/obd2-mqtt/commit/627fe646d6d989235254c5d9ec9921eec62c6cbe))
+
+
+### Features
+
+* add download/upload button also for settings ([cb9c784](https://github.com/adlerre/obd2-mqtt/commit/cb9c784ca66d47035db857351920afd0fac1db72))
+
 # [0.18.0](https://github.com/adlerre/obd2-mqtt/compare/v0.17.0...v0.18.0) (2025-01-20)
 
 
