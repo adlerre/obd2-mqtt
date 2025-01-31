@@ -34,6 +34,7 @@ import {
     OBDState,
     OBDStateType,
     ReadFunctions,
+    stripEmptyProps,
     ValueFormatFunctions,
     ValueTypes
 } from "../definitions";
@@ -307,7 +308,7 @@ export class OBDStatesComponent implements OnInit {
     }
 
     generateDownload() {
-        const theJSON = JSON.stringify(this.stripEmptyProps(this.states.value));
+        const theJSON = JSON.stringify(stripEmptyProps(this.states.value));
         this.downloadHref = this.sanitizer
             .bypassSecurityTrustUrl("data:text/json;charset=UTF-8," + encodeURIComponent(theJSON));
     }
@@ -330,7 +331,7 @@ export class OBDStatesComponent implements OnInit {
 
     onSubmit({value, valid}: { value: { states: Array<OBDState> }, valid: boolean }) {
         if (valid) {
-            const states: Array<OBDState> = this.stripEmptyProps(value.states);
+            const states: Array<OBDState> = stripEmptyProps(value.states);
             this.$api.updateStates(states).subscribe({
                 next: () => {
                     this.toast.show({
@@ -347,31 +348,6 @@ export class OBDStatesComponent implements OnInit {
                 }
             });
         }
-    }
-
-    private stripEmptyProps(arr: any): any {
-        for (const i in arr) {
-            if (typeof arr[i] === "object") {
-                if (arr[i]) {
-                    for (const k in arr[i]) {
-                        if (typeof arr[i][k] === "string" && (arr[i][k] === "" || arr[i][k] === null)) {
-                            delete arr[i][k];
-                        } else if (typeof arr[i][k] === "object") {
-                            arr[i][k] = this.stripEmptyProps(arr[i][k]);
-                            if (!arr[i][k]) {
-                                delete arr[i][k];
-                            }
-                        }
-                    }
-                } else {
-                    delete arr[i];
-                }
-            } else if (typeof arr[i] === "string" && (arr[i] === "" || arr[i] === null)) {
-                delete arr[i];
-            }
-        }
-
-        return arr;
     }
 
     private jumpTo(id: string) {

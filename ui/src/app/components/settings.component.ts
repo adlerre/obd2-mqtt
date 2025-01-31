@@ -29,7 +29,8 @@ import {
     MQTTProtocol,
     NetworkMode,
     OBD2Protocol,
-    Settings
+    Settings,
+    stripEmptyProps
 } from "../definitions";
 import { NgbTypeahead, NgbTypeaheadSelectItemEvent } from "@ng-bootstrap/ng-bootstrap";
 import {
@@ -45,6 +46,7 @@ import {
     Subject
 } from "rxjs";
 import { ToastService } from "../services/toast.service";
+import { DomSanitizer } from "@angular/platform-browser";
 
 @Component({
     selector: "ui-settings",
@@ -87,6 +89,8 @@ export class SettingsComponent implements OnInit {
 
     click$ = new Subject<string>();
 
+    downloadHref: any;
+
     protected readonly dataIntervals = dataIntervals;
 
     protected readonly diagnosticIntervals = diagnosticIntervals;
@@ -95,7 +99,7 @@ export class SettingsComponent implements OnInit {
 
     protected readonly locationIntervals = locationIntervals;
 
-    constructor(private $api: ApiService, private toast: ToastService) {
+    constructor(private $api: ApiService, private sanitizer: DomSanitizer, private toast: ToastService) {
         this.general = new FormGroup({
             sleepTimeout: new FormControl<number>(5 * 60, Validators.min(60)),
             sleepDuration: new FormControl<number>(60 * 60, Validators.min(300)),
@@ -209,6 +213,27 @@ export class SettingsComponent implements OnInit {
         event.preventDefault();
         if (event.item) {
             this.obd2.patchValue({"name": event.item.name, "mac": event.item.mac});
+        }
+    }
+
+    generateDownload() {
+        const theJSON = JSON.stringify(stripEmptyProps(this.form.value));
+        this.downloadHref = this.sanitizer
+            .bypassSecurityTrustUrl("data:text/json;charset=UTF-8," + encodeURIComponent(theJSON));
+    }
+
+    onFileChange(event: Event) {
+        const target: any = event.target;
+        if (target.files && target.files.length) {
+            const fileReader = new FileReader();
+            fileReader.onload = () => {
+                const json = JSON.parse(fileReader.result as string);
+                if (json) {
+                    this.form.patchValue(json);
+                    setTimeout(() => this.form.updateValueAndValidity({emitEvent: true, onlySelf: true}));
+                }
+            }
+            fileReader.readAsText(target.files[0]);
         }
     }
 

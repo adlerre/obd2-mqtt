@@ -20,9 +20,21 @@
 </ng-template>
 
 <div id="settings">
+    <div class="d-flex my-2 justify-content-end">
+        <div class="btn-group">
+            <a class="btn btn-primary" [href]="downloadHref" download="settings.json" (click)="generateDownload()">&#8675;
+                Download</a>
+            <div class="btn btn-secondary p-0">
+                <label for="states-upload" class="d-inline-block py-1 px-2">&#8673; Upload</label>
+                <input type="file" id="states-upload" name="states-upload" accept="application/json"
+                       (change)="onFileChange($event)" [hidden]="true"
+                >
+            </div>
+        </div>
+    </div>
     <form novalidate (ngSubmit)="onSubmit(form)" [formGroup]="form">
         @if (hasBattery) {
-            <fieldset [formGroup]="general">
+            <fieldset [formGroup]="general" class="mt-0">
                 <legend>General</legend>
                 <div class="row mb-2">
                     <label for="sleepTimeout" class="col-sm-2 control-label">Auto sleep timeout (sec)</label>
@@ -48,7 +60,7 @@
                 </div>
             </fieldset>
         }
-        <fieldset [formGroup]="wifi">
+        <fieldset [formGroup]="wifi" [ngClass]="{'mt-0': !hasBattery}" >
             <legend>WiFi Access Point</legend>
             <div class="row mb-2">
                 <label for="ssid" class="col-sm-2 control-label">SSID</label>

@@ -22,4 +22,5 @@ export * from "./modemInfo";
 export * from "./obdStates";
 export * from "./ota";
 export * from "./settings";
+export * from "./tools";
 export * from "./wifiInfo";
