@@ -217,7 +217,7 @@ export class SettingsComponent implements OnInit {
     }
 
     generateDownload() {
-        const theJSON = JSON.stringify(stripEmptyProps(this.form.value));
+        const theJSON = JSON.stringify(stripEmptyProps(this.fixJson(this.form.value)));
         this.downloadHref = this.sanitizer
             .bypassSecurityTrustUrl("data:text/json;charset=UTF-8," + encodeURIComponent(theJSON));
     }
@@ -239,7 +239,7 @@ export class SettingsComponent implements OnInit {
 
     onSubmit({value, valid}: { value: Settings, valid: boolean }) {
         if (valid) {
-            this.$api.updateSettings(value).subscribe({
+            this.$api.updateSettings(this.fixJson(value)).subscribe({
                 next: () => {
                     this.toast.show({
                         text: "Settings updated successfully.",
@@ -255,6 +255,19 @@ export class SettingsComponent implements OnInit {
                 }
             });
         }
+    }
+
+    private fixJson(input: any): Settings {
+        const res = Object.assign({}, input);
+        res.mqtt.dataInterval = typeof input.mqtt.dataInterval == "string" ?
+            parseInt(input.mqtt.dataInterval) : input.mqtt.dataInterval;
+        res.mqtt.discoveryInterval = typeof input.mqtt.discoveryInterval == "string" ?
+            parseInt(input.mqtt.discoveryInterval) : input.mqtt.discoveryInterval;
+        res.mqtt.diagnosticInterval = typeof input.mqtt.diagnosticInterval == "string" ?
+            parseInt(input.mqtt.diagnosticInterval) : input.mqtt.diagnosticInterval;
+        res.mqtt.locationInterval = typeof input.mqtt.locationInterval == "string" ?
+            parseInt(input.mqtt.locationInterval) : input.mqtt.locationInterval;
+        return res;
     }
 
 }
