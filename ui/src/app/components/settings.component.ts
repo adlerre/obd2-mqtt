@@ -260,13 +260,13 @@ export class SettingsComponent implements OnInit {
     private fixJson(input: any): Settings {
         const res = Object.assign({}, input);
         res.mqtt.dataInterval = typeof input.mqtt.dataInterval == "string" ?
-            parseInt(input.mqtt.dataInterval) : input.mqtt.dataInterval;
+            parseInt(input.mqtt.dataInterval, 10) : input.mqtt.dataInterval;
         res.mqtt.discoveryInterval = typeof input.mqtt.discoveryInterval == "string" ?
-            parseInt(input.mqtt.discoveryInterval) : input.mqtt.discoveryInterval;
+            parseInt(input.mqtt.discoveryInterval, 10) : input.mqtt.discoveryInterval;
         res.mqtt.diagnosticInterval = typeof input.mqtt.diagnosticInterval == "string" ?
-            parseInt(input.mqtt.diagnosticInterval) : input.mqtt.diagnosticInterval;
+            parseInt(input.mqtt.diagnosticInterval, 10) : input.mqtt.diagnosticInterval;
         res.mqtt.locationInterval = typeof input.mqtt.locationInterval == "string" ?
-            parseInt(input.mqtt.locationInterval) : input.mqtt.locationInterval;
+            parseInt(input.mqtt.locationInterval, 10) : input.mqtt.locationInterval;
         return res;
     }
 
