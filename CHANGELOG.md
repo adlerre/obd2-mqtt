@@ -1,3 +1,12 @@
+## [0.19.1](https://github.com/adlerre/obd2-mqtt/compare/v0.19.0...v0.19.1) (2025-02-21)
+
+
+### Bug Fixes
+
+* bump versions ([2178d45](https://github.com/adlerre/obd2-mqtt/commit/2178d45a81a968e7efa6c95fc0807656c078ac28))
+* bump versions ([d105ff0](https://github.com/adlerre/obd2-mqtt/commit/d105ff0505e95f3d555579a56d60fc20f9687674))
+* fix setting of intervals ([6a338aa](https://github.com/adlerre/obd2-mqtt/commit/6a338aa1a358f7c24dccbe3d79aebd64db3ac52c))
+
 # [0.19.0](https://github.com/adlerre/obd2-mqtt/compare/v0.18.0...v0.19.0) (2025-01-31)
 
 
