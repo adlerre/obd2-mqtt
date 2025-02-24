@@ -57,6 +57,7 @@ export enum OBD2Protocol {
 export interface OBD2Settings {
     name?: string;
     mac?: string;
+    pin?: string;
     checkPIDSupport?: boolean;
     protocol?: OBD2Protocol;
 }

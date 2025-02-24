@@ -64,6 +64,7 @@ struct MobileSettings {
 struct OBD2Settings {
     char name[65];
     char mac[19];
+    char pin[7];
     bool checkPIDSupport;
     char protocol;
 };
@@ -146,6 +147,10 @@ public:
     String getOBD2MAC() const;
 
     void setOBD2MAC(const char *mac);
+
+    String getOBD2Pin() const;
+
+    void setOBD2Pin(const char *pin);
 
     bool getOBD2CheckPIDSupport() const;
 

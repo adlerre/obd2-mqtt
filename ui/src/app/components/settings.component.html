@@ -168,6 +168,16 @@
                 </div>
             </div>
             <div class="row mb-2">
+                <label for="obd2Pin" class="col-sm-2 control-label">PIN</label>
+                <div class="col-sm-10">
+                    <input formControlName="pin" type="text" id="obd2Pin" autocapitalize="off" autocorrect="off"
+                           placeholder="PIN"
+                           class="form-control"
+                           [ngClass]="{'is-invalid': obd2.controls.pin.errors}"
+                    >
+                </div>
+            </div>
+            <div class="row mb-2">
                 <label for="protocol" class="col-sm-2 col-form-label">Protocol</label>
                 <div class="col-sm-10">
                     <select class="form-control form-select" id="protocol" formControlName="protocol"

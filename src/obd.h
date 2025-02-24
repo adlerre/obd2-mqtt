@@ -75,6 +75,7 @@ class OBDClass : public OBDStates {
 
     String devName;
     String devMac;
+    String devPin;
     char protocol;
     bool checkPidSupport = false;
 
@@ -114,7 +115,8 @@ public:
 
     bool writeStates(FS &fs);
 
-    void begin(const String &devName, const String &devMac, char protocol = AUTOMATIC, bool checkPidSupport = false);
+    void begin(const String &devName, const String &devMac, const String &devPin, char protocol = AUTOMATIC,
+               bool checkPidSupport = false);
 
     void end();
 

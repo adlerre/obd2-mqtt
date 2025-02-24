@@ -118,6 +118,7 @@ export class SettingsComponent implements OnInit {
         this.obd2 = new FormGroup({
             name: new FormControl("", Validators.maxLength(64)),
             mac: new FormControl("", Validators.pattern(/^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$/)),
+            pin: new FormControl("", [Validators.minLength(4), Validators.maxLength(6), Validators.pattern("^[0-9]+")]),
             checkPIDSupport: new FormControl(false),
             protocol: new FormControl(OBD2Protocol.AUTOMATIC),
         });

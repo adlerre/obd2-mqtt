@@ -36,6 +36,7 @@ void SettingsClass::readJson(JsonDocument &doc) {
 
     strlcpy(obd2.name, doc["obd2"]["name"] | "", sizeof(obd2.name));
     strlcpy(obd2.mac, doc["obd2"]["mac"] | "", sizeof(obd2.mac));
+    strlcpy(obd2.pin, doc["obd2"]["pin"] | "", sizeof(obd2.pin));
     obd2.checkPIDSupport = doc["obd2"]["checkPIDSupport"] | false;
     obd2.protocol = doc["obd2"]["protocol"] | '0';
 
@@ -66,6 +67,7 @@ void SettingsClass::writeJson(JsonDocument &doc) {
 
     doc["obd2"]["name"] = obd2.name;
     doc["obd2"]["mac"] = obd2.mac;
+    doc["obd2"]["pin"] = obd2.pin;
     doc["obd2"]["checkPIDSupport"] = obd2.checkPIDSupport;
     doc["obd2"]["protocol"] = obd2.protocol;
 
@@ -228,6 +230,14 @@ String SettingsClass::getOBD2MAC() const {
 
 void SettingsClass::setOBD2MAC(const char *mac) {
     strlcpy(obd2.mac, mac, sizeof(obd2.mac));
+}
+
+String SettingsClass::getOBD2Pin() const {
+    return obd2.pin;
+}
+
+void SettingsClass::setOBD2Pin(const char *pin) {
+    strlcpy(obd2.pin, pin, sizeof(obd2.pin));
 }
 
 bool SettingsClass::getOBD2CheckPIDSupport() const {

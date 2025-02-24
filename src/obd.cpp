@@ -387,10 +387,11 @@ BTScanResults *OBDClass::discoverBtDevices() {
     return nullptr;
 }
 
-void OBDClass::begin(const String &devName, const String &devMac, const char protocol,
+void OBDClass::begin(const String &devName, const String &devMac, const String &devPin, const char protocol,
                      const bool checkPidSupport) {
     this->devName = devName;
     this->devMac = devMac;
+    this->devPin = devPin;
     this->protocol = protocol;
     this->checkPidSupport = checkPidSupport;
     stopConnect = false;
@@ -451,6 +452,10 @@ connect:
             }
 
             if (!stopConnect && addr) {
+                if (devPin != nullptr && devPin.length() != 0) {
+                    serialBt.setPin(devPin.c_str());
+                }
+
                 Serial.printf("connecting to %s - %d\n", addr.toString().c_str(), channel);
                 if (serialBt.connect(addr, channel, ESP_SPP_SEC_NONE, ESP_SPP_ROLE_SLAVE)) {
                     connectedBTAddress = addr.toString().c_str();
@@ -474,6 +479,10 @@ connect:
         }
 
         if (!stopConnect && addr) {
+            if (devPin != nullptr && devPin.length() != 0) {
+                serialBt.setPin(devPin.c_str());
+            }
+
             Serial.printf("connecting to %s - %d\n", addr.toString().c_str(), channel);
             if (serialBt.connect(addr, channel, ESP_SPP_SEC_NONE, ESP_SPP_ROLE_SLAVE)) {
                 connectedBTAddress = addr.toString().c_str();
