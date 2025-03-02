@@ -521,7 +521,25 @@ connect:
 
 void OBDClass::loop() {
     if (!stopConnect && serialBt && !serialBt.isClosed()) {
+#ifdef DEBUG_OBDSTATE
+        OBDState *state = nextState();
+        if (state != nullptr && state->getType() == READ && state->getLastUpdate() != -1 && state->isSupported()) {
+            if (state->valueType() == "int") {
+                auto s = reinterpret_cast<TypedOBDState<int> *>(state);
+                Serial.printf("%s : %d -> %d\n", s->getName(), s->getOldValue(), s->getValue());
+            }
+            if (state->valueType() == "float") {
+                auto s = reinterpret_cast<TypedOBDState<float> *>(state);
+                Serial.printf("%s : %4.2f -> %4.2f\n", s->getName(), s->getOldValue(), s->getValue());
+            }
+            if (state->valueType() == "bool") {
+                auto s = reinterpret_cast<TypedOBDState<bool> *>(state);
+                Serial.printf("%s %d -> %d\n", s->getName(), s->getOldValue(), s->getValue());
+            }
+        }
+#else
         nextState();
+#endif
     } else {
         delay(500);
     }
