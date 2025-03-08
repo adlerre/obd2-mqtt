@@ -44,7 +44,7 @@ bool MQTT::connect(const char *clientId, const char *broker, const unsigned int 
         mqtt.setServer(broker, port);
     } else {
         wsClient = new MQTTWebSocketClient(*client, broker, port);
-        wsStreamClient = new MQTTWebSocketStreamClient(*wsClient, "mqtt");
+        wsStreamClient = new MQTTWebSocketStreamClient(*wsClient, "/");
         mqtt.setClient(*wsStreamClient);
     }
 
