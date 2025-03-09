@@ -20,16 +20,17 @@
 
 MQTTWebSocketClient::MQTTWebSocketClient(Client &client, const char *host, uint16_t port): WebSocketClient(
     client, host, port) {
+    connectionKeepAlive();
 }
 
 int MQTTWebSocketClient::connect(const IPAddress &ip, uint16_t port) {
+    connectionKeepAlive();
     return WebSocketClient::connect(ip, port);
 }
 
 int MQTTWebSocketClient::begin(const char *aPath, const char *protocol) {
     // start the GET request
     beginRequest();
-    connectionKeepAlive();
     int status = get(aPath);
 
     if (status == 0) {
@@ -56,7 +57,6 @@ int MQTTWebSocketClient::begin(const char *aPath, const char *protocol) {
         endRequest();
 
         status = responseStatusCode();
-
         if (status > 0) {
             skipResponseHeaders();
         }
