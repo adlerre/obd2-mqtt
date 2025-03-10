@@ -1,3 +1,11 @@
+## [0.19.2](https://github.com/adlerre/obd2-mqtt/compare/v0.19.1...v0.19.2) (2025-03-10)
+
+
+### Bug Fixes
+
+* bump versions ([f0333cd](https://github.com/adlerre/obd2-mqtt/commit/f0333cd2499e98988b538fd071f0a03b1acbf666))
+* fixed cloudflare connection issue [no TLS] ([#56](https://github.com/adlerre/obd2-mqtt/issues/56)) ([77fe03d](https://github.com/adlerre/obd2-mqtt/commit/77fe03db89e60857c82a689d0169dcaea9df0ee3))
+
 ## [0.19.1](https://github.com/adlerre/obd2-mqtt/compare/v0.19.0...v0.19.1) (2025-02-21)
 
 
