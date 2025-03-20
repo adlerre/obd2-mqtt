@@ -1,3 +1,12 @@
+## [0.19.3](https://github.com/adlerre/obd2-mqtt/compare/v0.19.2...v0.19.3) (2025-03-20)
+
+
+### Bug Fixes
+
+* add toast shadow ([44c9ee9](https://github.com/adlerre/obd2-mqtt/commit/44c9ee95b9bfc4c9ea310193c0bef10346f238b9))
+* bump versions ([53788dd](https://github.com/adlerre/obd2-mqtt/commit/53788ddca13811c60cd4fa7e4a46bdcfe3498dc0))
+* bump versions ([f528323](https://github.com/adlerre/obd2-mqtt/commit/f528323864d79631a06ef63d7b84e29fadaddcc6))
+
 ## [0.19.2](https://github.com/adlerre/obd2-mqtt/compare/v0.19.1...v0.19.2) (2025-03-10)
 
 
