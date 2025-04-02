@@ -27,9 +27,11 @@
             <li routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
                 <a routerLink="states">OBD</a>
             </li>
-            <li routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
-                <a routerLink="ota">OTA</a>
-            </li>
+            @if ((otaEnabled$ | async)) {
+                <li routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
+                    <a routerLink="ota">OTA</a>
+                </li>
+            }
         </ul>
         <ul class="navbar-nav">
             <li>

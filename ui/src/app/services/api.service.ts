@@ -16,9 +16,9 @@
  */
 
 import { Injectable } from "@angular/core";
-import { HttpClient, HttpEvent, HttpEventType, HttpHeaders, HttpRequest } from "@angular/common/http";
+import { HttpClient, HttpEvent, HttpEventType, HttpHeaders, HttpRequest, HttpResponse } from "@angular/common/http";
 import { Configuration, DiscoveredDevices, ModemInfo, OBDState, OTAMode, Settings, WifiInfo } from "../definitions";
-import { distinctUntilChanged, last, map, Subject } from "rxjs";
+import { catchError, distinctUntilChanged, last, map, of, Subject } from "rxjs";
 
 @Injectable()
 export class ApiService {
@@ -68,6 +68,14 @@ export class ApiService {
 
     discoveredDevices() {
         return this.$http.get<DiscoveredDevices>("/api/discoveredDevices");
+    }
+
+    otaEnabled() {
+        return this.$http.get("/api/ota", {observe: "response"})
+            .pipe(
+                map((res: HttpResponse<any>) => res.status === 200),
+                catchError((_err, _caught) => of(false))
+            );
     }
 
     otaStart(mode: OTAMode = OTAMode.FIRMWARE) {

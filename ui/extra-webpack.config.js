@@ -55,6 +55,10 @@ module.exports = {
                 response.send("OK");
             });
 
+            devServer.app.get("/api/ota", (_, response) => {
+                response.status(200);
+            });
+
             devServer.app.get("/api/settings", (_, response) => {
                 response.json(settingsJson);
             });
