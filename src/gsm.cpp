@@ -160,27 +160,26 @@ void GSM::ulpInit(unsigned int threshold, unsigned int highThreshold, int wakeup
 
         size_t ulpSize = sizeof(program) / sizeof(ulp_insn_t);
 
-        uint32_t threshold_result = 0;
         const esp_sleep_wakeup_cause_t wakeup_reason = esp_sleep_get_wakeup_cause();
         switch (wakeup_reason) {
             case ESP_SLEEP_WAKEUP_EXT0:
-                Serial.println("Wakeup caused by external signal using RTC_IO");
+                log_d("Wakeup caused by external signal using RTC_IO");
                 break;
             case ESP_SLEEP_WAKEUP_EXT1:
-                Serial.println("Wakeup caused by external signal using RTC_CNTL");
+                log_d("Wakeup caused by external signal using RTC_CNTL");
                 break;
             case ESP_SLEEP_WAKEUP_TIMER:
-                Serial.println("Wakeup caused by timer");
+                log_d("Wakeup caused by timer");
                 break;
             case ESP_SLEEP_WAKEUP_TOUCHPAD:
-                Serial.println("Wakeup caused by touchpad");
+                log_d("Wakeup caused by touchpad");
                 break;
             case ESP_SLEEP_WAKEUP_ULP:
-                Serial.println("Wakeup caused by ULP program");
-                Serial.printf("threshold result = %d\n", RTC_SLOW_MEM[0] & 0xFFF);
+                log_d("Wakeup caused by ULP program");
+                log_d("threshold result = %d\n", RTC_SLOW_MEM[0] & 0xFFF);
                 break;
             default:
-                Serial.printf("Wakeup was not caused by deep sleep: %d\n", wakeup_reason);
+                log_d("Wakeup was not caused by deep sleep: %d\n", wakeup_reason);
                 break;
         }
 
