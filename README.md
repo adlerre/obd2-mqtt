@@ -39,7 +39,8 @@ the [Web Installer](https://adlerre.github.io/obd2-mqtt/).
 
 * connect to Wi-Fi Access Point starts with name OBD2-MQTT- followed from device MAC
 * open Browser and navigate to http://192.168.4.1
-* change settings to your needs and reboot afterward __OR__ update to new firmware and filesystem
+* change settings to your needs and reboot afterward __OR__ update to new firmware and filesystem (expect for BLE
+  firmwares)
 
 <p>
 <img width="200" alt="Info" src="assets/obd2-mqtt-ui-info-01.png">
