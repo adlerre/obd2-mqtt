@@ -26,22 +26,44 @@ const setColorScheme = (scheme: string) => {
     document.documentElement.setAttribute("data-ui-theme", scheme);
 }
 
+const buildDeviceButton = (device: string) => {
+    const espBtn = document.createElement("esp-web-install-button");
+    espBtn.classList.add("row");
+    espBtn.classList.add("px-1");
+    espBtn.setAttribute("manifest", `manifest-${device}.json`);
+
+    const btn = document.createElement("button");
+    btn.classList.add("btn");
+    btn.classList.add("btn-primary");
+    btn.setAttribute("slot", "activate");
+    btn.innerText = device;
+    espBtn.appendChild(btn);
+
+    return espBtn;
+}
+
 const buildDeviceButtons = (parent: HTMLElement | null) => {
     if (parent) {
-        DEVICES.forEach(device => {
-            const espBtn = document.createElement("esp-web-install-button");
-            espBtn.classList.add("row");
-            espBtn.setAttribute("manifest", `manifest-${device}.json`);
+        const row = document.createElement("div");
+        row.classList.add("row");
+        row.classList.add("m-1");
 
-            const btn = document.createElement("button");
-            btn.classList.add("btn");
-            btn.classList.add("btn-primary");
-            btn.setAttribute("slot", "activate");
-            btn.innerText = device;
-            espBtn.appendChild(btn);
+        [
+            (dev: string) => dev.indexOf("_BLE") === -1,
+            (dev: string) => dev.indexOf("_BLE") !== -1
+        ].forEach(filter => {
+            const col = document.createElement("div");
+            col.classList.add("col-sm-6");
 
-            parent.append(espBtn);
+            DEVICES.filter(filter).forEach(device => {
+                col.append(buildDeviceButton(device));
+            });
+
+            row.append(col);
+
         });
+
+        parent.append(row);
     }
 }
 
