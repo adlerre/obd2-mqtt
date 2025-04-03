@@ -58,11 +58,17 @@ export class SettingsComponent implements OnInit {
 
     private static DEVICE_WITH_NETWORK_MODE = [
         "T-A7670X",
+        "T-A7670X_BLE",
         "T-A7670X-NO-GPS",
+        "T-A7670X-NO-GPS_BLE",
         "T-A7670X-GPS-SHIELD",
+        "T-A7670X-GPS-SHIELD_BLE",
         "T-Call-A7670X-V1-0",
+        "T-Call-A7670X-V1-0_BLE",
         "T-Call-A7670X-V1-1",
-        "T-A7608X"
+        "T-Call-A7670X-V1-1_BLE",
+        "T-A7608X",
+        "T-A7608X_BLE"
     ];
 
     @ViewChild("devTypeahead", {static: true}) devTypeahead: NgbTypeahead;
