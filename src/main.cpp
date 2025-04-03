@@ -340,6 +340,31 @@ void onOBDConnectError() {
     }
 }
 
+#ifdef USE_BLE
+void onBLEDevicesDiscovered(BLEScanResultsSet *btDeviceList) {
+    JsonDocument devices;
+
+    File file = LittleFS.open(DISCOVERED_DEVICES_FILE, FILE_WRITE);
+    if (!file) {
+        Serial.println("Failed to open file discovered_devices.json for writing.");
+    }
+
+    for (int i = 0; i < btDeviceList->getCount(); i++) {
+        JsonDocument dev;
+        BLEAdvertisedDevice *device = btDeviceList->getDevice(i);
+        if (device && !device->getName().empty()) {
+            dev["name"] = device->getName();
+            dev["mac"] = device->getAddress().toString();
+            devices["device"].add(dev);
+        }
+    }
+
+    serializeJson(devices, file);
+
+    file.close();
+}
+
+#else
 void onBTDevicesDiscovered(BTScanResults *btDeviceList) {
     JsonDocument devices;
 
@@ -360,6 +385,7 @@ void onBTDevicesDiscovered(BTScanResults *btDeviceList) {
 
     file.close();
 }
+#endif
 
 bool sendDiscoveryData() {
     const unsigned long start = millis();
@@ -839,7 +865,11 @@ void setup() {
     OBD.onConnectError(onOBDConnectError);
     OBD.begin(Settings.getOBD2Name(OBD_ADP_NAME), Settings.getOBD2MAC(), Settings.getOBD2Protocol(),
               Settings.getOBD2CheckPIDSupport());
+#ifdef USE_BLE
+    OBD.onDevicesDiscovered(onBLEDevicesDiscovered);
+#else
     OBD.onDevicesDiscovered(onBTDevicesDiscovered);
+#endif
     OBD.connect();
 
     if (!Settings.getMQTTHostname().isEmpty()) {

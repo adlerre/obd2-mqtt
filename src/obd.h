@@ -15,7 +15,12 @@
  * 59 Temple Place - Suite 330, Boston, MA  02111-1307 USA
  */
 #pragma once
+#ifdef USE_BLE
+#include <BLEClientSerial.h>
+#else
 #include <BluetoothSerial.h>
+#endif
+
 #include <bitset>
 #include <FS.h>
 #include <OBDStates.h>
@@ -67,7 +72,11 @@
 #define LITER_TO_GALLON     3.7854f
 
 class OBDClass : public OBDStates {
+#ifdef USE_BLE
+    BLEClientSerial serialBLE;
+#else
     BluetoothSerial serialBt;
+#endif
     ELM327 elm327;
 
     bool initDone = false;
@@ -84,11 +93,24 @@ class OBDClass : public OBDStates {
 
     std::function<void()> connectErrorCallback = nullptr;
 
+#ifdef USE_BLE
+    std::function<void(BLEScanResultsSet *scanResult)> devDiscoveredCallback = nullptr;
+#else
     std::function<void(BTScanResults *scanResult)> devDiscoveredCallback = nullptr;
+#endif
+
+#ifndef USE_BLE
+    static void BTEvent(esp_spp_cb_event_t event, esp_spp_cb_param_t *param);
 
     BTScanResults *discoverBtDevices();
+#endif
 
-    static void BTEvent(esp_spp_cb_event_t event, esp_spp_cb_param_t *param);
+
+#ifdef USE_BLE
+    static void onBLEDisconnect();
+
+    BLEScanResultsSet *discoverBLEDevices();
+#endif
 
     template<typename T>
     void fromJSON(T *state, JsonDocument &doc);
@@ -126,7 +148,11 @@ public:
 
     void onConnectError(const std::function<void()> &callback);
 
-    void onDevicesDiscovered(const std::function<void(BTScanResults *scanResult)> &callable);
+#ifdef USE_BLE
+    void onDevicesDiscovered(const std::function<void(BLEScanResultsSet *scanResult)> &callable);
+#else
+    void onDevicesDiscovered(const std::function<void(BTScanResults * scanResult)> &callable);
+#endif
 
     std::string getConnectedBTAddress() const;
 };

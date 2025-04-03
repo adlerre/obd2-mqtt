@@ -352,6 +352,7 @@ T *OBDClass::setFormatFuncByName(const char *funcName, T *state) {
     return state;
 }
 
+#ifndef USE_BLE
 void OBDClass::BTEvent(esp_spp_cb_event_t event, esp_spp_cb_param_t *param) {
     if (event == ESP_SPP_CLOSE_EVT) {
         Serial.println("Bluetooth disconnected.");
@@ -386,6 +387,41 @@ BTScanResults *OBDClass::discoverBtDevices() {
 
     return nullptr;
 }
+#endif
+
+#ifdef USE_BLE
+void OBDClass::onBLEDisconnect() {
+    Serial.println("Bluetooth LE disconnected.");
+
+    if (OBD.initDone && !OBD.stopConnect) {
+        // FIXME get reconnect working
+        // OBD.connect(true);
+        ESP.restart();
+    }
+}
+
+BLEScanResultsSet *OBDClass::discoverBLEDevices() {
+    serialBLE.discoverClear();
+
+    BLEScanResultsSet *bleDeviceList = serialBLE.getScanResults();
+    Serial.println("Discover Bluetooth LE devices...");
+    if (serialBLE.discoverAsync([](BLEAdvertisedDevice *pDevice) {
+        Serial.printf(">>>>>>>>>>>Found a new device: %s\n", pDevice->toString().c_str());
+    })) {
+        delay(BT_DISCOVER_TIME);
+        Serial.print("Stopping discover...");
+        serialBLE.discoverAsyncStop();
+        Serial.println("stopped");
+        delay(5000);
+
+        if (bleDeviceList != nullptr && bleDeviceList->getCount() > 0) {
+            return bleDeviceList;
+        }
+    }
+
+    return nullptr;
+}
+#endif
 
 void OBDClass::begin(const String &devName, const String &devMac, const char protocol,
                      const bool checkPidSupport) {
@@ -394,13 +430,22 @@ void OBDClass::begin(const String &devName, const String &devMac, const char pro
     this->protocol = protocol;
     this->checkPidSupport = checkPidSupport;
     stopConnect = false;
+#ifdef USE_BLE
+    serialBLE.onDisconnect(onBLEDisconnect);
+#else
     serialBt.register_callback(BTEvent);
+#endif
 }
 
 void OBDClass::end() {
     stopConnect = true;
+#ifdef USE_BLE
+    serialBLE.disconnect();
+    serialBLE.end();
+#else
     serialBt.disconnect();
     serialBt.end();
+#endif
 }
 
 void OBDClass::connect(bool reconnect) {
@@ -411,12 +456,52 @@ connect:
         return;
     }
 
+#ifdef USE_BLE
+    if (!serialBLE.begin("OBD2MQTT")) {
+        Serial.println("========== serialBLE failed!");
+        ESP.restart();
+    }
+#else
     if (!serialBt.begin("OBD2MQTT", true)) {
         Serial.println("========== serialBT failed!");
         ESP.restart();
     }
+#endif
 
     if (devMac.isEmpty()) {
+#ifdef USE_BLE
+        BLEScanResultsSet *bleDeviceList = discoverBLEDevices();
+
+        if (bleDeviceList == nullptr) {
+            Serial.println("Didn't find any devices");
+            if (connectErrorCallback) {
+                connectErrorCallback();
+            }
+        } else {
+            BLEAddress addr = BLEAddress("");
+
+            if (devDiscoveredCallback != nullptr && bleDeviceList->getCount() != 0) {
+                devDiscoveredCallback(bleDeviceList);
+            }
+
+            Serial.printf("Search device: %s\n", devName.c_str());
+            for (int i = 0; i < bleDeviceList->getCount(); i++) {
+                BLEAdvertisedDevice *device = bleDeviceList->getDevice(i);
+                if (strcmp(device->getName().c_str(), devName.c_str()) == 0) {
+                    Serial.printf(" ----- %s  %s %d\n", device->getAddress().toString().c_str(),
+                                  device->getName().c_str(), device->getRSSI());
+                    addr = BLEAddress(device->getAddress());
+                }
+            }
+
+            if (!stopConnect && !addr.toString().empty()) {
+                Serial.printf("connecting to %s\n", addr.toString().c_str());
+                if (serialBLE.connect(addr)) {
+                    connectedBTAddress = addr.toString();
+                }
+            }
+        }
+#else
         BTScanResults *btDeviceList = discoverBtDevices();
 
         if (btDeviceList == nullptr) {
@@ -435,7 +520,7 @@ connect:
             Serial.printf("Search device: %s\n", devName.c_str());
             for (int i = 0; i < btDeviceList->getCount(); i++) {
                 BTAdvertisedDevice *device = btDeviceList->getDevice(i);
-                if (device->getName() == devName.c_str()) {
+                if (strcmp(device->getName().c_str(), devName.c_str()) == 0) {
                     Serial.printf(" ----- %s  %s %d\n", device->getAddress().toString().c_str(),
                                   device->getName().c_str(), device->getRSSI());
                     std::map<int, std::string> channels = serialBt.getChannels(device->getAddress());
@@ -457,9 +542,20 @@ connect:
                 }
             }
         }
+#endif
     } else {
         byte mac[6];
         parseBytes(devMac.c_str(), ':', mac, 6, 16);
+#ifdef USE_BLE
+        BLEAddress addr = BLEAddress(mac);
+
+        if (!stopConnect && addr.toString() == devMac.c_str()) {
+            Serial.printf("connecting to %s\n", addr.toString().c_str());
+            if (serialBLE.connect(addr)) {
+                connectedBTAddress = addr.toString();
+            }
+        }
+#else
         BTAddress addr = mac;
         int channel = 0;
 
@@ -479,8 +575,18 @@ connect:
                 connectedBTAddress = addr.toString().c_str();
             }
         }
+#endif
     }
 
+#ifdef USE_BLE
+    if (!stopConnect && !serialBLE.isClosed() && serialBLE.connected()) {
+        int retryCount = 0;
+        while (!elm327.begin(serialBLE, false, 2000, protocol) && retryCount < 3) {
+            Serial.println("Couldn't connect to OBD scanner - Phase 2");
+            delay(BT_DISCOVER_TIME);
+            retryCount++;
+        }
+#else
     if (!stopConnect && !serialBt.isClosed() && serialBt.connected()) {
         int retryCount = 0;
         while (!elm327.begin(serialBt, false, 2000, protocol) && retryCount < 3) {
@@ -488,6 +594,7 @@ connect:
             delay(BT_DISCOVER_TIME);
             retryCount++;
         }
+#endif
     } else if (!stopConnect) {
         Serial.println("Couldn't connect to OBD scanner - Phase 1");
     }
@@ -500,7 +607,11 @@ connect:
     if (!elm327.connected) {
         delay(BT_DISCOVER_TIME);
         Serial.println("Restarting OBD connect.");
+#ifdef USE_BLE
+        serialBLE.end();
+#else
         serialBt.end();
+#endif
         if (connectErrorCallback) {
             connectErrorCallback();
         }
@@ -520,7 +631,11 @@ connect:
 }
 
 void OBDClass::loop() {
+#ifdef USE_BLE
+    if (!stopConnect && serialBLE && !serialBLE.isClosed()) {
+#else
     if (!stopConnect && serialBt && !serialBt.isClosed()) {
+#endif
 #ifdef DEBUG_OBDSTATE
         OBDState *state = nextState();
         if (state != nullptr && state->getType() == READ && state->getLastUpdate() != -1 && state->isSupported()) {
@@ -553,9 +668,15 @@ void OBDClass::onConnectError(const std::function<void()> &callback) {
     connectErrorCallback = callback;
 }
 
+#ifdef USE_BLE
+void OBDClass::onDevicesDiscovered(const std::function<void(BLEScanResultsSet *scanResult)> &callable) {
+    devDiscoveredCallback = callable;
+}
+#else
 void OBDClass::onDevicesDiscovered(const std::function<void(BTScanResults *scanResult)> &callable) {
     devDiscoveredCallback = callable;
 }
+#endif
 
 std::string OBDClass::getConnectedBTAddress() const {
     return connectedBTAddress;
