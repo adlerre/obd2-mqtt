@@ -1,3 +1,21 @@
+# [0.20.0](https://github.com/adlerre/obd2-mqtt/compare/v0.19.3...v0.20.0) (2025-04-03)
+
+
+### Bug Fixes
+
+* bump versions ([2f2df26](https://github.com/adlerre/obd2-mqtt/commit/2f2df260b21773b9dae58d0b5d54b89bcaee75fa))
+* bump versions ([7f77b62](https://github.com/adlerre/obd2-mqtt/commit/7f77b62a9c41e978e2b6f42c1747d3279d2a2517))
+* remove OTA link if disabled ([758e628](https://github.com/adlerre/obd2-mqtt/commit/758e628ca9ec75704d983870e103a5426844984c))
+* update README ([0dc88b3](https://github.com/adlerre/obd2-mqtt/commit/0dc88b377da43a194175d0a20351cd8ba682a277))
+* use log macros to save some bytes ([d63d9a2](https://github.com/adlerre/obd2-mqtt/commit/d63d9a2ab2066868d746dbc881db1f229c19b7d5))
+
+
+### Features
+
+* add support for BLE based ELM327 adapter ([8c8b7e3](https://github.com/adlerre/obd2-mqtt/commit/8c8b7e363d25f86260a7cb4769013afeb8122574))
+* BLE serial lib ([a558f41](https://github.com/adlerre/obd2-mqtt/commit/a558f41d34728935d1198181f599169dc1449f29))
+* separate BT/BLE flash buttons ([4050dbe](https://github.com/adlerre/obd2-mqtt/commit/4050dbe6e2ea9c84bc41ba4fd55f5a7565808b01))
+
 ## [0.19.3](https://github.com/adlerre/obd2-mqtt/compare/v0.19.2...v0.19.3) (2025-03-20)
 
 
