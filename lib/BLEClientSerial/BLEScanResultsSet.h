@@ -22,7 +22,7 @@
 #include "Stream.h"
 #include <BLEAdvertisedDevice.h>
 
-class BLEScanResultsSet : public BLEScanResults {
+class BLEScanResultsSet {
     std::map<std::string, BLEAdvertisedDevice> m_vectorAdvertisedDevices;
 
 public:

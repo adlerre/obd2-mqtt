@@ -42,6 +42,10 @@ class BLEClientSerial : public Stream {
 
     std::string buffer;
 
+    BLEUUID serviceUUID;
+    BLEUUID rxUUID;
+    BLEUUID txUUID;
+
     BLEClient *pClient = nullptr;
     BLERemoteCharacteristic *pTxCharacteristic = nullptr;
     BLERemoteCharacteristic *pRxCharacteristic = nullptr;
@@ -63,7 +67,8 @@ public:
 
     explicit operator bool() const;
 
-    bool begin(const String &localName = String());
+    bool begin(const String &localName = String(), const std::string &serviceUUID = "FFF0", const std::string &rxUUID = "FFF1",
+               const std::string &txUUID = "FFF2");
 
     bool begin(unsigned long baud) {
         //compatibility

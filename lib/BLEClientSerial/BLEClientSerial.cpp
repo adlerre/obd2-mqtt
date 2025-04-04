@@ -19,10 +19,6 @@
 
 static BLEScanResultsSet scanResults;
 
-BLEUUID serviceUUID_FFF0("FFF0");
-BLEUUID rxUUID("FFF1");
-BLEUUID txUUID("FFF2");
-
 static void printFriendlyResponse(const uint8_t *pData, size_t length) {
     log_d("");
     for (int i = 0; i < length; i++) {
@@ -48,12 +44,16 @@ static void printFriendlyResponse(const uint8_t *pData, size_t length) {
 }
 
 class AdvertisedDeviceCallbacks final : public BLEAdvertisedDeviceCallbacks {
+    BLEUUID serviceUUID;
     BLEAdvertisedDeviceCb callback = nullptr;
 
 public:
-    AdvertisedDeviceCallbacks();
+    AdvertisedDeviceCallbacks(const BLEUUID &serviceFilter) {
+        serviceUUID = serviceFilter;
+    }
 
-    explicit AdvertisedDeviceCallbacks(const BLEAdvertisedDeviceCb &cb) {
+    explicit AdvertisedDeviceCallbacks(const BLEUUID &serviceFilter, const BLEAdvertisedDeviceCb &cb) {
+        serviceUUID = serviceFilter;
         callback = cb;
     }
 
@@ -62,7 +62,7 @@ public:
      */
     void onResult(BLEAdvertisedDevice advertisedDevice) override {
         // filter for required service
-        if (advertisedDevice.getServiceUUID().equals(serviceUUID_FFF0) &&
+        if (advertisedDevice.getServiceUUID().equals(serviceUUID) &&
             scanResults.add(advertisedDevice) && callback) {
             callback(&advertisedDevice);
         }
@@ -124,8 +124,12 @@ void BLEClientSerial::notifyCallback(BLERemoteCharacteristic *pBLERemoteCharacte
 }
 
 // Begin bluetooth serial
-bool BLEClientSerial::begin(const String &localName) {
+bool BLEClientSerial::begin(const String &localName, const std::string &serviceUUID, const std::string &rxUUID,
+                            const std::string &txUUID) {
     local_name = localName;
+    this->serviceUUID = BLEUUID(serviceUUID);
+    this->rxUUID = BLEUUID(rxUUID);
+    this->txUUID = BLEUUID(txUUID);
     BLEDevice::init(local_name.c_str());
     return true;
 }
@@ -190,7 +194,7 @@ bool BLEClientSerial::connect(const String &remoteName) {
             return false;
         }
 
-        BLERemoteService *pService = pClient->getService(serviceUUID_FFF0);
+        BLERemoteService *pService = pClient->getService(serviceUUID);
         if (pService) {
             pRxCharacteristic = pService->getCharacteristic(rxUUID);
             pTxCharacteristic = pService->getCharacteristic(txUUID);
@@ -231,7 +235,7 @@ bool BLEClientSerial::connect(uint8_t remoteAddress[]) {
             return false;
         }
 
-        BLERemoteService *pService = pClient->getService(serviceUUID_FFF0);
+        BLERemoteService *pService = pClient->getService(serviceUUID);
         if (pService) {
             pRxCharacteristic = pService->getCharacteristic(rxUUID);
             pTxCharacteristic = pService->getCharacteristic(txUUID);
@@ -348,7 +352,7 @@ bool BLEClientSerial::discoverAsync(const BLEAdvertisedDeviceCb &cb, int timeout
         pBLEScan->stop();
 
 
-        pBLEScan->setAdvertisedDeviceCallbacks(new AdvertisedDeviceCallbacks(cb));
+        pBLEScan->setAdvertisedDeviceCallbacks(new AdvertisedDeviceCallbacks(serviceUUID, cb));
         pBLEScan->setInterval(INQ_TIME);
         pBLEScan->setWindow(449);
         pBLEScan->setActiveScan(true);
