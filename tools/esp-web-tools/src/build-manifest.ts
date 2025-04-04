@@ -15,10 +15,12 @@
  *  59 Temple Place - Suite 330, Boston, MA  02111-1307 USA
  */
 import { DEVICES } from "./devices";
+import { parse } from "ini";
 
 const os = require("os")
 const fs = require("node:fs");
 const path = require("node:path");
+const csv = require("csv-parser");
 
 interface Part {
     path: string;
@@ -38,6 +40,7 @@ interface Manifest {
     builds?: Array<Build>;
 }
 
+const baseDir = path.resolve(__dirname, "../../..")
 const pioDir = path.resolve(__dirname, "../../../.pio/build");
 const webToolsDir = path.resolve(__dirname, "..");
 
@@ -47,6 +50,44 @@ const deviceBins = [
     "firmware",
     "littlefs"
 ];
+
+const part2pname: { [key: string]: string } = {
+    "boot_app0": "ota",
+    "firmware": "ota_0",
+    "littlefs": "spiffs"
+};
+
+const buildManifest = async (partCsv: string, manifest: Manifest) => {
+    const findLine = (subType: string, results: Array<{ [key: string]: string }>): { [key: string]: string } => {
+        return results.find(l => l["subtype"] === subType);
+    };
+
+    return await new Promise<Manifest>(resolve => {
+        const results: Array<{ [key: string]: string }> = [];
+        return fs.createReadStream(partCsv)
+            .pipe(csv({
+                mapHeaders: ({header, index}: {
+                    header: string,
+                    index: number
+                }) => header.trim().replaceAll(/#\s*/g, "").toLowerCase(),
+                mapValues: ({header, index, value}: { header: string, index: number, value: string }) => value.trim()
+            }))
+            .on("data", (data) => results.push(data))
+            .on("end", () => {
+                manifest.builds.forEach(b =>
+                    b.parts.forEach(p => {
+                        Object.keys(part2pname).forEach(pn => {
+                            if (p.path.indexOf(pn) !== -1) {
+                                const line = findLine(part2pname[pn], results);
+                                p.offset = parseInt(line["offset"], 16);
+                            }
+                        })
+                    })
+                )
+                resolve(manifest);
+            });
+    });
+};
 
 try {
     const distIndex = process.argv.indexOf("--dist");
@@ -62,74 +103,86 @@ try {
         }
     }
 
+    const pio_ini = parse(fs.readFileSync(`${baseDir}/platformio.ini`, "utf8"));
     const manifest: Manifest = JSON.parse(fs.readFileSync(`${webToolsDir}/manifest.json`, "utf8"));
 
     if (manifest && manifest.builds && manifest.builds.length > 0) {
-        const devTmpl = manifest.builds[0];
-
         DEVICES.forEach(device => {
             const build: Build = {
                 chipFamily: "ESP32",
                 parts: []
             };
 
-            devTmpl.parts.forEach(part => {
-                let binDir: string = "";
-                const dirname = path.dirname(part.path);
-                const basename = path.basename(part.path);
+            let part_csv = pio_ini["env:" + device]['board_build.partitions'];
+            if (!part_csv) {
+                const e = pio_ini["env:" + device]["extends"];
+                part_csv = pio_ini[e]['board_build.partitions'];
+            }
 
-                if (localDev) {
-                    binDir = path.join(distDir, dirname, device);
+            if (!part_csv) {
+                throw new Error("No partition table was found.");
+            }
 
-                    if (!fs.existsSync(binDir)) {
-                        fs.mkdirSync(binDir, {recursive: true});
-                    }
-                }
+            buildManifest(part_csv, JSON.parse(JSON.stringify(manifest))).then(mani => {
+                const devTmpl = Object.assign({}, mani.builds[0]);
 
-                if (deviceBins.indexOf(basename.replace(".bin", "")) !== -1) {
-                    const p = {
-                        path: `${dirname}/${device}/${basename}`,
-                        offset: part.offset
-                    };
-                    build.parts.push(p);
+                devTmpl.parts.forEach(part => {
+                    let binDir: string = "";
+                    const dirname = path.dirname(part.path);
+                    const basename = path.basename(part.path);
 
                     if (localDev) {
-                        fs.copyFile(
-                            path.resolve(pioDir, device, basename),
-                            path.resolve(binDir, basename),
-                            (err: any) => {
-                                if (err) throw err;
-                            }
-                        );
-                    }
-                } else {
-                    const p: Part = {
-                        path: `${dirname}/${device}/${basename}`,
-                        offset: part.offset
-                    };
-                    build.parts.push(p);
+                        binDir = path.join(distDir, dirname, device);
 
-                    if (localDev) {
-                        fs.copyFile(
-                            path.resolve(
-                                os.homedir(),
-                                ".platformio/packages/framework-arduinoespressif32/tools/partitions",
-                                basename
-                            ),
-                            path.resolve(binDir, basename),
-                            (err: any) => {
-                                if (err) throw err;
-                            }
-                        );
+                        if (!fs.existsSync(binDir)) {
+                            fs.mkdirSync(binDir, {recursive: true});
+                        }
                     }
-                }
+
+                    if (deviceBins.indexOf(basename.replace(".bin", "")) !== -1) {
+                        const p = {
+                            path: `${dirname}/${device}/${basename}`,
+                            offset: part.offset
+                        };
+                        build.parts.push(p);
+
+                        if (localDev) {
+                            fs.copyFile(
+                                path.resolve(pioDir, device, basename),
+                                path.resolve(binDir, basename),
+                                (err: any) => {
+                                    if (err) throw err;
+                                }
+                            );
+                        }
+                    } else {
+                        const p: Part = {
+                            path: `${dirname}/${device}/${basename}`,
+                            offset: part.offset
+                        };
+                        build.parts.push(p);
+
+                        if (localDev) {
+                            fs.copyFile(
+                                path.resolve(
+                                    os.homedir(),
+                                    ".platformio/packages/framework-arduinoespressif32/tools/partitions",
+                                    basename
+                                ),
+                                path.resolve(binDir, basename),
+                                (err: any) => {
+                                    if (err) throw err;
+                                }
+                            );
+                        }
+                    }
+                });
+
+                const m = Object.assign({builds: [{}]}, mani);
+                m.builds[0] = build;
+
+                fs.writeFileSync(`${distDir}/manifest-${device}.json`, JSON.stringify(m, null, 2));
             });
-
-            const m = Object.assign({builds: [{}]}, manifest);
-            m.builds[0] = build;
-
-            fs.writeFileSync(`${distDir}/manifest-${device}.json`, JSON.stringify(m, null, 2));
-
         });
     }
 } catch (err) {
