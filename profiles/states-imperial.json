@@ -170,7 +170,7 @@
     "visible": true,
     "interval": 100,
     "name": "rpm",
-    "description": "Rounds per minute",
+    "description": "Revolutions per minute",
     "icon": "engine",
     "measurement": true,
     "diagnostic": false,

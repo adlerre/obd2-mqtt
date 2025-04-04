@@ -113,7 +113,7 @@ The following sensors are included in the supplied standard profile:
 * Odometer
 * Oil Temperature
 * Pedal Position
-* Rounds per minute
+* Revolutions per minute
 * Throttle
 * Top Speed ;-)
 
@@ -223,7 +223,7 @@ or with PID codes and value changes:
   "visible": true,
   "interval": 100,
   "name": "rpm",
-  "description": "Rounds per minute",
+  "description": "Revolutions per minute",
   "icon": "engine",
   "measurement": true,
   "diagnostic": false,
