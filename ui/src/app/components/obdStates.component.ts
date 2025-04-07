@@ -205,6 +205,7 @@ export class OBDStatesComponent implements OnInit {
             pid: new FormGroup({
                 service: new FormControl<number>(0, [Validators.required, Validators.min(0), Validators.max(255)]),
                 pid: new FormControl<number>(0, [Validators.required, Validators.min(0)]),
+                header: new FormControl<number>(0, [Validators.required, Validators.min(0)]),
                 numResponses: new FormControl<number>(0, [Validators.required, Validators.min(0), Validators.max(16)]),
                 numExpectedBytes: new FormControl<number>(0, [Validators.required, Validators.min(0), Validators.max(16)]),
                 scaleFactor: new FormControl<string | null>(null, [Validators.maxLength(256)]),
