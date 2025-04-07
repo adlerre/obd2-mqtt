@@ -29,6 +29,7 @@ export enum ValueTypes {
 export interface PID {
     service: number;
     pid: number;
+    header: number;
     numResponses: number;
     numExpectedBytes: number;
     scaleFactor?: string;

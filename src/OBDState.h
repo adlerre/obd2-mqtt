@@ -42,6 +42,7 @@ protected:
 
     uint8_t service = 0;
     uint16_t pid = 0;
+    uint16_t header = 0;
     uint8_t numResponses = 0;
     uint8_t numExpectedBytes = 0;
     double scaleFactor = 1;
@@ -52,6 +53,7 @@ protected:
 
     bool init = false;
     bool checkPidSupport = false;
+    bool setHeader = false;
     bool supported = true;
     bool enabled = true;
     bool visible = true;
@@ -107,21 +109,21 @@ public:
 
     bool isPIDSupported(const uint8_t &service, const uint16_t &pid) const;
 
-    void setPIDSettings(const uint8_t &service, const uint16_t &pid,
+    void setPIDSettings(const uint8_t &service, const uint16_t &pid, const uint16_t &header,
                         const uint8_t &numResponses, const uint8_t &numExpectedBytes, const double &scaleFactor = 1,
                         const float &bias = 0);
 
-    void setPIDSettings(const uint8_t &service, const uint16_t &pid,
+    void setPIDSettings(const uint8_t &service, const uint16_t &pid, const uint16_t &header,
                         const uint8_t &numResponses, const uint8_t &numExpectedBytes,
                         const char *scaleFactorExpression = nullptr,
                         const float &bias = 0);
 
-    virtual OBDState *withPIDSettings(const uint8_t &service, const uint16_t &pid,
+    virtual OBDState *withPIDSettings(const uint8_t &service, const uint16_t &pid, const uint16_t &header,
                                       const uint8_t &numResponses, const uint8_t &numExpectedBytes,
                                       const double &scaleFactor = 1,
                                       const float &bias = 0);
 
-    virtual OBDState *withPIDSettings(const uint8_t &service, const uint16_t &pid,
+    virtual OBDState *withPIDSettings(const uint8_t &service, const uint16_t &pid, const uint16_t &header,
                                       const uint8_t &numResponses, const uint8_t &numExpectedBytes,
                                       const char *scaleFactorExpression = nullptr,
                                       const float &bias = 0);
@@ -192,12 +194,12 @@ public:
 
     const char *valueType() const override;
 
-    TypedOBDState *withPIDSettings(const uint8_t &service, const uint16_t &pid,
+    TypedOBDState *withPIDSettings(const uint8_t &service, const uint16_t &pid, const uint16_t &header,
                                    const uint8_t &numResponses, const uint8_t &numExpectedBytes,
                                    const double &scaleFactor = 1,
                                    const float &bias = 0) override;
 
-    TypedOBDState *withPIDSettings(const uint8_t &service, const uint16_t &pid,
+    TypedOBDState *withPIDSettings(const uint8_t &service, const uint16_t &pid, const uint16_t &header,
                                    const uint8_t &numResponses, const uint8_t &numExpectedBytes,
                                    const char *scaleFactorExpression = nullptr,
                                    const float &bias = 0) override;
@@ -269,12 +271,12 @@ public:
 
     const char *valueType() const override;
 
-    OBDStateBool *withPIDSettings(const uint8_t &service, const uint16_t &pid,
+    OBDStateBool *withPIDSettings(const uint8_t &service, const uint16_t &pid, const uint16_t &header,
                                   const uint8_t &numResponses, const uint8_t &numExpectedBytes,
                                   const double &scaleFactor = 1,
                                   const float &bias = 0) override;
 
-    OBDStateBool *withPIDSettings(const uint8_t &service, const uint16_t &pid,
+    OBDStateBool *withPIDSettings(const uint8_t &service, const uint16_t &pid, const uint16_t &header,
                                   const uint8_t &numResponses, const uint8_t &numExpectedBytes,
                                   const char *scaleFactorExpression = nullptr,
                                   const float &bias = 0) override;
@@ -310,12 +312,12 @@ public:
 
     const char *valueType() const override;
 
-    OBDStateFloat *withPIDSettings(const uint8_t &service, const uint16_t &pid,
+    OBDStateFloat *withPIDSettings(const uint8_t &service, const uint16_t &pid, const uint16_t &header,
                                    const uint8_t &numResponses, const uint8_t &numExpectedBytes,
                                    const double &scaleFactor = 1,
                                    const float &bias = 0) override;
 
-    OBDStateFloat *withPIDSettings(const uint8_t &service, const uint16_t &pid,
+    OBDStateFloat *withPIDSettings(const uint8_t &service, const uint16_t &pid, const uint16_t &header,
                                    const uint8_t &numResponses, const uint8_t &numExpectedBytes,
                                    const char *scaleFactorExpression = nullptr,
                                    const float &bias = 0) override;
@@ -350,12 +352,12 @@ public:
 
     const char *valueType() const override;
 
-    OBDStateInt *withPIDSettings(const uint8_t &service, const uint16_t &pid,
+    OBDStateInt *withPIDSettings(const uint8_t &service, const uint16_t &pid, const uint16_t &header,
                                  const uint8_t &numResponses, const uint8_t &numExpectedBytes,
                                  const double &scaleFactor = 1,
                                  const float &bias = 0) override;
 
-    OBDStateInt *withPIDSettings(const uint8_t &service, const uint16_t &pid,
+    OBDStateInt *withPIDSettings(const uint8_t &service, const uint16_t &pid, const uint16_t &header,
                                  const uint8_t &numResponses, const uint8_t &numExpectedBytes,
                                  const char *scaleFactorExpression = nullptr,
                                  const float &bias = 0) override;

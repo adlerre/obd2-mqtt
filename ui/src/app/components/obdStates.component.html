@@ -172,8 +172,8 @@
                                 <ng-container formGroupName="pid">
                                     <div class="row mb-2">
                                         <label for="service-{{ i }}" class="col-sm-2 col-form-label">Service /
-                                            PID</label>
-                                        <div class="col-sm-5 pe-md-1">
+                                            PID / Header</label>
+                                        <div class="col-sm-3 pe-md-1">
                                             <input formControlName="service" type="number" id="service-{{ i }}"
                                                    autocapitalize="off"
                                                    autocorrect="off"
@@ -182,13 +182,22 @@
                                                    [ngClass]="{'is-invalid': state.controls.pid.controls.service.errors}"
                                             >
                                         </div>
-                                        <div class="col-sm-5 ps-md-1">
+                                        <div class="col-sm-3 ps-md-1 pe-md-1">
                                             <input formControlName="pid" type="number" id="pid-{{ i }}"
                                                    autocapitalize="off"
                                                    autocorrect="off"
                                                    placeholder="PID"
                                                    class="form-control"
                                                    [ngClass]="{'is-invalid': state.controls.pid.controls.pid.errors}"
+                                            >
+                                        </div>
+                                        <div class="col-sm-4 ps-md-1">
+                                            <input formControlName="header" type="number" id="header-{{ i }}"
+                                                   autocapitalize="off"
+                                                   autocorrect="off"
+                                                   placeholder="Header"
+                                                   class="form-control"
+                                                   [ngClass]="{'is-invalid': state.controls.pid.controls.header.errors}"
                                             >
                                         </div>
                                     </div>
