@@ -95,12 +95,16 @@ uint32_t OBDState::supportedPIDs(const uint8_t &service, const uint16_t &pid) co
 }
 
 bool OBDState::isPIDSupported(const uint8_t &service, const uint16_t &pid) const {
-    const uint8_t pidInterval = (pid / PID_INTERVAL_OFFSET) * PID_INTERVAL_OFFSET;
-    const uint32_t response = supportedPIDs(service, pidInterval);
-    if (elm327->nb_rx_state == ELM_SUCCESS) {
-        return ((response >> (32 - pid)) & 0x1);
+    if (service >= 0x01 && service <= 0x0A) {
+        const uint32_t response = supportedPIDs(service, pid);
+        if (elm327->nb_rx_state == ELM_SUCCESS) {
+            return ((response >> (32 - pid)) & 0x1);
+        }
+
+        return false;
     }
-    return false;
+
+    return true;
 }
 
 void OBDState::setPIDSettings(const uint8_t &service, const uint16_t &pid, const uint8_t &numResponses,
