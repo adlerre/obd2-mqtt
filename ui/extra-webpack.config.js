@@ -57,6 +57,7 @@ module.exports = {
 
             devServer.app.get("/api/ota", (_, response) => {
                 response.status(200);
+                response.send("enabled");
             });
 
             devServer.app.get("/api/settings", (_, response) => {

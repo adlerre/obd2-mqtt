@@ -71,10 +71,10 @@ export class ApiService {
     }
 
     otaEnabled() {
-        return this.$http.get("/api/ota", {observe: "response"})
+        return this.$http.get("/api/ota", {observe: "response", responseType: "text"})
             .pipe(
                 map((res: HttpResponse<any>) => res.status === 200),
-                catchError((_err, _caught) => of(false))
+                catchError((_err, _caught) =>  of(false))
             );
     }
 
