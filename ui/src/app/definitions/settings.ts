@@ -73,6 +73,7 @@ export interface MQTTSettings {
     secure?: boolean;
     username?: string;
     password?: string;
+    allowOffline?: boolean;
     dataInterval?: number;
     diagnosticInterval?: number;
     discoveryInterval?: number;

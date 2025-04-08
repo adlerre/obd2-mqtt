@@ -45,6 +45,7 @@ void SettingsClass::readJson(JsonDocument &doc) {
     mqtt.secure = doc["mqtt"]["secure"] | false;
     strlcpy(mqtt.username, doc["mqtt"]["username"] | "", sizeof(mqtt.username));
     strlcpy(mqtt.password, doc["mqtt"]["password"] | "", sizeof(mqtt.password));
+    mqtt.allowOffline = doc["mqtt"]["allowOffline"] | false;
     mqtt.dataInterval = doc["mqtt"]["dataInterval"] | 1;
     mqtt.diagnosticInterval = doc["mqtt"]["diagnosticInterval"] | 30;
     mqtt.discoveryInterval = doc["mqtt"]["discoveryInterval"] | 300;
@@ -75,6 +76,7 @@ void SettingsClass::writeJson(JsonDocument &doc) {
     doc["mqtt"]["secure"] = mqtt.secure;
     doc["mqtt"]["username"] = mqtt.username;
     doc["mqtt"]["password"] = mqtt.password;
+    doc["mqtt"]["allowOffline"] = mqtt.allowOffline;
     doc["mqtt"]["dataInterval"] = mqtt.dataInterval;
     doc["mqtt"]["diagnosticInterval"] = mqtt.diagnosticInterval;
     doc["mqtt"]["discoveryInterval"] = mqtt.discoveryInterval;
@@ -292,6 +294,14 @@ String SettingsClass::getMQTTPassword() const {
 
 void SettingsClass::setMQTTPassword(const char *password) {
     strlcpy(mqtt.password, password, sizeof(mqtt.password));
+}
+
+bool SettingsClass::getMQTTAllowOffline() const {
+    return mqtt.allowOffline;
+}
+
+void SettingsClass::setMQTTAllowOffline(const bool allowOffline) {
+    mqtt.allowOffline = allowOffline;
 }
 
 unsigned int SettingsClass::getMQTTDataInterval() const {

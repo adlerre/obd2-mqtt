@@ -75,6 +75,7 @@ struct MQTTSettings {
     bool secure;
     char username[33];
     char password[33];
+    bool allowOffline;
     unsigned int dataInterval;
     unsigned int diagnosticInterval;
     unsigned int discoveryInterval;
@@ -178,6 +179,10 @@ public:
     String getMQTTPassword() const;
 
     void setMQTTPassword(const char *password);
+
+    bool getMQTTAllowOffline() const;
+
+    void setMQTTAllowOffline(bool allowOffline);
 
     unsigned int getMQTTDataInterval() const;
 
