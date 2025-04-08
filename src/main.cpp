@@ -756,7 +756,7 @@ void mqttSendData() {
 
                     const double avgLU = OBD.avgLastUpdate([](const OBDState *state) {
                         return state->isEnabled() &&
-                               state->getType() == READ && state->getUpdateInterval() > 0 &&
+                               state->getType() ==  obd::READ && state->getUpdateInterval() > 0 &&
                                state->getUpdateInterval() <= 5 * 60 * 1000;
                     });
 

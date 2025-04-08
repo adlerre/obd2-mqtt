@@ -17,22 +17,23 @@
 #define BLESCANRESULTSSET_H
 
 #include "sdkconfig.h"
-#if defined(CONFIG_BLUEDROID_ENABLED)
+#if defined(CONFIG_BT_ENABLED)
 
 #include "Stream.h"
-#include <BLEAdvertisedDevice.h>
+#include <map>
+#include <NimBLEAdvertisedDevice.h>
 
 class BLEScanResultsSet {
-    std::map<std::string, BLEAdvertisedDevice> m_vectorAdvertisedDevices;
+    std::map<std::string, NimBLEAdvertisedDevice> m_vectorAdvertisedDevices;
 
 public:
     void dump(Print *print = nullptr);
 
     int getCount();
 
-    BLEAdvertisedDevice *getDevice(int i);
+    NimBLEAdvertisedDevice *getDevice(int i);
 
-    bool add(BLEAdvertisedDevice advertisedDevice, bool unique = true);
+    bool add(NimBLEAdvertisedDevice advertisedDevice, bool unique = true);
 
     void clear();
 };

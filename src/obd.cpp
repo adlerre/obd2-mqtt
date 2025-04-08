@@ -152,7 +152,7 @@ void OBDClass::fromJSON(T *state, JsonDocument &doc) {
     state->setEnabled(doc["enabled"].as<bool>());
     state->setVisible(doc["visible"].as<bool>());
 
-    if (state->getType() == READ) {
+    if (state->getType() == obd::READ) {
         if (!doc["readFunc"].isNull()) {
             setReadFuncByName<T>(doc["readFunc"].as<std::string>().c_str(), state);
         } else if (!doc["pid"].isNull()) {
@@ -165,7 +165,7 @@ void OBDClass::fromJSON(T *state, JsonDocument &doc) {
                 doc["pid"]["bias"].as<float>()
             );
         }
-    } else if (state->getType() == CALC) {
+    } else if (state->getType() == obd::CALC) {
         if (!doc["expr"].isNull()) {
             state->setCalcExpression(doc["expr"].as<std::string>().c_str());
         }
@@ -216,7 +216,7 @@ void OBDClass::readJSON(JsonDocument &doc) {
     for (JsonDocument stateObj: array) {
         if (stateObj["valueType"] == "bool") {
             auto *state = new OBDStateBool(
-                stateObj["type"].as<OBDStateType>(),
+                stateObj["type"].as<obd::OBDStateType>(),
                 stateObj["name"].as<std::string>().c_str(),
                 stateObj["description"].as<std::string>().c_str(),
                 !stateObj["icon"].isNull() ? stateObj["icon"].as<std::string>().c_str() : "",
@@ -229,7 +229,7 @@ void OBDClass::readJSON(JsonDocument &doc) {
             addState(state);
         } else if (stateObj["valueType"] == "float") {
             auto *state = new OBDStateFloat(
-                stateObj["type"].as<OBDStateType>(),
+                stateObj["type"].as<obd::OBDStateType>(),
                 stateObj["name"].as<std::string>().c_str(),
                 stateObj["description"].as<std::string>().c_str(),
                 !stateObj["icon"].isNull() ? stateObj["icon"].as<std::string>().c_str() : "",
@@ -242,7 +242,7 @@ void OBDClass::readJSON(JsonDocument &doc) {
             addState(state);
         } else if (stateObj["valueType"] == "int") {
             auto *state = new OBDStateInt(
-                stateObj["type"].as<OBDStateType>(),
+                stateObj["type"].as<obd::OBDStateType>(),
                 stateObj["name"].as<std::string>().c_str(),
                 stateObj["description"].as<std::string>().c_str(),
                 !stateObj["icon"].isNull() ? stateObj["icon"].as<std::string>().c_str() : "",
@@ -405,7 +405,7 @@ BLEScanResultsSet *OBDClass::discoverBLEDevices() {
 
     BLEScanResultsSet *bleDeviceList = serialBLE.getScanResults();
     Serial.println("Discover Bluetooth LE devices...");
-    if (serialBLE.discoverAsync([](BLEAdvertisedDevice *pDevice) {
+    if (serialBLE.discoverAsync([](const NimBLEAdvertisedDevice *pDevice) {
         Serial.printf(">>>>>>>>>>>Found a new device: %s\n", pDevice->toString().c_str());
     })) {
         delay(BT_DISCOVER_TIME);
@@ -478,7 +478,7 @@ connect:
                 connectErrorCallback();
             }
         } else {
-            BLEAddress addr = BLEAddress("");
+            NimBLEAddress addr = NimBLEAddress();
 
             if (devDiscoveredCallback != nullptr && bleDeviceList->getCount() != 0) {
                 devDiscoveredCallback(bleDeviceList);
@@ -486,15 +486,15 @@ connect:
 
             Serial.printf("Search device: %s\n", devName.c_str());
             for (int i = 0; i < bleDeviceList->getCount(); i++) {
-                BLEAdvertisedDevice *device = bleDeviceList->getDevice(i);
+                NimBLEAdvertisedDevice *device = bleDeviceList->getDevice(i);
                 if (strcmp(device->getName().c_str(), devName.c_str()) == 0) {
                     Serial.printf(" ----- %s  %s %d\n", device->getAddress().toString().c_str(),
                                   device->getName().c_str(), device->getRSSI());
-                    addr = BLEAddress(device->getAddress());
+                    addr = NimBLEAddress(device->getAddress());
                 }
             }
 
-            if (!stopConnect && !addr.toString().empty()) {
+            if (!stopConnect && addr) {
                 Serial.printf("connecting to %s\n", addr.toString().c_str());
                 if (serialBLE.connect(addr)) {
                     connectedBTAddress = addr.toString();
@@ -547,9 +547,9 @@ connect:
         byte mac[6];
         parseBytes(devMac.c_str(), ':', mac, 6, 16);
 #ifdef USE_BLE
-        BLEAddress addr = BLEAddress(mac);
+        NimBLEAddress addr = NimBLEAddress(mac, 0);
 
-        if (!stopConnect && addr.toString() == devMac.c_str()) {
+        if (!stopConnect && addr) {
             Serial.printf("connecting to %s\n", addr.toString().c_str());
             if (serialBLE.connect(addr)) {
                 connectedBTAddress = addr.toString();

@@ -27,7 +27,7 @@ void OBDState::operator delete(void *ptr) {
     heap_caps_free(ptr);
 }
 
-OBDState::OBDState(const OBDStateType type, const char *name, const char *description, const char *icon,
+OBDState::OBDState(const obd::OBDStateType type, const char *name, const char *description, const char *icon,
                    const char *unit, const char *deviceClass, const bool measurement, const bool diagnostic) {
     this->type = type;
     strlcpy(this->name, name, sizeof(this->name));
@@ -40,7 +40,7 @@ OBDState::OBDState(const OBDStateType type, const char *name, const char *descri
     this->updateInterval = 100;
 }
 
-OBDStateType OBDState::getType() const {
+obd::OBDStateType OBDState::getType() const {
     return this->type;
 }
 
@@ -81,7 +81,7 @@ bool OBDState::isDiagnostic() const {
 }
 
 void OBDState::setCalcExpression(const char *expression) {
-    this->type = CALC;
+    this->type = obd::CALC;
     strlcpy(this->calcExpression, expression, sizeof(this->calcExpression));
 }
 
@@ -109,7 +109,7 @@ bool OBDState::isPIDSupported(const uint8_t &service, const uint16_t &pid) const
 
 void OBDState::setPIDSettings(const uint8_t &service, const uint16_t &pid, const uint8_t &numResponses,
                               const uint8_t &numExpectedBytes, const double &scaleFactor, const float &bias) {
-    this->type = READ;
+    this->type = obd::READ;
     this->service = service;
     this->pid = pid;
     this->numResponses = numResponses;
@@ -245,13 +245,13 @@ void OBDState::toJSON(JsonDocument &doc) {
     doc["measurement"] = this->isMeasurement();
     doc["diagnostic"] = this->isDiagnostic();
 
-    if (this->type == CALC && strlen(this->calcExpression) != 0) {
+    if (this->type == obd::CALC && strlen(this->calcExpression) != 0) {
         doc["expr"] = this->calcExpression;
     }
 }
 
 template<typename T>
-TypedOBDState<T>::TypedOBDState(OBDStateType type, const char *name, const char *description,
+TypedOBDState<T>::TypedOBDState(obd::OBDStateType type, const char *name, const char *description,
                                 const char *icon, const char *unit, const char *deviceClass,
                                 const bool measurement, const bool diagnostic): OBDState(
     type, name, description, icon, unit, deviceClass, measurement, diagnostic) {
@@ -330,7 +330,7 @@ TypedOBDState<T> *TypedOBDState<T>::withReadFuncName(const char *funcName) {
 
 template<typename T>
 void TypedOBDState<T>::setReadFunc(const std::function<T()> &func) {
-    this->type = READ;
+    this->type = obd::READ;
     this->readFunction = func;
 }
 
@@ -342,7 +342,7 @@ TypedOBDState<T> *TypedOBDState<T>::withReadFunc(const std::function<T()> &func)
 
 template<typename T>
 void TypedOBDState<T>::readValue() {
-    if (elm327 != nullptr && elm327->elm_port && this->type == READ) {
+    if (elm327 != nullptr && elm327->elm_port && this->type == obd::READ) {
         if (!this->init && this->readFunction == nullptr) {
             this->supported = this->checkPidSupport && isPIDSupported(this->service, this->pid) || true;
             this->init = this->checkPidSupport && elm327->nb_rx_state == ELM_SUCCESS || true;
@@ -397,7 +397,7 @@ TypedOBDState<T> *TypedOBDState<T>::withCalcExpression(const char *expression) {
 template<typename T>
 void TypedOBDState<T>::calcValue(const std::function<double(const char *)> &func,
                                  const std::map<const char *, const std::function<double(double)>> &funcs) {
-    if (this->type == CALC && strlen(this->calcExpression) != 0) {
+    if (this->type == obd::CALC && strlen(this->calcExpression) != 0) {
         if (!this->processing) {
             this->oldValue = this->value;
             this->previousUpdate = this->lastUpdate;
@@ -510,7 +510,7 @@ template<typename T>
 void TypedOBDState<T>::toJSON(JsonDocument &doc) {
     OBDState::toJSON(doc);
 
-    if (this->type == READ) {
+    if (this->type == obd::READ) {
         if (this->readFunction != nullptr && strlen(this->readFunctionName) != 0) {
             doc["readFunc"] = this->readFunctionName;
         } else {
@@ -535,7 +535,7 @@ void TypedOBDState<T>::toJSON(JsonDocument &doc) {
     }
 }
 
-OBDStateBool::OBDStateBool(OBDStateType type, const char *name, const char *description,
+OBDStateBool::OBDStateBool(obd::OBDStateType type, const char *name, const char *description,
                            const char *icon, const char *unit, const char *deviceClass,
                            const bool measurement, const bool diagnostic): TypedOBDState(
     type, name, description, icon, unit, deviceClass, measurement, diagnostic) {
@@ -619,7 +619,7 @@ OBDStateBool *OBDStateBool::withValueFormatFunc(const std::function<char *(bool)
     return this;
 }
 
-OBDStateFloat::OBDStateFloat(OBDStateType type, const char *name, const char *description,
+OBDStateFloat::OBDStateFloat(obd::OBDStateType type, const char *name, const char *description,
                              const char *icon, const char *unit, const char *deviceClass,
                              const bool measurement, const bool diagnostic): TypedOBDState(
     type, name, description, icon, unit, deviceClass, measurement, diagnostic) {
@@ -701,7 +701,7 @@ OBDStateFloat *OBDStateFloat::withValueFormatFunc(const std::function<char *(flo
     return this;
 }
 
-OBDStateInt::OBDStateInt(OBDStateType type, const char *name, const char *description,
+OBDStateInt::OBDStateInt(obd::OBDStateType type, const char *name, const char *description,
                          const char *icon, const char *unit, const char *deviceClass,
                          const bool measurement, const bool diagnostic): TypedOBDState(
     type, name, description, icon, unit, deviceClass, measurement, diagnostic) {

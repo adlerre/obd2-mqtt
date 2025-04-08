@@ -18,43 +18,43 @@
 #ifndef _BLE_CLIENT_SERIAL_H_
 #define _BLE_CLIENT_SERIAL_H_
 #include "sdkconfig.h"
-#if defined(CONFIG_BLUEDROID_ENABLED)
+#if defined(CONFIG_BT_ENABLED)
 
 #include "Arduino.h"
 #include "Stream.h"
-#include <BLEDevice.h>
-#include <BLEUtils.h>
-#include <BLEAdvertisedDevice.h>
+#include <NimBLEDevice.h>
+#include <NimBLEAdvertisedDevice.h>
 #include "BLEScanResultsSet.h"
 
-typedef std::function<void(BLERemoteCharacteristic *pBLERemoteCharacteristic, const uint8_t *buffer, size_t size)>
+typedef std::function<void(NimBLERemoteCharacteristic *pBLERemoteCharacteristic, const uint8_t *buffer, size_t size)>
 BLESerialDataCb;
 typedef std::function<void()> BLEConnectCb;
 typedef std::function<void()> BLEDisconnectCb;
-typedef std::function<void(BLEAdvertisedDevice *pAdvertisedDevice)> BLEAdvertisedDeviceCb;
+typedef std::function<void(const NimBLEAdvertisedDevice *pAdvertisedDevice)> BLEAdvertisedDeviceCb;
 
 /**
  * BLE Serial Client
  * Was adopted from <a href="https://github.com/vdvornichenko/obd-ble-serial">vdvornichenko/obd-ble-serial</a>
  */
 class BLEClientSerial : public Stream {
+    bool init = false;
     String local_name;
 
     std::string buffer;
 
-    BLEUUID serviceUUID;
-    BLEUUID rxUUID;
-    BLEUUID txUUID;
+    NimBLEUUID serviceUUID;
+    NimBLEUUID rxUUID;
+    NimBLEUUID txUUID;
 
-    BLEClient *pClient = nullptr;
-    BLERemoteCharacteristic *pTxCharacteristic = nullptr;
-    BLERemoteCharacteristic *pRxCharacteristic = nullptr;
+    NimBLEClient *pClient = nullptr;
+    NimBLERemoteCharacteristic *pTxCharacteristic = nullptr;
+    NimBLERemoteCharacteristic *pRxCharacteristic = nullptr;
 
     BLESerialDataCb pDataCb;
     BLEConnectCb pConnectCb;
     BLEDisconnectCb pDisconnectCb;
 
-    void notifyCallback(BLERemoteCharacteristic *pBLERemoteCharacteristic, uint8_t *pData, size_t length,
+    void notifyCallback(NimBLERemoteCharacteristic *pBLERemoteCharacteristic, uint8_t *pData, size_t length,
                         bool isNotify);
 
     friend class AdvertisedDeviceCallbacks;
@@ -67,7 +67,8 @@ public:
 
     explicit operator bool() const;
 
-    bool begin(const String &localName = String(), const std::string &serviceUUID = "FFF0", const std::string &rxUUID = "FFF1",
+    bool begin(const String &localName = String(), const std::string &serviceUUID = "FFF0",
+               const std::string &rxUUID = "FFF1",
                const std::string &txUUID = "FFF2");
 
     bool begin(unsigned long baud) {
@@ -75,16 +76,12 @@ public:
         return begin();
     }
 
-    bool setPin(int pin);
-
-    void registerSecurityCallbacks(BLESecurityCallbacks *cb);
-
     bool connect(const String &remoteName);
 
-    bool connect(uint8_t remoteAddress[]);
+    bool connect(const NimBLEAddress &remoteAddress);
 
-    bool connect(BLEAddress &remoteAddress) {
-        return connect(reinterpret_cast<uint8_t *>(remoteAddress.getNative()));
+    bool connect(const uint8_t remoteAddress[]) {
+        return connect(NimBLEAddress(remoteAddress, 0));
     }
 
     bool connected() const;
@@ -123,7 +120,7 @@ public:
 
     BLEScanResultsSet *getScanResults();
 
-    const int INQ_TIME = 1349;
+    const int INQ_TIME = 100;
 };
 
 #endif

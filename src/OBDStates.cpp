@@ -183,7 +183,7 @@ OBDState *OBDStates::nextState() {
         std::vector<OBDState *> readStates{};
         getStates([](const OBDState *state) {
             return state->isEnabled() &&
-                   (state->getType() == READ || state->getType() == CALC && state->hasCalcExpression()) &&
+                   (state->getType() ==  obd::READ || state->getType() ==  obd::CALC && state->hasCalcExpression()) &&
                    (state->getUpdateInterval() != -1 || state->getUpdateInterval() == -1 && state->getLastUpdate() ==
                     0);
         }, readStates);
@@ -193,9 +193,9 @@ OBDState *OBDStates::nextState() {
         if (state.getUpdateInterval() == -1 || state.getLastUpdate() + state.getUpdateInterval() < millis()) {
             // int aFreeInternalHeapSizeBefore = heap_caps_get_free_size(MALLOC_CAP_8BIT | MALLOC_CAP_INTERNAL);
 
-            if (state.getType() == READ) {
+            if (state.getType() ==  obd::READ) {
                 state.readValue();
-            } else if (state.getType() == CALC) {
+            } else if (state.getType() ==  obd::CALC) {
                 state.calcValue(varResolveFunction, customFunctions);
             }
 
