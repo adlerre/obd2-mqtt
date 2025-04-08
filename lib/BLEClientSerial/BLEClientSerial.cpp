@@ -43,33 +43,30 @@ static void printFriendlyResponse(const uint8_t *pData, size_t length) {
     log_d("");
 }
 
-class AdvertisedDeviceCallbacks final : public BLEAdvertisedDeviceCallbacks {
-    BLEUUID serviceUUID;
+class AdvertisedDeviceCallbacks final : public NimBLEScanCallbacks {
+    NimBLEUUID serviceUUID;
     BLEAdvertisedDeviceCb callback = nullptr;
 
 public:
-    AdvertisedDeviceCallbacks(const BLEUUID &serviceFilter) {
+    AdvertisedDeviceCallbacks(const NimBLEUUID &serviceFilter) {
         serviceUUID = serviceFilter;
     }
 
-    explicit AdvertisedDeviceCallbacks(const BLEUUID &serviceFilter, const BLEAdvertisedDeviceCb &cb) {
+    explicit AdvertisedDeviceCallbacks(const NimBLEUUID &serviceFilter, const BLEAdvertisedDeviceCb &cb) {
         serviceUUID = serviceFilter;
         callback = cb;
     }
 
-    /**
-     * Called for each advertising BLE server.
-     */
-    void onResult(BLEAdvertisedDevice advertisedDevice) override {
+    void onResult(const NimBLEAdvertisedDevice *advertisedDevice) override {
         // filter for required service
-        if (advertisedDevice.getServiceUUID().equals(serviceUUID) &&
-            scanResults.add(advertisedDevice) && callback) {
-            callback(&advertisedDevice);
+        if (advertisedDevice != nullptr && advertisedDevice->isAdvertisingService(serviceUUID) &&
+            scanResults.add(*advertisedDevice) && callback) {
+            callback(advertisedDevice);
         }
     }
 };
 
-class ClientCallbacks final : public BLEClientCallbacks {
+class ClientCallbacks final : public NimBLEClientCallbacks {
     BLEConnectCb cCb;
     BLEDisconnectCb disCb;
 
@@ -81,13 +78,13 @@ public:
         disCb = disconnectCb;
     }
 
-    void onConnect(BLEClient *pClient) override {
+    void onConnect(NimBLEClient *pClient) override {
         if (cCb != nullptr) {
             cCb();
         }
     }
 
-    void onDisconnect(BLEClient *pClient) override {
+    void onDisconnect(NimBLEClient *pClient, int reason) override {
         if (disCb != nullptr) {
             disCb();
         }
@@ -101,10 +98,11 @@ BLEClientSerial::BLEClientSerial() = default;
 BLEClientSerial::~BLEClientSerial() = default;
 
 BLEClientSerial::operator bool() const {
-    return true;
+    return init;
 }
 
-void BLEClientSerial::notifyCallback(BLERemoteCharacteristic *pBLERemoteCharacteristic, uint8_t *pData, size_t length,
+void BLEClientSerial::notifyCallback(NimBLERemoteCharacteristic *pBLERemoteCharacteristic, uint8_t *pData,
+                                     size_t length,
                                      bool isNotify) {
     if (pDataCb) {
         pDataCb(pBLERemoteCharacteristic, pData, length);
@@ -127,11 +125,16 @@ void BLEClientSerial::notifyCallback(BLERemoteCharacteristic *pBLERemoteCharacte
 bool BLEClientSerial::begin(const String &localName, const std::string &serviceUUID, const std::string &rxUUID,
                             const std::string &txUUID) {
     local_name = localName;
-    this->serviceUUID = BLEUUID(serviceUUID);
-    this->rxUUID = BLEUUID(rxUUID);
-    this->txUUID = BLEUUID(txUUID);
-    BLEDevice::init(local_name.c_str());
-    return true;
+    this->serviceUUID = NimBLEUUID(serviceUUID);
+    this->rxUUID = NimBLEUUID(rxUUID);
+    this->txUUID = NimBLEUUID(txUUID);
+    NimBLEDevice::init(local_name.c_str());
+
+    NimBLEDevice::setPower(ESP_PWR_LVL_P9); /** +9db */
+    NimBLEDevice::setSecurityAuth(false, false, true);
+
+    init = true;
+    return init;
 }
 
 int BLEClientSerial::available() {
@@ -150,27 +153,13 @@ int BLEClientSerial::peek() {
     return -1;
 }
 
-bool BLEClientSerial::setPin(int pin) {
-    auto *pSecurity = new BLESecurity();
-    pSecurity->setKeySize();
-    pSecurity->setStaticPIN(pin);
-    pSecurity->setAuthenticationMode(ESP_LE_AUTH_BOND);
-    pSecurity->setCapability(ESP_IO_CAP_NONE);
-    return true;
-}
-
-void BLEClientSerial::registerSecurityCallbacks(BLESecurityCallbacks *cb) {
-    BLEDevice::setEncryptionLevel(ESP_BLE_SEC_ENCRYPT);
-    BLEDevice::setSecurityCallbacks(cb);
-}
-
 bool BLEClientSerial::connect(const String &remoteName) {
-    BLEAdvertisedDevice *device = nullptr;
+    NimBLEAdvertisedDevice *device = nullptr;
     BLEScanResultsSet *bleDeviceList = discover();
 
     if (bleDeviceList != nullptr && bleDeviceList->getCount() > 0) {
         for (int i = 0; i < bleDeviceList->getCount(); i++) {
-            BLEAdvertisedDevice *dev = bleDeviceList->getDevice(i);
+            NimBLEAdvertisedDevice *dev = bleDeviceList->getDevice(i);
             if (strcmp(dev->getName().c_str(), remoteName.c_str()) == 0) {
                 device = dev;
             }
@@ -185,78 +174,81 @@ bool BLEClientSerial::connect(const String &remoteName) {
 
     disconnect();
 
-    pClient = BLEDevice::createClient();
-    pClient->setClientCallbacks(new ClientCallbacks(pConnectCb, pDisconnectCb));
-    if (pClient->connect(device)) {
-        const std::map<std::string, BLERemoteService *> *pRemoteServices = pClient->getServices();
-        if (pRemoteServices == nullptr) {
-            log_e("No services");
-            return false;
-        }
-
-        BLERemoteService *pService = pClient->getService(serviceUUID);
-        if (pService) {
-            pRxCharacteristic = pService->getCharacteristic(rxUUID);
-            pTxCharacteristic = pService->getCharacteristic(txUUID);
-
-            // Check and setup Rx notification
-            if (pRxCharacteristic->canNotify()) {
-                pRxCharacteristic->registerForNotify([&](
-                                                 BLERemoteCharacteristic *pBLERemoteCharacteristic,
-                                                 uint8_t *pData,
-                                                 size_t length,
-                                                 bool isNotify) {
-                                                         notifyCallback(pBLERemoteCharacteristic, pData, length,
-                                                                        isNotify);
-                                                     }, true);
-            }
-
-            return true;
-        }
-
-        log_e("can find service %s", serviceUUID_FFF0.toString());
-    }
-
-    return false;
+    return connect(device->getAddress());
 }
 
-bool BLEClientSerial::connect(uint8_t remoteAddress[]) {
-    const BLEAddress addr = BLEAddress(remoteAddress);
-
+bool BLEClientSerial::connect(const NimBLEAddress &remoteAddress) {
     disconnect();
 
-    pClient = BLEDevice::createClient();
-    pClient->setClientCallbacks(new ClientCallbacks(pConnectCb, pDisconnectCb));
+    if (NimBLEDevice::getCreatedClientCount()) {
+        pClient = NimBLEDevice::getClientByPeerAddress(remoteAddress);
+        if (pClient) {
+            if (!pClient->connect(remoteAddress, false)) {
+                return false;
+            }
+        } else {
+            pClient = NimBLEDevice::getDisconnectedClient();
+        }
+    }
 
-    if (pClient->connect(addr)) {
-        const std::map<std::string, BLERemoteService *> *pRemoteServices = pClient->getServices();
-        if (pRemoteServices == nullptr) {
-            log_e("No services");
+    if (!pClient) {
+        if (NimBLEDevice::getCreatedClientCount() >= NIMBLE_MAX_CONNECTIONS) {
+            log_e("Max clients reached - no more connections available.");
             return false;
         }
 
-        BLERemoteService *pService = pClient->getService(serviceUUID);
-        if (pService) {
-            pRxCharacteristic = pService->getCharacteristic(rxUUID);
-            pTxCharacteristic = pService->getCharacteristic(txUUID);
+        pClient = NimBLEDevice::createClient();
+        pClient->setClientCallbacks(new ClientCallbacks(pConnectCb, pDisconnectCb), true);
+        pClient->setConnectionParams(12, 12, 0, 150);
+        pClient->setConnectTimeout(5 * 1000);
 
-            // Check and setup Rx notification
-            if (pRxCharacteristic->canNotify()) {
-                pRxCharacteristic->registerForNotify([&](
-                                                 BLERemoteCharacteristic *pBLERemoteCharacteristic,
-                                                 uint8_t *pData,
-                                                 size_t length,
-                                                 bool isNotify) {
-                                                         notifyCallback(pBLERemoteCharacteristic, pData, length,
-                                                                        isNotify);
-                                                     }, true);
-            }
+        if (!pClient->connect(remoteAddress)) {
+            NimBLEDevice::deleteClient(pClient);
+            log_e("Couldn't connect client.");
+            return false;
+        }
+    }
 
-            return true;
+    if (!pClient->isConnected()) {
+        if (!pClient->connect(remoteAddress)) {
+            log_e("Failed to connect");
+            return false;
+        }
+    }
+
+    log_d("Connected to: %s RSSI: %d\n", pClient->getPeerAddress().toString().c_str(),
+          pClient->getRssi());
+
+    NimBLERemoteService *pService = pClient->getService(serviceUUID);
+    if (pService) {
+        pRxCharacteristic = pService->getCharacteristic(rxUUID);
+        pTxCharacteristic = pService->getCharacteristic(txUUID);
+
+        if (!pRxCharacteristic) {
+            log_e("Characteristic not found %s", rxUUID.toString().c_str());
+            return false;
         }
 
-        log_e("can find service %s", serviceUUID_FFF0.toString());
+        if (!pTxCharacteristic) {
+            log_e("Characteristic not found %s", txUUID.toString().c_str());
+            return false;
+        }
+
+        if (pRxCharacteristic->canNotify()) {
+            pRxCharacteristic->subscribe(true, [&](
+                                     NimBLERemoteCharacteristic *pBLERemoteCharacteristic,
+                                     uint8_t *pData,
+                                     size_t length,
+                                     bool isNotify) {
+                                             notifyCallback(pBLERemoteCharacteristic, pData, length,
+                                                            isNotify);
+                                         });
+        }
+
+        return true;
     }
+
+    log_e("Couldn't find service %s", serviceUUID.toString());
 
     return false;
 }
@@ -270,6 +262,7 @@ bool BLEClientSerial::disconnect() {
         if (pClient->isConnected()) {
             pClient->disconnect();
         }
+        NimBLEDevice::deleteClient(pClient);
         pClient = nullptr;
         return true;
     }
@@ -292,16 +285,23 @@ int BLEClientSerial::read(void) {
 }
 
 size_t BLEClientSerial::write(uint8_t c) {
-    pTxCharacteristic->writeValue(c, true);
-    delay(10);
-    return 1;
+    if (pTxCharacteristic) {
+        return pTxCharacteristic->writeValue(c, true);
+    }
+
+    return 0;
 }
 
 size_t BLEClientSerial::write(const uint8_t *buffer, size_t size) {
-    for (int i = 0; i < size; i++) {
-        pTxCharacteristic->writeValue(buffer[i], false);
+    size_t ws = 0;
+    if (pTxCharacteristic) {
+        for (int i = 0; i < size; i++) {
+            ws += pTxCharacteristic->writeValue(buffer[i], false);
+        }
+        return ws;
     }
-    return size;
+
+    return 0;
 }
 
 void BLEClientSerial::flush() {
@@ -310,6 +310,8 @@ void BLEClientSerial::flush() {
 
 void BLEClientSerial::end() {
     disconnect();
+    NimBLEDevice::deinit();
+    init = false;
 }
 
 void BLEClientSerial::onData(const BLESerialDataCb &cb) {
@@ -327,7 +329,7 @@ void BLEClientSerial::onDisconnect(const BLEDisconnectCb &cb) {
 BLEScanResultsSet *BLEClientSerial::discover(int timeout) {
     BLEScanResultsSet *bleDeviceList = getScanResults();
 
-    if (discoverAsync([](BLEAdvertisedDevice *pDevice) {
+    if (discoverAsync([](const NimBLEAdvertisedDevice *pDevice) {
         log_d("found %s - %s %d\n", pDevice->getAddress().toString().c_str(), pDevice->getName().c_str(),
               pDevice->getRSSI());
     }, timeout)) {
@@ -346,28 +348,26 @@ bool BLEClientSerial::discoverAsync(const BLEAdvertisedDeviceCb &cb, int timeout
     disconnect();
     discoverClear();
 
-    BLEScan *pBLEScan = BLEDevice::getScan();
+    NimBLEScan *pBLEScan = NimBLEDevice::getScan();
 
     if (pBLEScan != nullptr) {
         pBLEScan->stop();
 
-
-        pBLEScan->setAdvertisedDeviceCallbacks(new AdvertisedDeviceCallbacks(serviceUUID, cb));
+        pBLEScan->setScanCallbacks(new AdvertisedDeviceCallbacks(serviceUUID, cb));
         pBLEScan->setInterval(INQ_TIME);
-        pBLEScan->setWindow(449);
+        pBLEScan->setWindow(INQ_TIME);
+        pBLEScan->setMaxResults(0);
         pBLEScan->setActiveScan(true);
-        pBLEScan->start(timeout / 1000, false);
-
-        return true;
+        return pBLEScan->start(timeout, false);
     }
 
     return false;
 }
 
 void BLEClientSerial::discoverAsyncStop() {
-    if (BLEDevice::getScan() != nullptr) {
-        BLEDevice::getScan()->stop();
-        BLEDevice::getScan()->setActiveScan(false);
+    if (NimBLEDevice::getScan() != nullptr) {
+        NimBLEDevice::getScan()->stop();
+        NimBLEDevice::getScan()->setActiveScan(false);
     }
 }
 

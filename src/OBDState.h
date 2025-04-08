@@ -21,16 +21,18 @@
 #include <map>
 #include <ArduinoJson.h>
 
-typedef enum {
-    READ,
-    CALC,
-} OBDStateType;
+namespace obd {
+    typedef enum {
+        READ,
+        CALC,
+    } OBDStateType;
+}
 
 class OBDState {
 protected:
     ELM327 *elm327 = nullptr;
 
-    OBDStateType type = READ;
+    obd::OBDStateType type = obd::READ;
 
     char name[33] = "\0";
     char description[129] = "\0";
@@ -74,12 +76,12 @@ public:
 
     void operator delete(void *ptr);
 
-    OBDState(OBDStateType type, const char *name, const char *description, const char *icon,
+    OBDState(obd::OBDStateType type, const char *name, const char *description, const char *icon,
              const char *unit = "", const char *deviceClass = "", bool measurement = true, bool diagnostic = false);
 
     virtual ~OBDState() = default;
 
-    OBDStateType getType() const;
+    obd::OBDStateType getType() const;
 
     virtual const char *valueType() const;
 
@@ -186,7 +188,7 @@ protected:
     std::function<char *(T)> valueFormatFunction = nullptr;
 
 public:
-    TypedOBDState(OBDStateType type, const char *name, const char *description, const char *icon,
+    TypedOBDState(obd::OBDStateType type, const char *name, const char *description, const char *icon,
                   const char *unit = "", const char *deviceClass = "", bool measurement = true,
                   bool diagnostic = false);
 
@@ -264,7 +266,7 @@ public:
 
 class OBDStateBool final : public TypedOBDState<bool> {
 public:
-    OBDStateBool(OBDStateType type, const char *name, const char *description, const char *icon,
+    OBDStateBool(obd::OBDStateType type, const char *name, const char *description, const char *icon,
                  const char *unit = "", const char *deviceClass = "", bool measurement = true, bool diagnostic = false);
 
     const char *valueType() const override;
@@ -304,7 +306,7 @@ public:
 
 class OBDStateFloat final : public TypedOBDState<float> {
 public:
-    OBDStateFloat(OBDStateType type, const char *name, const char *description, const char *icon,
+    OBDStateFloat(obd::OBDStateType type, const char *name, const char *description, const char *icon,
                   const char *unit = "", const char *deviceClass = "", bool measurement = true,
                   bool diagnostic = false);
 
@@ -345,7 +347,7 @@ public:
 
 class OBDStateInt final : public TypedOBDState<int> {
 public:
-    OBDStateInt(OBDStateType type, const char *name, const char *description, const char *icon,
+    OBDStateInt(obd::OBDStateType type, const char *name, const char *description, const char *icon,
                 const char *unit = "", const char *deviceClass = "", bool measurement = true, bool diagnostic = false);
 
     const char *valueType() const override;

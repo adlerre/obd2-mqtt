@@ -22,7 +22,7 @@ void BLEScanResultsSet::dump(Print *print) {
     if (print == nullptr) {
         log_v(">> Dump scan results : %d", cnt);
         for (int i = 0; i < cnt; i++) {
-            BLEAdvertisedDevice *dev = getDevice(i);
+            NimBLEAdvertisedDevice *dev = getDevice(i);
             if (dev) {
                 log_d("- %d: %s\n", i + 1, dev->toString().c_str());
             } else {
@@ -33,7 +33,7 @@ void BLEScanResultsSet::dump(Print *print) {
     } else {
         print->printf(">> Dump scan results: %d\n", cnt);
         for (int i = 0; i < cnt; i++) {
-            BLEAdvertisedDevice *dev = getDevice(i);
+            NimBLEAdvertisedDevice *dev = getDevice(i);
             if (dev) {
                 print->printf("- %d: %s\n", i + 1, dev->toString().c_str());
             } else {
@@ -48,13 +48,13 @@ int BLEScanResultsSet::getCount() {
     return m_vectorAdvertisedDevices.size();
 }
 
-BLEAdvertisedDevice *BLEScanResultsSet::getDevice(int i) {
+NimBLEAdvertisedDevice *BLEScanResultsSet::getDevice(int i) {
     if (i < 0) {
         return nullptr;
     }
 
     int x = 0;
-    BLEAdvertisedDevice *pDev = &m_vectorAdvertisedDevices.begin()->second;
+    NimBLEAdvertisedDevice *pDev = &m_vectorAdvertisedDevices.begin()->second;
     for (auto it = m_vectorAdvertisedDevices.begin(); it != m_vectorAdvertisedDevices.end(); ++it) {
         pDev = &it->second;
         if (x == i) {
@@ -65,12 +65,12 @@ BLEAdvertisedDevice *BLEScanResultsSet::getDevice(int i) {
     return x == i ? pDev : nullptr;
 }
 
-bool BLEScanResultsSet::add(BLEAdvertisedDevice advertisedDevice, bool unique) {
+bool BLEScanResultsSet::add(NimBLEAdvertisedDevice advertisedDevice, bool unique) {
     std::string key = std::string(advertisedDevice.getAddress().toString().c_str(),
                                   advertisedDevice.getAddress().toString().length());
 
     if (!unique || m_vectorAdvertisedDevices.count(key) == 0) {
-        m_vectorAdvertisedDevices.insert(std::pair<std::string, BLEAdvertisedDevice>(key, advertisedDevice));
+        m_vectorAdvertisedDevices.insert(std::pair<std::string, NimBLEAdvertisedDevice>(key, advertisedDevice));
         return true;
     }
 
