@@ -1,3 +1,19 @@
+# [0.21.0](https://github.com/adlerre/obd2-mqtt/compare/v0.20.0...v0.21.0) (2025-04-08)
+
+
+### Bug Fixes
+
+* check only services 0x01 to 0x0A ([0511dff](https://github.com/adlerre/obd2-mqtt/commit/0511dffb08dc8c5216b2adf3656e9a9190e88c81))
+* fix description for RPM ([18bc05e](https://github.com/adlerre/obd2-mqtt/commit/18bc05eb3ff016c1bcf71577f6549b5f95761e90))
+* fixing API method to check if OTA enabled ([137cfc2](https://github.com/adlerre/obd2-mqtt/commit/137cfc2fcea2dfca68667239d5e6364dcc0c4a41))
+* fixing build of manifests ([785154e](https://github.com/adlerre/obd2-mqtt/commit/785154e36ceea7e865a0259d91126a35164fb1f6))
+* improve BLE serial lib ([84334af](https://github.com/adlerre/obd2-mqtt/commit/84334afa41f1cab9dd9c061feb03d5ce7459cb0e))
+
+
+### Features
+
+* switch to NimBLE ([66f0182](https://github.com/adlerre/obd2-mqtt/commit/66f0182db17d7e995d9d1644ca168bf22ef95c28))
+
 # [0.20.0](https://github.com/adlerre/obd2-mqtt/compare/v0.19.3...v0.20.0) (2025-04-03)
 
 
