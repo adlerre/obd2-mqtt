@@ -390,6 +390,7 @@ void onBTDevicesDiscovered(BTScanResults *btDeviceList) {
 bool sendDiscoveryData() {
     const unsigned long start = millis();
     bool allSendsSuccessed = false;
+    bool allowOffline = Settings.getMQTTAllowOffline();
 
     DEBUG_PORT.print("Send discovery data...");
 
@@ -404,7 +405,8 @@ bool sendDiscoveryData() {
                                                       state->getUnit(), state->getDeviceClass(),
                                                       state->isMeasurement() ? "measurement" : "",
                                                       state->isDiagnostic() ? "diagnostic" : "",
-                                                      state->valueType() == "bool" ? "binary_sensor" : "sensor");
+                                                      state->valueType() == "bool" ? "binary_sensor" : "sensor",
+                                                      "", allowOffline);
         }
     } else {
         allSendsSuccessed = true;
@@ -418,26 +420,27 @@ bool sendDiscoveryData() {
 bool sendDiagnosticDiscoveryData() {
     const unsigned long start = millis();
     bool allSendsSuccessed = false;
+    bool allowOffline = Settings.getMQTTAllowOffline();
 
     DEBUG_PORT.print("Send diagnostic discovery data...");
 
     allSendsSuccessed |= mqtt.sendTopicConfig("", "cpuTemp", "CPU Temperature", "thermometer", "°C", "temperature",
-                                              "measurement", "diagnostic");
+                                              "measurement", "diagnostic", "", "", allowOffline);
     allSendsSuccessed |= mqtt.sendTopicConfig("", "freeMem", "Free Memory", "memory", "B", "", "measurement",
-                                              "diagnostic");
+                                              "diagnostic", "", "", allowOffline);
     allSendsSuccessed |= mqtt.sendTopicConfig("", "uptime", "Uptime", "timer-play", "sec", "", "measurement",
-                                              "diagnostic");
+                                              "diagnostic", "", "", allowOffline);
     allSendsSuccessed |= mqtt.sendTopicConfig("", "reconnects", "Number of reconnects", "connection", "", "",
-                                              "measurement", "diagnostic");
+                                              "measurement", "diagnostic", "", "", allowOffline);
 
     if (!gsm.getIpAddress().empty()) {
-        allSendsSuccessed |= mqtt.sendTopicConfig("", "ipAddress", "IP Address", "network-outline", "", "", "", "",
-                                                  "diagnostic");
+        allSendsSuccessed |= mqtt.sendTopicConfig("", "ipAddress", "IP Address", "network-outline", "", "", "",
+                                                  "diagnostic", "", "", allowOffline);
     }
 
     if (GSM::isUseGPRS()) {
         allSendsSuccessed |= mqtt.sendTopicConfig("", "signalQuality", "Signal Quality", "signal", "dBm",
-                                                  "signal_strength", "", "diagnostic");
+                                                  "signal_strength", "", "diagnostic", "", "", allowOffline);
     }
 
     if (GSM::hasGSMLocation()) {
@@ -453,7 +456,7 @@ bool sendDiagnosticDiscoveryData() {
     if (GSM::hasBattery()) {
         allSendsSuccessed |= mqtt.sendTopicConfig("", "internalBatteryVoltage", "Internal Battery Voltage", "battery",
                                                   "mV",
-                                                  "voltage", "", "diagnostic");
+                                                  "voltage", "", "diagnostic", "", "", allowOffline);
     }
 
     DEBUG_PORT.printf("...%s (%dms)\n", allSendsSuccessed ? "done" : "failed", millis() - start);
@@ -464,6 +467,7 @@ bool sendDiagnosticDiscoveryData() {
 bool sendStaticDiagnosticDiscoveryData() {
     const unsigned long start = millis();
     bool allSendsSuccessed = false;
+    bool allowOffline = Settings.getMQTTAllowOffline();
 
     DEBUG_PORT.print("Send static diagnostic discovery data...");
 
@@ -478,7 +482,8 @@ bool sendStaticDiagnosticDiscoveryData() {
                                                       state->getUnit(), state->getDeviceClass(),
                                                       state->isMeasurement() ? "measurement" : "",
                                                       state->isDiagnostic() ? "diagnostic" : "",
-                                                      state->valueType() == "bool" ? "binary_sensor" : "sensor");
+                                                      state->valueType() == "bool" ? "binary_sensor" : "sensor",
+                                                      "", allowOffline);
         }
     } else {
         allSendsSuccessed = true;

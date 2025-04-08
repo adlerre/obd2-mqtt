@@ -140,6 +140,7 @@ export class SettingsComponent implements OnInit {
             secure: new FormControl<boolean>(false),
             username: new FormControl("", Validators.maxLength(32)),
             password: new FormControl("", Validators.maxLength(32)),
+            allowOffline: new FormControl<boolean>(false),
             dataInterval: new FormControl<number>(1),
             diagnosticInterval: new FormControl<number>(30),
             discoveryInterval: new FormControl<number>(1800),
