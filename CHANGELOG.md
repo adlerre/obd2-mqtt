@@ -1,3 +1,19 @@
+# [0.22.0](https://github.com/adlerre/obd2-mqtt/compare/v0.21.0...v0.22.0) (2025-04-09)
+
+
+### Bug Fixes
+
+* bump versions ([532b460](https://github.com/adlerre/obd2-mqtt/commit/532b46017077efdb2aa5c67d861e10bb882515f6))
+* remove offset ([b5e1284](https://github.com/adlerre/obd2-mqtt/commit/b5e1284d6c5010f9214808a2541162984b42f7e5))
+* scan recursive for partition csv ([6ccffde](https://github.com/adlerre/obd2-mqtt/commit/6ccffdebe7f0cf783be74f905400a2118f548aab))
+
+
+### Features
+
+* add option to enable ELM debug mode ([3e3962b](https://github.com/adlerre/obd2-mqtt/commit/3e3962b8754c5c452cfe8c8ab512915496abe8a0))
+* make allowOffline configurable ([c408ff4](https://github.com/adlerre/obd2-mqtt/commit/c408ff4ca83efeaf702da709a50f36709d17287c))
+* make it possible to set custom header for PID ([c66e7db](https://github.com/adlerre/obd2-mqtt/commit/c66e7dbf1286378ecc847c9bb3ed2bfd3186558f))
+
 # [0.21.0](https://github.com/adlerre/obd2-mqtt/compare/v0.20.0...v0.21.0) (2025-04-08)
 
 
