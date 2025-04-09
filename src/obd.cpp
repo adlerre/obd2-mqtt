@@ -425,11 +425,12 @@ BLEScanResultsSet *OBDClass::discoverBLEDevices() {
 #endif
 
 void OBDClass::begin(const String &devName, const String &devMac, const char protocol,
-                     const bool checkPidSupport) {
+                     const bool checkPidSupport, const bool debug) {
     this->devName = devName;
     this->devMac = devMac;
     this->protocol = protocol;
     this->checkPidSupport = checkPidSupport;
+    this->debug = debug;
     stopConnect = false;
 #ifdef USE_BLE
     serialBLE.onDisconnect(onBLEDisconnect);
@@ -582,7 +583,7 @@ connect:
 #ifdef USE_BLE
     if (!stopConnect && !serialBLE.isClosed() && serialBLE.connected()) {
         int retryCount = 0;
-        while (!elm327.begin(serialBLE, false, 2000, protocol) && retryCount < 3) {
+        while (!elm327.begin(serialBLE, debug, 2000, protocol) && retryCount < 3) {
             Serial.println("Couldn't connect to OBD scanner - Phase 2");
             delay(BT_DISCOVER_TIME);
             retryCount++;
@@ -590,7 +591,7 @@ connect:
 #else
     if (!stopConnect && !serialBt.isClosed() && serialBt.connected()) {
         int retryCount = 0;
-        while (!elm327.begin(serialBt, false, 2000, protocol) && retryCount < 3) {
+        while (!elm327.begin(serialBt, debug, 2000, protocol) && retryCount < 3) {
             Serial.println("Couldn't connect to OBD scanner - Phase 2");
             delay(BT_DISCOVER_TIME);
             retryCount++;

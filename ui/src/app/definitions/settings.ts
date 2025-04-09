@@ -58,6 +58,7 @@ export interface OBD2Settings {
     name?: string;
     mac?: string;
     checkPIDSupport?: boolean;
+    debug?: boolean;
     protocol?: OBD2Protocol;
 }
 

@@ -37,6 +37,7 @@ void SettingsClass::readJson(JsonDocument &doc) {
     strlcpy(obd2.name, doc["obd2"]["name"] | "", sizeof(obd2.name));
     strlcpy(obd2.mac, doc["obd2"]["mac"] | "", sizeof(obd2.mac));
     obd2.checkPIDSupport = doc["obd2"]["checkPIDSupport"] | false;
+    obd2.debug = doc["obd2"]["debug"] | false;
     obd2.protocol = doc["obd2"]["protocol"] | '0';
 
     mqtt.protocol = doc["mqtt"]["protocol"] | 0; // USE_MQTT as default
@@ -68,6 +69,7 @@ void SettingsClass::writeJson(JsonDocument &doc) {
     doc["obd2"]["name"] = obd2.name;
     doc["obd2"]["mac"] = obd2.mac;
     doc["obd2"]["checkPIDSupport"] = obd2.checkPIDSupport;
+    doc["obd2"]["debug"] = obd2.debug;
     doc["obd2"]["protocol"] = obd2.protocol;
 
     doc["mqtt"]["protocol"] = mqtt.protocol;
@@ -238,6 +240,14 @@ bool SettingsClass::getOBD2CheckPIDSupport() const {
 
 void SettingsClass::setOBD2CheckPIDSupport(bool checkPIDSupport) {
     obd2.checkPIDSupport = checkPIDSupport;
+}
+
+bool SettingsClass::getOBD2Debug() const {
+    return obd2.debug;
+}
+
+void SettingsClass::setOBD2Debug(bool debug) {
+    obd2.debug = debug;
 }
 
 char SettingsClass::getOBD2Protocol() const {

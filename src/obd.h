@@ -86,6 +86,7 @@ class OBDClass : public OBDStates {
     String devMac;
     char protocol;
     bool checkPidSupport = false;
+    bool debug = false;
 
     std::string connectedBTAddress;
 
@@ -136,7 +137,7 @@ public:
 
     bool writeStates(FS &fs);
 
-    void begin(const String &devName, const String &devMac, char protocol = AUTOMATIC, bool checkPidSupport = false);
+    void begin(const String &devName, const String &devMac, char protocol = AUTOMATIC, bool checkPidSupport = false, bool debug = false);
 
     void end();
 

@@ -124,7 +124,8 @@ export class SettingsComponent implements OnInit {
         this.obd2 = new FormGroup({
             name: new FormControl("", Validators.maxLength(64)),
             mac: new FormControl("", Validators.pattern(/^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$/)),
-            checkPIDSupport: new FormControl(false),
+            checkPIDSupport: new FormControl<boolean>(false),
+            debug: new FormControl<boolean>(false),
             protocol: new FormControl(OBD2Protocol.AUTOMATIC),
         });
         this.mqtt = new FormGroup({

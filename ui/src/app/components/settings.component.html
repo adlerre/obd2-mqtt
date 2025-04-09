@@ -60,7 +60,7 @@
                 </div>
             </fieldset>
         }
-        <fieldset [formGroup]="wifi" [ngClass]="{'mt-0': !hasBattery}" >
+        <fieldset [formGroup]="wifi" [ngClass]="{'mt-0': !hasBattery}">
             <legend>WiFi Access Point</legend>
             <div class="row mb-2">
                 <label for="ssid" class="col-sm-2 control-label">SSID</label>
@@ -177,10 +177,17 @@
                 </div>
             </div>
             <div class="offset-sm-2 col-sm-10">
-                <div class="form-check">
-                    <input type="checkbox" value="true" id="checkPIDSupport" formControlName="checkPIDSupport"
-                           class="form-check-input">
-                    <label for="checkPIDSupport" class="form-check-label">check if PID is supported</label>
+                <div class="d-flex justify-content-between">
+                    <div class="form-check">
+                        <input type="checkbox" value="true" id="checkPIDSupport" formControlName="checkPIDSupport"
+                               class="form-check-input">
+                        <label for="checkPIDSupport" class="form-check-label">check if PID is supported</label>
+                    </div>
+                    <div class="form-check">
+                        <input type="checkbox" value="true" id="debug" formControlName="debug"
+                               class="form-check-input">
+                        <label for="debug" class="form-check-label">Debug Mode</label>
+                    </div>
                 </div>
             </div>
         </fieldset>
