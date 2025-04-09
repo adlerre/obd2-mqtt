@@ -89,6 +89,24 @@ const buildManifest = async (partCsv: string, manifest: Manifest) => {
     });
 };
 
+const getPartitions = (pio_ini: any, name: string): string => {
+    let part_csv = pio_ini[name]['board_build.partitions'];
+
+    if (!part_csv) {
+        let e = pio_ini[name]["extends"];
+        if (e) {
+            part_csv = pio_ini[e]['board_build.partitions'];
+
+            e = pio_ini[e]["extends"];
+            if (!part_csv && e) {
+                part_csv = getPartitions(pio_ini, e);
+            }
+        }
+    }
+
+    return part_csv;
+};
+
 try {
     const distIndex = process.argv.indexOf("--dist");
     const localDev = process.argv.indexOf("--dev") !== -1;
@@ -113,11 +131,7 @@ try {
                 parts: []
             };
 
-            let part_csv = pio_ini["env:" + device]['board_build.partitions'];
-            if (!part_csv) {
-                const e = pio_ini["env:" + device]["extends"];
-                part_csv = pio_ini[e]['board_build.partitions'];
-            }
+            const part_csv = getPartitions(pio_ini, "env:" + device);
 
             if (!part_csv) {
                 throw new Error("No partition table was found.");
