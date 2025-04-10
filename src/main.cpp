@@ -326,6 +326,24 @@ void startHttpServer() {
         }
     });
 
+    server.on("/api/DTCs", HTTP_GET, [](AsyncWebServerRequest *request) {
+        DTCs *dtcs = OBD.getDTCs();
+        if (dtcs->getCount() != 0) {
+            JsonDocument doc;
+            for (int i = 0; i < dtcs->getCount(); ++i) {
+                doc["dtc"].add(dtcs->getCode(i)->c_str());
+            }
+            std::string payload;
+            if (serializeJson(doc, payload)) {
+                request->send(200, "application/json", payload.c_str());
+            } else {
+                request->send(500);
+            }
+        } else {
+            request->send(404);
+        }
+    });
+
     server.begin(LittleFS);
 }
 

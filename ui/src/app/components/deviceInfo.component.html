@@ -62,4 +62,11 @@
             <dd class="col-sm-9">{{ modemInfo.CCID }}</dd>
         </dl>
     </fieldset>
+
+    <fieldset *ngIf="dtcs">
+        <legend>Dagnostic Trouble Codes</legend>
+        <dl class="row">
+            <dt *ngFor="let dtc of dtcs.dtc">{{ dtc }}</dt>
+        </dl>
+    </fieldset>
 </div>

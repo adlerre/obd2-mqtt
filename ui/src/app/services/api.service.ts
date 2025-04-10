@@ -17,7 +17,16 @@
 
 import { Injectable } from "@angular/core";
 import { HttpClient, HttpEvent, HttpEventType, HttpHeaders, HttpRequest, HttpResponse } from "@angular/common/http";
-import { Configuration, DiscoveredDevices, ModemInfo, OBDState, OTAMode, Settings, WifiInfo } from "../definitions";
+import {
+    Configuration,
+    DiscoveredDevices,
+    DTCs,
+    ModemInfo,
+    OBDState,
+    OTAMode,
+    Settings,
+    WifiInfo
+} from "../definitions";
 import { catchError, distinctUntilChanged, last, map, of, Subject } from "rxjs";
 
 @Injectable()
@@ -44,6 +53,10 @@ export class ApiService {
 
     modemInfo() {
         return this.$http.get<ModemInfo>("/api/modem");
+    }
+
+    dtcs() {
+        return this.$http.get<DTCs>("/api/DTCs");
     }
 
     settings() {
@@ -74,7 +87,7 @@ export class ApiService {
         return this.$http.get("/api/ota", {observe: "response", responseType: "text"})
             .pipe(
                 map((res: HttpResponse<any>) => res.status === 200),
-                catchError((_err, _caught) =>  of(false))
+                catchError((_err, _caught) => of(false))
             );
     }
 

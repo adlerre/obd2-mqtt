@@ -97,6 +97,13 @@ module.exports = {
                 response.json({"device": [{"name": "OBDII", "mac": "11:22:de:ad:be:ef"}]});
             });
 
+            devServer.app.get("/api/DTCs", (_, response) => {
+                const dtcs = {
+                    dtc: ["P0195", "P0197"]
+                };
+                response.json(dtcs);
+            });
+
             devServer.app.get("/api/ota/start", (request, response) => {
                 setTimeout(() => {
                     response.status(200);
