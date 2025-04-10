@@ -10,3 +10,4 @@ If you have created your own profile, feel free to create a PR and I would inclu
 ### VW
 
 * [VW e-up!](vw/states-eup.json)
+* [VW MQB platform](vw/mqb/README.md)

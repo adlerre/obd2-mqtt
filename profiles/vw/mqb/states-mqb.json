@@ -1,0 +1,120 @@
+[
+  {
+    "type": 0,
+    "valueType": "int",
+    "enabled": true,
+    "visible": true,
+    "interval": 100,
+    "name": "odometer",
+    "description": "Odometer",
+    "icon": "counter",
+    "unit": "km",
+    "deviceClass": "distance",
+    "measurement": true,
+    "diagnostic": false,
+    "pid": {
+      "service": 34,
+      "pid": 4320,
+      "header": 2016,
+      "numResponses": 1,
+      "numExpectedBytes": 4,
+      "scaleFactor": "1",
+      "bias": 0
+    },
+    "value": { "format": "%d" }
+  },
+  {
+    "type": 0,
+    "valueType": "float",
+    "enabled": true,
+    "visible": true,
+    "interval": 100,
+    "name": "oilLevel",
+    "description": "Oil level",
+    "icon": "oil-level",
+    "unit": "mm",
+    "deviceClass": "volume",
+    "measurement": true,
+    "diagnostic": false,
+    "pid": {
+      "service": 34,
+      "pid": 4538,
+      "header": 2016,
+      "numResponses": 1,
+      "numExpectedBytes": 4,
+      "scaleFactor": "1.0 / 249.6",
+      "bias": 0
+    },
+    "value": { "format": "%2.2f" }
+  },
+  {
+    "type": 0,
+    "valueType": "float",
+    "enabled": true,
+    "visible": true,
+    "interval": 100,
+    "name": "oilLevelCritical",
+    "description": "Oil level critical",
+    "icon": "oil-level",
+    "unit": "mm",
+    "deviceClass": "volume",
+    "measurement": true,
+    "diagnostic": false,
+    "pid": {
+      "service": 34,
+      "pid": 4539,
+      "header": 2016,
+      "numResponses": 1,
+      "numExpectedBytes": 4,
+      "scaleFactor": "1.0 / 249.6",
+      "bias": 0
+    },
+    "value": { "format": "%2.2f" }
+  },
+  {
+    "type": 0,
+    "valueType": "float",
+    "enabled": true,
+    "visible": true,
+    "interval": 100,
+    "name": "oilTemp",
+    "description": "Oil temperature",
+    "icon": "thermometer",
+    "unit": "°C",
+    "measurement": true,
+    "diagnostic": false,
+    "pid": {
+      "service": 34,
+      "pid": 4541,
+      "header": 2016,
+      "numResponses": 1,
+      "numExpectedBytes": 2,
+      "scaleFactor": "0.07921",
+      "bias": -199.37
+    },
+    "value": { "format": "%3.2f" }
+  },
+  {
+    "type": 0,
+    "valueType": "float",
+    "enabled": true,
+    "visible": true,
+    "interval": 100,
+    "name": "coolantTempAtStart",
+    "description": "Coolant temperature at engine start",
+    "icon": "thermometer",
+    "unit": "°C",
+    "measurement": true,
+    "diagnostic": false,
+    "pid": {
+      "service": 34,
+      "pid": 4753,
+      "header": 2016,
+      "numResponses": 1,
+      "numExpectedBytes": 2,
+      "scaleFactor": "0.00184594",
+      "bias": 0
+    },
+    "value": { "format": "%3.2f" }
+  }
+]
