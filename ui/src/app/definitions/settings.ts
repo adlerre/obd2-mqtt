@@ -59,6 +59,7 @@ export interface OBD2Settings {
     mac?: string;
     checkPIDSupport?: boolean;
     debug?: boolean;
+    specifyNumResponses?: boolean;
     protocol?: OBD2Protocol;
 }
 
