@@ -656,11 +656,7 @@ connect:
 
     if (!reconnect) {
         setCheckPidSupport(this->checkPidSupport);
-        if (this->specifyNumResponses) {
-            elm327.specifyNumResponses = true;
-        } else {
-            elm327.specifyNumResponses = false;
-        }
+        elm327.specifyNumResponses = this->specifyNumResponses;
         initDone = true;
     }
 }
