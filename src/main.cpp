@@ -438,27 +438,26 @@ bool sendDiscoveryData() {
 bool sendDiagnosticDiscoveryData() {
     const unsigned long start = millis();
     bool allSendsSuccessed = false;
-    bool allowOffline = Settings.getMQTTAllowOffline();
 
     DEBUG_PORT.print("Send diagnostic discovery data...");
 
     allSendsSuccessed |= mqtt.sendTopicConfig("", "cpuTemp", "CPU Temperature", "thermometer", "°C", "temperature",
-                                              "measurement", "diagnostic", "", "", allowOffline);
+                                              "measurement", "diagnostic");
     allSendsSuccessed |= mqtt.sendTopicConfig("", "freeMem", "Free Memory", "memory", "B", "", "measurement",
-                                              "diagnostic", "", "", allowOffline);
+                                              "diagnostic");
     allSendsSuccessed |= mqtt.sendTopicConfig("", "uptime", "Uptime", "timer-play", "sec", "", "measurement",
-                                              "diagnostic", "", "", allowOffline);
+                                              "diagnostic");
     allSendsSuccessed |= mqtt.sendTopicConfig("", "reconnects", "Number of reconnects", "connection", "", "",
-                                              "measurement", "diagnostic", "", "", allowOffline);
+                                              "measurement", "diagnostic");
 
     if (!gsm.getIpAddress().empty()) {
         allSendsSuccessed |= mqtt.sendTopicConfig("", "ipAddress", "IP Address", "network-outline", "", "", "",
-                                                  "diagnostic", "", "", allowOffline);
+                                                  "diagnostic");
     }
 
     if (GSM::isUseGPRS()) {
         allSendsSuccessed |= mqtt.sendTopicConfig("", "signalQuality", "Signal Quality", "signal", "dBm",
-                                                  "signal_strength", "", "diagnostic", "", "", allowOffline);
+                                                  "signal_strength", "", "diagnostic");
     }
 
     if (GSM::hasGSMLocation()) {
@@ -474,7 +473,7 @@ bool sendDiagnosticDiscoveryData() {
     if (GSM::hasBattery()) {
         allSendsSuccessed |= mqtt.sendTopicConfig("", "internalBatteryVoltage", "Internal Battery Voltage", "battery",
                                                   "mV",
-                                                  "voltage", "", "diagnostic", "", "", allowOffline);
+                                                  "voltage", "", "diagnostic");
     }
 
     DEBUG_PORT.printf("...%s (%dms)\n", allSendsSuccessed ? "done" : "failed", millis() - start);
@@ -500,8 +499,7 @@ bool sendStaticDiagnosticDiscoveryData() {
                                                       state->getUnit(), state->getDeviceClass(),
                                                       state->isMeasurement() ? "measurement" : "",
                                                       state->isDiagnostic() ? "diagnostic" : "",
-                                                      state->valueType() == "bool" ? "binary_sensor" : "sensor",
-                                                      "", allowOffline);
+                                                      state->valueType() == "bool" ? "binary_sensor" : "sensor");
         }
     } else {
         allSendsSuccessed = true;
