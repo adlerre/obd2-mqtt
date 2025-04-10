@@ -67,11 +67,13 @@ OBDClass::OBDClass(): OBDStates(&elm327), elm327() {
         if (static_cast<u_int8_t>(numCodes) > 0) {
             elm327.currentDTCCodes();
             if (elm327.nb_rx_state == ELM_SUCCESS) {
+                dtcs.clear();
                 numDTCs = static_cast<int>(elm327.DTC_Response.codesFound);
                 if (numDTCs > 0) {
                     Serial.println("\nDTCs Found: ");
                     for (int i = 0; i < numDTCs; i++) {
                         Serial.println(elm327.DTC_Response.codes[i]);
+                        dtcs.add(elm327.DTC_Response.codes[i]);
                     }
                 }
             }
@@ -351,6 +353,31 @@ T *OBDClass::setFormatFuncByName(const char *funcName, T *state) {
         }
     }
     return state;
+}
+
+int DTCs::getCount() const {
+    return static_cast<int>(v_codes.size());
+}
+
+std::string *DTCs::getCode(int i) {
+    if (i < 0) {
+        return nullptr;
+    }
+    return &v_codes[i];
+}
+
+bool DTCs::add(const std::string &code) {
+    bool found = false;
+    for (const auto &c: v_codes) {
+        if (c == code) return false;
+    }
+
+    v_codes.push_back(code);
+    return true;
+}
+
+void DTCs::clear() {
+    v_codes.clear();
 }
 
 #ifndef USE_BLE
@@ -668,6 +695,10 @@ void OBDClass::onConnected(const std::function<void()> &callback) {
 
 void OBDClass::onConnectError(const std::function<void()> &callback) {
     connectErrorCallback = callback;
+}
+
+DTCs *OBDClass::getDTCs() {
+    return &dtcs;
 }
 
 #ifdef USE_BLE

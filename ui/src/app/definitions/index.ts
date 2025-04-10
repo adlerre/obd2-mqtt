@@ -17,6 +17,7 @@
 
 export * from "./configuration";
 export * from "./discoveredDevices";
+export * from "./dtcs";
 export * from "./homeAssistant";
 export * from "./modemInfo";
 export * from "./obdStates";

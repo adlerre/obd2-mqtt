@@ -71,6 +71,19 @@
 #define KPH_TO_MPH          1.60934f
 #define LITER_TO_GALLON     3.7854f
 
+class DTCs {
+    std::vector<std::string> v_codes;
+
+public:
+    int getCount() const;
+
+    std::string *getCode(int i);
+
+    bool add(const std::string &code);
+
+    void clear();
+};
+
 class OBDClass : public OBDStates {
 #ifdef USE_BLE
     BLEClientSerial serialBLE;
@@ -87,6 +100,8 @@ class OBDClass : public OBDStates {
     char protocol;
     bool checkPidSupport = false;
     bool debug = false;
+
+    DTCs dtcs;
 
     std::string connectedBTAddress;
 
@@ -105,7 +120,6 @@ class OBDClass : public OBDStates {
 
     BTScanResults *discoverBtDevices();
 #endif
-
 
 #ifdef USE_BLE
     static void onBLEDisconnect();
@@ -137,7 +151,8 @@ public:
 
     bool writeStates(FS &fs);
 
-    void begin(const String &devName, const String &devMac, char protocol = AUTOMATIC, bool checkPidSupport = false, bool debug = false);
+    void begin(const String &devName, const String &devMac, char protocol = AUTOMATIC, bool checkPidSupport = false,
+               bool debug = false);
 
     void end();
 
@@ -149,10 +164,12 @@ public:
 
     void onConnectError(const std::function<void()> &callback);
 
+    DTCs *getDTCs();
+
 #ifdef USE_BLE
     void onDevicesDiscovered(const std::function<void(BLEScanResultsSet *scanResult)> &callable);
 #else
-    void onDevicesDiscovered(const std::function<void(BTScanResults * scanResult)> &callable);
+    void onDevicesDiscovered(const std::function<void(BTScanResults *scanResult)> &callable);
 #endif
 
     std::string getConnectedBTAddress() const;

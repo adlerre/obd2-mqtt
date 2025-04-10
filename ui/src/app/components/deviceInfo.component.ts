@@ -16,7 +16,7 @@
  */
 
 import { Component, OnInit } from "@angular/core";
-import { ModemInfo, WifiInfo } from "../definitions";
+import { DTCs, ModemInfo, WifiInfo } from "../definitions";
 import { ApiService } from "../services/api.service";
 
 @Component({
@@ -32,6 +32,8 @@ export class DeviceInfoComponent implements OnInit {
 
     modemInfo: ModemInfo | undefined;
 
+    dtcs: DTCs | undefined;
+
     constructor(private $api: ApiService) {
     }
 
@@ -39,6 +41,7 @@ export class DeviceInfoComponent implements OnInit {
         this.$api.version().subscribe(ver => this.version = ver);
         this.$api.wifiInfo().subscribe((wi) => this.wifiInfo = wi);
         this.$api.modemInfo().subscribe((mi) => this.modemInfo = mi);
+        this.$api.dtcs().subscribe((d: DTCs) => this.dtcs = d);
     }
 
     calcRSSI(signalQuality: number): number {

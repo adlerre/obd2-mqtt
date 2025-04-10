@@ -15,7 +15,7 @@
  *  59 Temple Place - Suite 330, Boston, MA  02111-1307 USA
  */
 
-import { ModemInfo, WifiInfo } from "../definitions";
+import { DTCs, ModemInfo, WifiInfo } from "../definitions";
 import { of } from "rxjs";
 import { DeviceInfoComponent } from "./deviceInfo.component";
 import { ApiService } from "../services/api.service";
@@ -36,6 +36,10 @@ const testModemInfo: ModemInfo = {
     CCID: "56546456554"
 };
 
+const dtcs: DTCs = {
+    dtc: ["P0195", "P0197"]
+};
+
 export class MockApiService {
 
     version() {
@@ -48,6 +52,10 @@ export class MockApiService {
 
     modemInfo() {
         return of<ModemInfo>(testModemInfo);
+    }
+
+    dtcs() {
+        return of<DTCs>(dtcs);
     }
 
 }
@@ -88,9 +96,10 @@ describe("DeviceInfoComponent", () => {
         expect(getElement("#deviceInfo")).toBeTruthy();
 
         const legends = getElements("legend");
-        expect(legends.length).toBe(3);
+        expect(legends.length).toBe(4);
         expect(legends[0].textContent).toBe("Firmware");
         expect(legends[1].textContent).toBe("WiFi Info");
         expect(legends[2].textContent).toBe("Modem Info");
+        expect(legends[3].textContent).toBe("Dagnostic Trouble Codes");
     });
 });
