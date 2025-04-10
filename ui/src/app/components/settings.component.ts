@@ -126,6 +126,7 @@ export class SettingsComponent implements OnInit {
             mac: new FormControl("", Validators.pattern(/^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$/)),
             checkPIDSupport: new FormControl<boolean>(false),
             debug: new FormControl<boolean>(false),
+            specifyNumResponses: new FormControl<boolean>(true),
             protocol: new FormControl(OBD2Protocol.AUTOMATIC),
         });
         this.mqtt = new FormGroup({

@@ -160,7 +160,7 @@ void WiFiAPStationDisconnected(WiFiEvent_t event, WiFiEventInfo_t info) {
     if (wifiAPStaConnected == 0) {
         DEBUG_PORT.println("WiFi AP all clients disconnected. Start all other task.");
         OBD.begin(Settings.getOBD2Name(OBD_ADP_NAME), Settings.getOBD2MAC(), Settings.getOBD2Protocol(),
-                  Settings.getOBD2CheckPIDSupport(), Settings.getOBD2Debug());
+                  Settings.getOBD2CheckPIDSupport(), Settings.getOBD2Debug(), Settings.getOBD2SpecifyNumResponses());
         OBD.connect(true);
         wifiAPInUse = false;
     }
@@ -885,7 +885,7 @@ void setup() {
     OBD.onConnected(onOBDConnected);
     OBD.onConnectError(onOBDConnectError);
     OBD.begin(Settings.getOBD2Name(OBD_ADP_NAME), Settings.getOBD2MAC(), Settings.getOBD2Protocol(),
-              Settings.getOBD2CheckPIDSupport(), Settings.getOBD2Debug());
+              Settings.getOBD2CheckPIDSupport(), Settings.getOBD2Debug(), Settings.getOBD2SpecifyNumResponses());
 #ifdef USE_BLE
     OBD.onDevicesDiscovered(onBLEDevicesDiscovered);
 #else

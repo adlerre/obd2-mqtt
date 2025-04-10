@@ -66,6 +66,7 @@ struct OBD2Settings {
     char mac[19];
     bool checkPIDSupport;
     bool debug;
+    bool specifyNumResponses;
     char protocol;
 };
 
@@ -156,6 +157,10 @@ public:
     bool getOBD2Debug() const;
 
     void setOBD2Debug(bool debug);
+
+    bool getOBD2SpecifyNumResponses() const;
+
+    void setOBD2SpecifyNumResponses(bool specifyNumResponses);
 
     char getOBD2Protocol() const;
 

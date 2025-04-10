@@ -178,10 +178,19 @@
             </div>
             <div class="offset-sm-2 col-sm-10">
                 <div class="d-flex justify-content-between">
-                    <div class="form-check">
-                        <input type="checkbox" value="true" id="checkPIDSupport" formControlName="checkPIDSupport"
-                               class="form-check-input">
-                        <label for="checkPIDSupport" class="form-check-label">check if PID is supported</label>
+                    <div class="d-flex">
+                        <div class="form-check">
+                            <input type="checkbox" value="true" id="checkPIDSupport" formControlName="checkPIDSupport"
+                                   class="form-check-input">
+                            <label for="checkPIDSupport" class="form-check-label">check if PID is supported</label>
+                        </div>
+                        <div class="form-check ms-3">
+                            <input type="checkbox" value="true" id="specifyNumResponses"
+                                   formControlName="specifyNumResponses"
+                                   class="form-check-input">
+                            <label for="specifyNumResponses" class="form-check-label">Specify number of
+                                responses</label>
+                        </div>
                     </div>
                     <div class="form-check">
                         <input type="checkbox" value="true" id="debug" formControlName="debug"

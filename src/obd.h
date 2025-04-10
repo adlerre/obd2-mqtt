@@ -100,6 +100,7 @@ class OBDClass : public OBDStates {
     char protocol;
     bool checkPidSupport = false;
     bool debug = false;
+    bool specifyNumResponses = true;
 
     DTCs dtcs;
 
@@ -152,7 +153,7 @@ public:
     bool writeStates(FS &fs);
 
     void begin(const String &devName, const String &devMac, char protocol = AUTOMATIC, bool checkPidSupport = false,
-               bool debug = false);
+               bool debug = false, bool specifyNumResponses = true);
 
     void end();
 
