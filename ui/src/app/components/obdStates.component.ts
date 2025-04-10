@@ -330,6 +330,70 @@ export class OBDStatesComponent implements OnInit {
         }
     }
 
+    onSwitchFormat(id: string, control: FormControl, label: string | undefined) {
+        let format = "dec";
+        const hexId = id + "-hex";
+        const elm: HTMLInputElement = document.getElementById(id) as HTMLInputElement;
+
+        const valEvent = (evt: Event) => {
+            const e = evt.target as HTMLInputElement;
+            const regex = /^[0-9a-fA-F]+$/
+
+            const val = parseInt(e.value, 16);
+            if (!isNaN(val)) {
+                control.patchValue(val);
+            }
+
+            if (!regex.test(e.value) || control.invalid) {
+                e.classList.add("is-invalid");
+            } else {
+                e.classList.remove("is-invalid");
+            }
+        };
+
+        if (elm) {
+            if (elm.style.display !== "none") {
+                elm.style.display = "none";
+                let hexInput: HTMLInputElement = document.getElementById(hexId) as HTMLInputElement;
+                if (!hexInput) {
+                    hexInput = document.createElement("input");
+                    hexInput.id = hexId
+                    hexInput.type = "text";
+                    hexInput.placeholder = elm.placeholder;
+                    hexInput.classList.add("form-control")
+                    hexInput.onkeydown = valEvent.bind(this);
+                    hexInput.onfocus = valEvent.bind(this);
+                    hexInput.onblur = valEvent.bind(this);
+                    elm.parentElement.insertBefore(hexInput, elm);
+                } else {
+                    hexInput.style.display = "unset";
+                }
+                hexInput.value = control.value && control.value.toString(16).toUpperCase();
+                hexInput.focus();
+                format = "hex";
+            } else {
+                const hexInput: HTMLInputElement = document.getElementById(hexId) as HTMLInputElement;
+                elm.style.display = "unset";
+                if (hexInput) {
+                    let val = parseInt(hexInput.value, 16);
+                    if (isNaN(val)) {
+                        val = control.defaultValue;
+                    }
+                    control.patchValue(val)
+                    hexInput.style.display = "none";
+                }
+                elm.focus();
+            }
+        }
+
+        if (label) {
+            const lElm = document.getElementById(label);
+            if (lElm) {
+                lElm.innerText = format.toUpperCase();
+            }
+        }
+    }
+
     onSubmit({value, valid}: { value: { states: Array<OBDState> }, valid: boolean }) {
         if (valid) {
             const states: Array<OBDState> = stripEmptyProps(value.states);

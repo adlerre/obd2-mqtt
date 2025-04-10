@@ -18,7 +18,8 @@
 <div id="states">
     <div class="d-flex my-2 justify-content-end">
         <div class="btn-group">
-            <a class="btn btn-primary" [href]="downloadHref" download="states.json" (click)="generateDownload()">&#8675; Download</a>
+            <a class="btn btn-primary" [href]="downloadHref" download="states.json" (click)="generateDownload()">&#8675;
+                Download</a>
             <div class="btn btn-secondary p-0">
                 <label for="states-upload" class="d-inline-block py-1 px-2">&#8673; Upload</label>
                 <input type="file" id="states-upload" name="states-upload" accept="application/json"
@@ -66,7 +67,8 @@
                                 <label for="visible-{{ i }}" class="form-check-label">visible</label>
                             </div>
                             <div class="form-check form-check-inline">
-                                <input type="checkbox" value="true" id="measurement-{{ i }}" formControlName="measurement"
+                                <input type="checkbox" value="true" id="measurement-{{ i }}"
+                                       formControlName="measurement"
                                        class="form-check-input">
                                 <label for="measurement-{{ i }}" class="form-check-label">Measurement</label>
                             </div>
@@ -174,31 +176,52 @@
                                         <label for="service-{{ i }}" class="col-sm-2 col-form-label">Service /
                                             PID / Header</label>
                                         <div class="col-sm-3 pe-md-1">
-                                            <input formControlName="service" type="number" id="service-{{ i }}"
-                                                   autocapitalize="off"
-                                                   autocorrect="off"
-                                                   placeholder="Service"
-                                                   class="form-control"
-                                                   [ngClass]="{'is-invalid': state.controls.pid.controls.service.errors}"
-                                            >
+                                            <div class="input-group">
+                                                <button class="btn btn-outline-secondary" type="button"
+                                                        (click)="onSwitchFormat( 'service-' +  i, state.controls.pid.controls.service, 'service-' + i + '-format')">
+                                                    &#8646;
+                                                </button>
+                                                <input formControlName="service" type="number" id="service-{{ i }}"
+                                                       autocapitalize="off"
+                                                       autocorrect="off"
+                                                       placeholder="Service"
+                                                       class="form-control"
+                                                       [ngClass]="{'is-invalid': state.controls.pid.controls.service.errors}"
+                                                >
+                                                <span class="input-group-text" id="service-{{ i }}-format">DEC</span>
+                                            </div>
                                         </div>
                                         <div class="col-sm-3 ps-md-1 pe-md-1">
-                                            <input formControlName="pid" type="number" id="pid-{{ i }}"
-                                                   autocapitalize="off"
-                                                   autocorrect="off"
-                                                   placeholder="PID"
-                                                   class="form-control"
-                                                   [ngClass]="{'is-invalid': state.controls.pid.controls.pid.errors}"
-                                            >
+                                            <div class="input-group">
+                                                <button class="btn btn-outline-secondary" type="button"
+                                                        (click)="onSwitchFormat('pid-' +  i, state.controls.pid.controls.pid, 'pid-' + i + '-format')">
+                                                    &#8646;
+                                                </button>
+                                                <input formControlName="pid" type="number" id="pid-{{ i }}"
+                                                       autocapitalize="off"
+                                                       autocorrect="off"
+                                                       placeholder="PID"
+                                                       class="form-control"
+                                                       [ngClass]="{'is-invalid': state.controls.pid.controls.pid.errors}"
+                                                >
+                                                <span class="input-group-text" id="pid-{{ i }}-format">DEC</span>
+                                            </div>
                                         </div>
                                         <div class="col-sm-4 ps-md-1">
-                                            <input formControlName="header" type="number" id="header-{{ i }}"
-                                                   autocapitalize="off"
-                                                   autocorrect="off"
-                                                   placeholder="Header"
-                                                   class="form-control"
-                                                   [ngClass]="{'is-invalid': state.controls.pid.controls.header.errors}"
-                                            >
+                                            <div class="input-group">
+                                                <button class="btn btn-outline-secondary" type="button"
+                                                        (click)="onSwitchFormat( 'header-' +  i, state.controls.pid.controls.header, 'header-' + i + '-format')">
+                                                    &#8646;
+                                                </button>
+                                                <input formControlName="header" type="number" id="header-{{ i }}"
+                                                       autocapitalize="off"
+                                                       autocorrect="off"
+                                                       placeholder="Header"
+                                                       class="form-control"
+                                                       [ngClass]="{'is-invalid': state.controls.pid.controls.header.errors}"
+                                                >
+                                                <span class="input-group-text" id="header-{{ i }}-format">DEC</span>
+                                            </div>
                                         </div>
                                     </div>
                                     <div class="row mb-2">
@@ -357,9 +380,11 @@
                     <div class="col-sm-2 ps-md-2 d-flex d-sm-block justify-content-end">
                         <div class="btn-group">
                             <button class="btn btn-primary" id="add-state-{{ i }}" name="add-state-{{ i }}"
-                                    (click)="onAddSate(i)">&#x271A;</button>
+                                    (click)="onAddSate(i)">&#x271A;
+                            </button>
                             <button class="btn btn-secondary" id="remove-state-{{ i }}" name="remove-state-{{ i }}"
-                                    (click)="onRemoveState(i)" [disabled]="states.length === 1">&#x2715;</button>
+                                    (click)="onRemoveState(i)" [disabled]="states.length === 1">&#x2715;
+                            </button>
                         </div>
                     </div>
                 </div>
