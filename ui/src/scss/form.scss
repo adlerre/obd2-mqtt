@@ -183,6 +183,66 @@
   }
 }
 
+.input-group {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  width: 100%;
+
+  .btn {
+    position: relative;
+    z-index: 2;
+  }
+
+  & > .form-control,
+  & > .form-floating,
+  & > .form-select {
+    position: relative;
+    flex: 1 1 auto;
+    width: 1%;
+    min-width: 0;
+  }
+
+  & > .form-control:focus,
+  & > .form-select:focus {
+    z-index: 5;
+  }
+
+  & > :not(:first-child):not(.dropdown-menu):not(.valid-tooltip):not(.valid-feedback):not(.invalid-tooltip):not(.invalid-feedback) {
+    margin-left: calc(-1 * var(--ui-border-width));
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+  }
+
+  &:not(.has-validation) > .dropdown-toggle:nth-last-child(n+3),
+  &:not(.has-validation) > :not(:last-child):not(.dropdown-toggle):not(.dropdown-menu):not(.form-floating) {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+  }
+
+  & > .form-control:not(:focus).is-invalid,
+  & > .form-floating:not(:focus-within).is-invalid,
+  & > .form-select:not(:focus).is-invalid {
+    z-index: 4;
+  }
+}
+
+.input-group-text {
+  display: flex;
+  align-items: center;
+  padding: .375rem .75rem;
+  font-size: 1rem;
+  font-weight: 400;
+  line-height: 1.5;
+  color: var(--ui-body-color);
+  text-align: center;
+  white-space: nowrap;
+  background-color: var(--ui-tertiary-bg);
+  border: var(--ui-border-width) solid var(--ui-border-color);
+  border-radius: var(--ui-border-radius);
+}
+
 .btn-primary {
   --ui-btn-color: #fff;
   --ui-btn-bg: #{$primary};
@@ -215,6 +275,23 @@
   --ui-btn-disabled-color: #fff;
   --ui-btn-disabled-bg: #{$secondary};
   --ui-btn-disabled-border-color: #{$secondary};
+}
+
+.btn-outline-secondary {
+  --ui-btn-color: var(--ui-body-color);
+  --ui-btn-border-color: var(--ui-border-color);
+  --ui-btn-hover-color: #fff;
+  --ui-btn-hover-bg: #{lighten($secondary, 15%)};
+  --ui-btn-hover-border-color: #{lighten($secondary, 10%)};
+  --ui-btn-focus-shadow-rgb: 58, 96, 154;
+  --ui-btn-active-color: #fff;
+  --ui-btn-active-bg: #{lighten($secondary, 10%)};
+  --ui-btn-active-border-color: #{lighten($secondary, 5%)};
+  --ui-btn-active-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
+  --ui-btn-disabled-color: #{$secondary};
+  --ui-btn-disabled-bg: transparent;
+  --ui-btn-disabled-border-color: #{$secondary};
+  --ui-gradient: none;
 }
 
 .visually-hidden {
