@@ -1,3 +1,19 @@
+# [0.23.0](https://github.com/adlerre/obd2-mqtt/compare/v0.22.0...v0.23.0) (2025-04-10)
+
+
+### Bug Fixes
+
+* fixing crash after disconnect from AP ([b30eabf](https://github.com/adlerre/obd2-mqtt/commit/b30eabf07df26f5d032b71c7d1a70ee3cb5cc434))
+* simplify code ([14fabcf](https://github.com/adlerre/obd2-mqtt/commit/14fabcfc404932fb72d7c43393501786b805e72c))
+
+
+### Features
+
+* add decimal/hex switchable input fields ([aa28670](https://github.com/adlerre/obd2-mqtt/commit/aa286709e90c1c1f000e1838e0a1882855329c69))
+* display found DTCs on the web interface ([3eb7a67](https://github.com/adlerre/obd2-mqtt/commit/3eb7a67b8aa0a3c61a037d48891f22a43630e8f5))
+* make specifyNumResponses for ELMduino configurable ([0cb9bf1](https://github.com/adlerre/obd2-mqtt/commit/0cb9bf173557c68b56c9ff7d113f014a8139254a))
+* profile for VW MQB ([b29a24a](https://github.com/adlerre/obd2-mqtt/commit/b29a24a7bd97ff0f0c2fa0161b3fb1f1895dcfea))
+
 # [0.22.0](https://github.com/adlerre/obd2-mqtt/compare/v0.21.0...v0.22.0) (2025-04-09)
 
 
