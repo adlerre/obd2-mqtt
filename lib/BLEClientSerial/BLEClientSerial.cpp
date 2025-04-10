@@ -310,7 +310,6 @@ void BLEClientSerial::flush() {
 
 void BLEClientSerial::end() {
     disconnect();
-    NimBLEDevice::deinit();
     init = false;
 }
 
