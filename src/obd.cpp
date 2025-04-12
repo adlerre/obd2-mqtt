@@ -655,6 +655,13 @@ connect:
     }
 
     if (!reconnect) {
+        if (protocol == AUTOMATIC &&
+            elm327.sendCommand_Blocking("AT DP") == ELM_SUCCESS &&
+            strlen(elm327.payload) > 0) {
+            auto protocol = String(elm327.payload);
+            protocol.replace("AUTO", "");
+            Serial.printf("ELM327 protocol: %s\n", protocol.c_str());
+        }
         setCheckPidSupport(this->checkPidSupport);
         elm327.specifyNumResponses = this->specifyNumResponses;
         initDone = true;
