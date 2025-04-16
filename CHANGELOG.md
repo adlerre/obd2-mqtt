@@ -1,19 +1,3 @@
-# [0.24.0](https://github.com/adlerre/obd2-mqtt/compare/v0.23.0...v0.24.0) (2025-04-16)
-
-
-### Bug Fixes
-
-* bump versions ([fae0e1e](https://github.com/adlerre/obd2-mqtt/commit/fae0e1e8765880c66104c226f7098f00c0148e23))
-* bump versions ([ac0b97d](https://github.com/adlerre/obd2-mqtt/commit/ac0b97d2c394f588fc38712e460f3f1815c5e4dc))
-* fixing style of checkboxes ([9e1bbcc](https://github.com/adlerre/obd2-mqtt/commit/9e1bbcce565da9b609eff58c7e8c2b98b251b6a5))
-* set max value for pid and header ([300123c](https://github.com/adlerre/obd2-mqtt/commit/300123c136a5a8535cfc7808e440bbce2041dd83))
-* use sass color functions ([33d3969](https://github.com/adlerre/obd2-mqtt/commit/33d39696592f0318612f90c1a8679ed80c189b9f))
-
-
-### Features
-
-* output used protocol ([7edc796](https://github.com/adlerre/obd2-mqtt/commit/7edc796097f18ae8daee9ed885f605e536a8c6fa))
-
 # [0.23.0](https://github.com/adlerre/obd2-mqtt/compare/v0.22.0...v0.23.0) (2025-04-10)
 
 
