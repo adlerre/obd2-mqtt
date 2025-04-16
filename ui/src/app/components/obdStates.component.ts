@@ -204,8 +204,8 @@ export class OBDStatesComponent implements OnInit {
             readFunc: new FormControl<string>("", Validators.maxLength(32)),
             pid: new FormGroup({
                 service: new FormControl<number>(0, [Validators.required, Validators.min(0), Validators.max(255)]),
-                pid: new FormControl<number>(0, [Validators.required, Validators.min(0)]),
-                header: new FormControl<number>(0, [Validators.required, Validators.min(0)]),
+                pid: new FormControl<number>(0, [Validators.required, Validators.min(0), Validators.max(65535)]),
+                header: new FormControl<number>(0, [Validators.required, Validators.min(0), Validators.max(65535)]),
                 numResponses: new FormControl<number>(0, [Validators.required, Validators.min(0), Validators.max(16)]),
                 numExpectedBytes: new FormControl<number>(0, [Validators.required, Validators.min(0), Validators.max(16)]),
                 scaleFactor: new FormControl<string | null>(null, [Validators.maxLength(256)]),
@@ -341,7 +341,7 @@ export class OBDStatesComponent implements OnInit {
 
             const val = parseInt(e.value, 16);
             if (!isNaN(val)) {
-                control.patchValue(val);
+                control.setValue(val);
             }
 
             if (!regex.test(e.value) || control.invalid) {
