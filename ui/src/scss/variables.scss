@@ -14,12 +14,13 @@
  *  If not, write to the Free Software Foundation Inc.,
  *  59 Temple Place - Suite 330, Boston, MA  02111-1307 USA
  */
-
-@import "functions";
+@use "sass:color";
+@use "functions";
 
 $primary: #c64646 !default;
 $secondary: #343a40 !default;
 $form-invalid-color: red !default;
+$border-color: grey;
 
 $colors: (
         "primary": $primary,
@@ -45,7 +46,7 @@ $colors: (
   --ui-body-font-weight: 400;
   --ui-body-line-height: 1.5;
 
-  --ui-border-color: gray;
+  --ui-border-color: #{$border-color};
   --ui-border-width: 1px;
   --ui-border-radius: 0.1rem;
 
@@ -82,13 +83,13 @@ $colors: (
   --ui-form-check-checked-border-color: #{$primary};
 
   --ui-link-text-color: #{$primary};
-  --ui-link-hover-text-color: #{lighten($primary, 10%)};
+  --ui-link-hover-text-color: #{color.adjust($primary, $lightness: 10%)};
 
   --ui-nav-bg-color: #fff;
   --ui-nav-text-color: black;
   --ui-nav-active-bg-color: black;
   --ui-nav-active-text-color: white;
-  --ui-nav-hover-bg-color: #{darken(#fff, 10%)};
+  --ui-nav-hover-bg-color: #{color.adjust(#fff, $lightness: -10%)};
   --ui-nav-hover-text-color: #000;
 
   @each $name, $color in $colors {
@@ -110,6 +111,6 @@ $colors: (
   --ui-nav-text-color: white;
   --ui-nav-active-bg-color: white;
   --ui-nav-active-text-color: black;
-  --ui-nav-hover-bg-color: #{darken(#0d1117, 20%)};
+  --ui-nav-hover-bg-color: #{color.adjust(#0d1117, $lightness: -20%)};
   --ui-nav-hover-text-color: white;
 }

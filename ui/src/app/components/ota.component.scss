@@ -15,9 +15,9 @@
  *  59 Temple Place - Suite 330, Boston, MA  02111-1307 USA
  */
 
-@import "color";
-@import "list-group";
-@import "progress";
+@use "color";
+@use "list-group";
+@use "progress";
 
 #ota {
   .file-drop-zone {

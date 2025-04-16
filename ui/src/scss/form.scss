@@ -14,6 +14,7 @@
  *  If not, write to the Free Software Foundation Inc.,
  *  59 Temple Place - Suite 330, Boston, MA  02111-1307 USA
  */
+@use "sass:color";
 
 [type=button]:not(:disabled), [type=reset]:not(:disabled), [type=submit]:not(:disabled), button:not(:disabled) {
   cursor: pointer;
@@ -50,7 +51,14 @@
   }
 
   &.is-invalid {
+    $color: toRGB($form-invalid-color);
+    $svg: str-replace("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' width='12' height='12' fill='none' stroke='COLOR'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath stroke-linejoin='round' d='M5.8 3.6h.4L6 6.5z'/%3e%3ccircle cx='6' cy='8.2' r='.6' fill='COLOR' stroke='none'/%3e%3c/svg%3e", "COLOR", $color);
     border-color: var(--ui-form-invalid-border-color);
+    padding-right: calc(1.5em + .75rem);
+    background-image: url($svg);
+    background-repeat: no-repeat;
+    background-position: right calc(.375em + .1875rem) center;
+    background-size: calc(.75em + .375rem) calc(.75em + .375rem);
   }
 }
 
@@ -93,7 +101,9 @@
   }
 
   &:checked[type=checkbox] {
-    --ui-form-check-bg-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3e%3cpath fill='none' stroke='%23fff' stroke-linecap='round' stroke-linejoin='round' stroke-width='3' d='m6 10 3 3 6-6'/%3e%3c/svg%3e");
+    $color: toRGB(#fff);
+    $svg: str-replace("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3e%3cpath fill='none' stroke='COLOR' stroke-linecap='round' stroke-linejoin='round' stroke-width='3' d='m6 10 3 3 6-6'/%3e%3c/svg%3e", "COLOR", $color);
+    --ui-form-check-bg-image: #{url($svg)};
   }
 
   &:checked {
@@ -103,7 +113,9 @@
 }
 
 .form-select {
-  --ui-form-select-bg-img: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
+  $color: toRGB($border-color);
+  $svg: str-replace("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='COLOR' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e", "COLOR", $color);
+  --ui-form-select-bg-img: #{url($svg)};
   display: block;
   width: 100%;
   padding: .375rem 2.25rem .375rem .75rem;
@@ -248,12 +260,12 @@
   --ui-btn-bg: #{$primary};
   --ui-btn-border-color: #{$primary};
   --ui-btn-hover-color: #fff;
-  --ui-btn-hover-bg: #{lighten($primary, 15%)};
-  --ui-btn-hover-border-color: #{lighten($primary, 10%)};
+  --ui-btn-hover-bg: #{color.adjust($primary, $lightness: 15%)};
+  --ui-btn-hover-border-color: #{color.adjust($primary, $lightness: 10%)};
   --ui-btn-focus-shadow-rgb: 58, 96, 154;
   --ui-btn-active-color: #fff;
-  --ui-btn-active-bg: #{lighten($primary, 10%)};
-  --ui-btn-active-border-color: #{lighten($primary, 5%)};
+  --ui-btn-active-bg: #{color.adjust($primary, $lightness: 10%)};
+  --ui-btn-active-border-color: #{color.adjust($primary, $lightness: 5%)};
   --ui-btn-active-shadow: inset 0 3px 5px rgba(0, 0, 0, .125);
   --ui-btn-disabled-color: #fff;
   --ui-btn-disabled-bg: #{$primary};
@@ -265,12 +277,12 @@
   --ui-btn-bg: #{$secondary};
   --ui-btn-border-color: #{$secondary};
   --ui-btn-hover-color: #fff;
-  --ui-btn-hover-bg: #{lighten($secondary, 15%)};
-  --ui-btn-hover-border-color: #{lighten($secondary, 10%)};
+  --ui-btn-hover-bg: #{color.adjust($secondary, $lightness: 15%)};
+  --ui-btn-hover-border-color: #{color.adjust($secondary, $lightness: 10%)};
   --ui-btn-focus-shadow-rgb: 58, 96, 154;
   --ui-btn-active-color: #fff;
-  --ui-btn-active-bg: #{lighten($secondary, 10%)};
-  --ui-btn-active-border-color: #{lighten($secondary, 5%)};
+  --ui-btn-active-bg: #{color.adjust($secondary, $lightness: 10%)};
+  --ui-btn-active-border-color: #{color.adjust($secondary, $lightness: 5%)};
   --ui-btn-active-shadow: inset 0 3px 5px rgba(0, 0, 0, .125);
   --ui-btn-disabled-color: #fff;
   --ui-btn-disabled-bg: #{$secondary};
@@ -281,12 +293,12 @@
   --ui-btn-color: var(--ui-body-color);
   --ui-btn-border-color: var(--ui-border-color);
   --ui-btn-hover-color: #fff;
-  --ui-btn-hover-bg: #{lighten($secondary, 15%)};
-  --ui-btn-hover-border-color: #{lighten($secondary, 10%)};
+  --ui-btn-hover-bg: #{color.adjust($secondary, $lightness: 15%)};
+  --ui-btn-hover-border-color: #{color.adjust($secondary, $lightness: 10%)};
   --ui-btn-focus-shadow-rgb: 58, 96, 154;
   --ui-btn-active-color: #fff;
-  --ui-btn-active-bg: #{lighten($secondary, 10%)};
-  --ui-btn-active-border-color: #{lighten($secondary, 5%)};
+  --ui-btn-active-bg: #{color.adjust($secondary, $lightness: 10%)};
+  --ui-btn-active-border-color: #{color.adjust($secondary, $lightness: 5%)};
   --ui-btn-active-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
   --ui-btn-disabled-color: #{$secondary};
   --ui-btn-disabled-bg: transparent;
