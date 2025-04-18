@@ -1,3 +1,15 @@
+# [0.25.0](https://github.com/adlerre/obd2-mqtt/compare/v0.24.0...v0.25.0) (2025-04-18)
+
+
+### Bug Fixes
+
+* bump versions ([2fbe349](https://github.com/adlerre/obd2-mqtt/commit/2fbe349e46c0f822b99a16a7f996379bbad29d26))
+
+
+### Features
+
+* add support for Waveshare ESP32 S3 A7670E ([a9bafca](https://github.com/adlerre/obd2-mqtt/commit/a9bafca56febae54d55f710bf2c008057f9aabb3))
+
 # [0.24.0](https://github.com/adlerre/obd2-mqtt/compare/v0.23.0...v0.24.0) (2025-04-16)
 
 
