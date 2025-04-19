@@ -63,9 +63,9 @@ void ExprParser::setVariableResolveFunction(const std::function<double(const cha
 
 char *ExprParser::resolveVariables(char *expression) {
     if (expression != nullptr && varResolveFunction != nullptr) {
-        const auto exp = new char[strlen(expression) + 256];
-        const auto varName = new char[33];
-        const auto var = new char[32];
+        char exp[strlen(expression) + 256] = {'\0'};
+        char varName[33] = {'\0'};
+        char var[33] = {'\0'};
         size_t pos = 0;
         size_t varPos = 0;
         size_t start = -1;
@@ -113,10 +113,6 @@ char *ExprParser::resolveVariables(char *expression) {
 
             strcpy(expression, resolveVariables(exp));
         }
-
-        free(var);
-        free(varName);
-        free(exp);
     }
 
     return expression;
@@ -128,12 +124,11 @@ double ExprParser::evalExp(const char *expression) {
     double result;
 
     if (expression != nullptr) {
-        const auto exp = new char[strlen(expression) + 1];
+        char exp[strlen(expression) + 1] = {'\0'};
         strcpy(exp, expression);
         exp_ptr = resolveVariables(exp);
         getToken();
         if (!*token) {
-            free(exp);
             strcpy(errormsg, "No Expression Present"); // no expression present
             return 0;
         }
@@ -141,7 +136,6 @@ double ExprParser::evalExp(const char *expression) {
         if (*token) {
             strcpy(errormsg, "Syntax Error"); // last token must be null
         }
-        free(exp);
     } else {
         strcpy(errormsg, "No Expression Present"); // no expression present
         return 0;
@@ -181,13 +175,10 @@ void ExprParser::evalExp2(double &result) {
     while ((op = *token) == '+' || op == '-') {
         getToken();
         evalExp3(temp);
-        switch (op) {
-            case '-':
-                result = result - temp;
-                break;
-            case '+':
-                result = result + temp;
-                break;
+        if (op == '-') {
+            result = result - temp;
+        } else if (op == '+') {
+            result = result + temp;
         }
     }
 }
@@ -200,13 +191,10 @@ void ExprParser::evalExp3(double &result) {
     while ((op = *token) == '*' || op == '/') {
         getToken();
         evalExp4(temp);
-        switch (op) {
-            case '*':
-                result = result * temp;
-                break;
-            case '/':
-                result = result / temp;
-                break;
+        if (op == '*') {
+            result = result * temp;
+        } else if (op == '/') {
+            result = result / temp;
         }
     }
 }
@@ -219,13 +207,10 @@ void ExprParser::evalExp4(double &result) {
     while ((op = *token) == '^' || op == '&') {
         getToken();
         evalExp5(temp);
-        switch (op) {
-            case '^':
-                result = pow(result, temp);
-                break;
-            case '&':
-                result = static_cast<int>(result) & static_cast<int>(temp);
-                break;
+        if (op == '^') {
+            result = pow(result, temp);
+        } else if (op == '&') {
+            result = static_cast<int>(result) & static_cast<int>(temp);
         }
     }
 }
@@ -244,6 +229,7 @@ void ExprParser::evalExp5(double &result) {
 
 // Process a function, a parenthesized expression, a value or a variable
 void ExprParser::evalExp6(double &result) {
+    char *err_ptr;
     const bool isfunc = (tokType == FUNCTION);
     char tempToken[80];
     if (isfunc) {
@@ -296,11 +282,15 @@ void ExprParser::evalExp6(double &result) {
                 result = floor(result);
             else if (*token == ',' && (!strcmp(tempToken, "MIN") || !strcmp(tempToken, "MAX"))) {
                 getToken(); // get next token, should be a numeric
-                const double val = atof(token);
-                result = !strcmp(tempToken, "MIN") ? result < val ? result : val : result > val ? result : val;
-                getToken();
-                if (*token != ')')
-                    strcpy(errormsg, "Unbalanced Parentheses");
+                const double val = strtod(token, &err_ptr);
+                if (*err_ptr == '\0') {
+                    result = !strcmp(tempToken, "MIN") ? result < val ? result : val : result > val ? result : val;
+                    getToken();
+                    if (*token != ')')
+                        strcpy(errormsg, "Unbalanced Parentheses");
+                } else {
+                    strcpy(errormsg, "Is not a number");
+                }
             } else {
                 bool found = false;
                 for (const auto &item: customFunctions) {
@@ -323,8 +313,12 @@ void ExprParser::evalExp6(double &result) {
                 getToken();
                 return;
             case NUMBER:
-                result = atof(token);
-                getToken();
+                result = strtod(token, &err_ptr);
+                if (*err_ptr == '\0') {
+                    getToken();
+                } else {
+                    strcpy(errormsg, "Is not a number");
+                }
                 return;
             default:
                 strcpy(errormsg, "Syntax Error");
