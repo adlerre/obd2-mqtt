@@ -159,8 +159,8 @@ void WiFiAPStationDisconnected(WiFiEvent_t event, WiFiEventInfo_t info) {
 
     if (wifiAPStaConnected == 0) {
         DEBUG_PORT.println("WiFi AP all clients disconnected. Start all other task.");
-        OBD.begin(Settings.getOBD2Name(OBD_ADP_NAME), Settings.getOBD2MAC(), Settings.getOBD2Protocol(),
-                  Settings.getOBD2CheckPIDSupport(), Settings.getOBD2Debug(), Settings.getOBD2SpecifyNumResponses());
+        OBD.begin(Settings.OBD2.getName(OBD_ADP_NAME), Settings.OBD2.getMAC(), Settings.OBD2.getProtocol(),
+                  Settings.OBD2.getCheckPIDSupport(), Settings.OBD2.getDebug(), Settings.OBD2.getSpecifyNumResponses());
         OBD.connect(true);
         wifiAPInUse = false;
     }
@@ -178,14 +178,14 @@ void startWiFiAP() {
     WiFi.onEvent(WiFiAPStationConnected, WiFiEvent_t::ARDUINO_EVENT_WIFI_AP_STACONNECTED);
     WiFi.onEvent(WiFiAPStationDisconnected, WiFiEvent_t::ARDUINO_EVENT_WIFI_AP_STADISCONNECTED);
 
-    String ssid = Settings.getWiFiAPSSID();
+    String ssid = Settings.WiFi.getAPSSID();
     if (ssid.isEmpty()) {
         ssid = "OBD2-MQTT-" + String(stripChars(WiFi.macAddress().c_str()).c_str());
-        Settings.setWiFiAPSSID(ssid.c_str());
+        Settings.WiFi.setAPSSID(ssid.c_str());
     }
     WiFi.softAP(
         ssid.c_str(),
-        Settings.getWiFiAPPassword()
+        Settings.WiFi.getAPPassword()
     );
 }
 
@@ -354,7 +354,7 @@ void onOBDConnected() {
 void onOBDConnectError() {
     ++obdConnectErrors;
     if (GSM::hasBattery() && GSM::isBatteryUsed() && obdConnectErrors > 5) {
-        deepSleep(Settings.getSleepDuration());
+        deepSleep(Settings.General.getSleepDuration());
     }
 }
 
@@ -408,7 +408,7 @@ void onBTDevicesDiscovered(BTScanResults *btDeviceList) {
 bool sendDiscoveryData() {
     const unsigned long start = millis();
     bool allSendsSuccessed = false;
-    bool allowOffline = Settings.getMQTTAllowOffline();
+    bool allowOffline = Settings.MQTT.getAllowOffline();
 
     DEBUG_PORT.print("Send discovery data...");
 
@@ -484,7 +484,6 @@ bool sendDiagnosticDiscoveryData() {
 bool sendStaticDiagnosticDiscoveryData() {
     const unsigned long start = millis();
     bool allSendsSuccessed = false;
-    bool allowOffline = Settings.getMQTTAllowOffline();
 
     DEBUG_PORT.print("Send static diagnostic discovery data...");
 
@@ -686,7 +685,7 @@ void mqttSendData() {
 
         if (!allDiscoverySend) {
             if ((allDiscoverySend = sendDiscoveryData())) {
-                lastMQTTDiscoveryOutput = millis() + Settings.getMQTTDiscoveryInterval() * 1000L;
+                lastMQTTDiscoveryOutput = millis() + Settings.MQTT.getDiscoveryInterval() * 1000L;
             } else {
                 return;
             }
@@ -698,7 +697,7 @@ void mqttSendData() {
 
         if (!allDiagnosticDiscoverySend) {
             if ((allDiagnosticDiscoverySend = sendDiagnosticDiscoveryData())) {
-                lastMQTTDiagnosticDiscoveryOutput = millis() + Settings.getMQTTDiscoveryInterval() * 1000L;
+                lastMQTTDiagnosticDiscoveryOutput = millis() + Settings.MQTT.getDiscoveryInterval() * 1000L;
             } else {
                 return;
             }
@@ -710,7 +709,7 @@ void mqttSendData() {
 
         if (!allStaticDiagnosticDiscoverySend) {
             if ((allStaticDiagnosticDiscoverySend = sendStaticDiagnosticDiscoveryData())) {
-                lastMQTTStaticDiagnosticDiscoveryOutput = millis() + Settings.getMQTTDiscoveryInterval() * 1000L;
+                lastMQTTStaticDiagnosticDiscoveryOutput = millis() + Settings.MQTT.getDiscoveryInterval() * 1000L;
             } else {
                 return;
             }
@@ -718,7 +717,7 @@ void mqttSendData() {
 
         if (millis() > lastMQTTDiagnosticOutput) {
             if (sendDiagnosticData()) {
-                lastMQTTDiagnosticOutput = millis() + Settings.getMQTTDiagnosticInterval() * 1000L;
+                lastMQTTDiagnosticOutput = millis() + Settings.MQTT.getDiagnosticInterval() * 1000L;
             } else {
                 return;
             }
@@ -726,7 +725,7 @@ void mqttSendData() {
 
         if (millis() > lastMQTTStaticDiagnosticOutput) {
             if (sendStaticDiagnosticData()) {
-                lastMQTTStaticDiagnosticOutput = millis() + Settings.getMQTTDiagnosticInterval() * 2 * 1000L;
+                lastMQTTStaticDiagnosticOutput = millis() + Settings.MQTT.getDiagnosticInterval() * 2 * 1000L;
             } else {
                 return;
             }
@@ -734,14 +733,14 @@ void mqttSendData() {
 
         if (millis() > lastMQTTLocationOutput) {
             if (sendLocationData()) {
-                lastMQTTLocationOutput = millis() + Settings.getMQTTLocationInterval() * 1000L;
+                lastMQTTLocationOutput = millis() + Settings.MQTT.getLocationInterval() * 1000L;
             } else {
                 return;
             }
         }
 
         if (sendOBDData()) {
-            lastMQTTOutput = millis() + Settings.getMQTTDataInterval() * 1000L;
+            lastMQTTOutput = millis() + Settings.MQTT.getDataInterval() * 1000L;
         }
     } else {
         delay(500);
@@ -781,11 +780,12 @@ void mqttSendData() {
                                state->getUpdateInterval() <= 5 * 60 * 1000;
                     });
 
-                    if (batVoltage < LOW_VOLTAGE_LEVEL || (drain && avgLU > Settings.getSleepTimeout() * 1000)) {
+                    if (batVoltage < LOW_VOLTAGE_LEVEL || (
+                            drain && avgLU > Settings.General.getSleepTimeout() * 1000)) {
                         if (batVoltage < LOW_VOLTAGE_LEVEL) {
                             DEBUG_PORT.println("Battery has low voltage.");
                         }
-                        deepSleep(Settings.getSleepDuration());
+                        deepSleep(Settings.General.getSleepDuration());
                     }
                 }
             }
@@ -827,7 +827,7 @@ void mqttSendData() {
                     }
                 }
 
-                checkInterval = millis() + Settings.getMQTTLocationInterval() * 1000L;
+                checkInterval = millis() + Settings.MQTT.getLocationInterval() * 1000L;
                 DEBUG_PORT.printf("...%s (%dms)\n", allReadSuccessed ? "done" : "failed", millis() - start);
             }
 
@@ -839,11 +839,11 @@ void mqttSendData() {
                 auto client_id = String(MQTT_CLIENT_ID) + "-" + stripChars(OBD.getConnectedBTAddress()).c_str();
                 if (!mqtt.connect(
                     client_id.c_str(),
-                    Settings.getMQTTHostname().c_str(),
-                    Settings.getMQTTPort(),
-                    Settings.getMQTTUsername().c_str(),
-                    Settings.getMQTTPassword().c_str(),
-                    static_cast<mqttProtocol>(Settings.getMQTTProtocol())
+                    Settings.MQTT.getHostname().c_str(),
+                    Settings.MQTT.getPort(),
+                    Settings.MQTT.getUsername().c_str(),
+                    Settings.MQTT.getPassword().c_str(),
+                    static_cast<mqttProtocol>(Settings.MQTT.getProtocol())
                 )) {
                     gsm.checkNetwork(true);
                 }
@@ -878,14 +878,14 @@ void setup() {
     startHttpServer();
 
     // will be ignored if the device does not support
-    gsm.setNetworkMode(Settings.getMobileNetworkMode());
+    gsm.setNetworkMode(Settings.Mobile.getNetworkMode());
     gsm.connectToNetwork();
     gsm.enableGPS();
 
     OBD.onConnected(onOBDConnected);
     OBD.onConnectError(onOBDConnectError);
-    OBD.begin(Settings.getOBD2Name(OBD_ADP_NAME), Settings.getOBD2MAC(), Settings.getOBD2Protocol(),
-              Settings.getOBD2CheckPIDSupport(), Settings.getOBD2Debug(), Settings.getOBD2SpecifyNumResponses());
+    OBD.begin(Settings.OBD2.getName(OBD_ADP_NAME), Settings.OBD2.getMAC(), Settings.OBD2.getProtocol(),
+              Settings.OBD2.getCheckPIDSupport(), Settings.OBD2.getDebug(), Settings.OBD2.getSpecifyNumResponses());
 #ifdef USE_BLE
     OBD.onDevicesDiscovered(onBLEDevicesDiscovered);
 #else
@@ -893,8 +893,8 @@ void setup() {
 #endif
     OBD.connect();
 
-    if (!Settings.getMQTTHostname().isEmpty()) {
-        mqtt.setClient(gsm.getClient(Settings.getMQTTSecure()));
+    if (!Settings.MQTT.getHostname().isEmpty()) {
+        mqtt.setClient(gsm.getClient(Settings.MQTT.getSecure()));
         mqtt.setIdentifier(OBD.getConnectedBTAddress());
 
         xTaskCreatePinnedToCore(outputTask, "OutputTask", 9216, nullptr, 10, &outputTaskHdl, 0);

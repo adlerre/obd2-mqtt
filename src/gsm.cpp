@@ -366,8 +366,8 @@ restart:
 
     if (isUseGPRS()) {
         // Unlock your SIM card with a PIN if needed
-        if (!Settings.getSimPin().isEmpty() && modem.getSimStatus() != 3) {
-            modem.simUnlock(Settings.getSimPin().c_str());
+        if (!Settings.Mobile.getPin().isEmpty() && modem.getSimStatus() != 3) {
+            modem.simUnlock(Settings.Mobile.getPin().c_str());
         }
     }
 
@@ -391,15 +391,15 @@ restart:
     }
 
     if (isUseGPRS()) {
-        if (Settings.getMobileAPN().isEmpty()) {
+        if (Settings.Mobile.getAPN().isEmpty()) {
             Serial.println("No APN was configured");
             return;
         }
 
         // GPRS connection parameters are usually set after network registration
-        Serial.printf("Connecting to %s...", Settings.getMobileAPN().c_str());
-        if (!modem.gprsConnect(Settings.getMobileAPN().c_str(), Settings.getMobileUsername().c_str(),
-                               Settings.getMobilePassword().c_str())) {
+        Serial.printf("Connecting to %s...", Settings.Mobile.getAPN().c_str());
+        if (!modem.gprsConnect(Settings.Mobile.getAPN().c_str(), Settings.Mobile.getUsername().c_str(),
+                               Settings.Mobile.getPassword().c_str())) {
             Serial.println("...fail");
             delay(3000);
             goto restart;
@@ -446,8 +446,8 @@ bool GSM::checkNetwork(bool resetConnection) {
 #endif
 
         if (isUseGPRS()) {
-            if (!Settings.getSimPin().isEmpty() && modem.getSimStatus() != 3) {
-                modem.simUnlock(Settings.getSimPin().c_str());
+            if (!Settings.Mobile.getPin().isEmpty() && modem.getSimStatus() != 3) {
+                modem.simUnlock(Settings.Mobile.getPin().c_str());
             }
         }
 
@@ -467,9 +467,9 @@ bool GSM::checkNetwork(bool resetConnection) {
             // and make sure GPRS/EPS is still connected
             if (!modem.isGprsConnected()) {
                 Serial.println("GPRS disconnected");
-                Serial.printf("Connecting to %s...", Settings.getMobileAPN().c_str());
-                if (!modem.gprsConnect(Settings.getMobileAPN().c_str(), Settings.getMobileUsername().c_str(),
-                                       Settings.getMobilePassword().c_str())) {
+                Serial.printf("Connecting to %s...", Settings.Mobile.getAPN().c_str());
+                if (!modem.gprsConnect(Settings.Mobile.getAPN().c_str(), Settings.Mobile.getUsername().c_str(),
+                                       Settings.Mobile.getPassword().c_str())) {
                     Serial.println("...fail");
                     delay(3000);
                     return false;

@@ -43,60 +43,213 @@ namespace ArduinoJson {
 
 #define SETTINGS_FILE "/settings.json"
 
-struct GeneralSettings {
-    int sleepTimeout;
-    int sleepDuration;
+class GeneralSettings {
+    struct {
+        int sleepTimeout;
+        int sleepDuration;
+    } general{};
+
+    void readJson(JsonDocument &doc);
+
+    void writeJson(JsonDocument &doc);
+
+    friend class SettingsClass;
+
+public:
+    int getSleepTimeout() const;
+
+    void setSleepTimeout(int timeout);
+
+    int getSleepDuration() const;
+
+    void setSleepDuration(int time);
 };
 
-struct WiFiSettings {
-    char ssid[65];
-    char password[33];
+class WiFiSettings {
+    struct {
+        char ssid[65];
+        char password[33];
+    } wifi{};
+
+    void readJson(JsonDocument &doc);
+
+    void writeJson(JsonDocument &doc);
+
+    friend class SettingsClass;
+
+public:
+    String getAPSSID(const String &alternate = String()) const;
+
+    void setAPSSID(const char *ssid);
+
+    String getAPPassword() const;
+
+    void setAPPassword(const char *password);
 };
 
-struct MobileSettings {
-    int networkMode;
-    char pin[5];
-    char apn[65];
-    char username[33];
-    char password[33];
+class MobileSettings {
+    struct {
+        int networkMode;
+        char pin[5];
+        char apn[65];
+        char username[33];
+        char password[33];
+    } mobile{};
+
+    void readJson(JsonDocument &doc);
+
+    void writeJson(JsonDocument &doc);
+
+    friend class SettingsClass;
+
+public:
+    int getNetworkMode() const;
+
+    void setNetworkMode(int networkMode);
+
+    String getPin() const;
+
+    void setPin(const char *simPin);
+
+    String getAPN() const;
+
+    void setAPN(const char *apn);
+
+    String getUsername() const;
+
+    void setUsername(const char *username);
+
+    String getPassword() const;
+
+    void setPassword(const char *password);
 };
 
-struct OBD2Settings {
-    char name[65];
-    char mac[19];
-    bool checkPIDSupport;
-    bool debug;
-    bool specifyNumResponses;
-    char protocol;
+class OBD2Settings {
+    struct {
+        char name[65];
+        char mac[19];
+        bool checkPIDSupport;
+        bool debug;
+        bool specifyNumResponses;
+        char protocol;
+    } obd2{};
+
+    void readJson(JsonDocument &doc);
+
+    void writeJson(JsonDocument &doc);
+
+    friend class SettingsClass;
+
+public:
+    String getName(const String &alternate = String()) const;
+
+    void setName(const char *name);
+
+    String getMAC() const;
+
+    void setMAC(const char *mac);
+
+    bool getCheckPIDSupport() const;
+
+    void setCheckPIDSupport(bool checkPIDSupport);
+
+    bool getDebug() const;
+
+    void setDebug(bool debug);
+
+    bool getSpecifyNumResponses() const;
+
+    void setSpecifyNumResponses(bool specifyNumResponses);
+
+    char getProtocol() const;
+
+    void setProtocol(char protocol);
 };
 
-struct MQTTSettings {
-    int protocol;
-    char hostname[65];
-    unsigned int port;
-    bool secure;
-    char username[33];
-    char password[33];
-    bool allowOffline;
-    unsigned int dataInterval;
-    unsigned int diagnosticInterval;
-    unsigned int discoveryInterval;
-    unsigned int locationInterval;
+class MQTTSettings {
+    struct {
+        int protocol;
+        char hostname[65];
+        unsigned int port;
+        bool secure;
+        char username[33];
+        char password[33];
+        bool allowOffline;
+        unsigned int dataInterval;
+        unsigned int diagnosticInterval;
+        unsigned int discoveryInterval;
+        unsigned int locationInterval;
+    } mqtt{};
+
+    void readJson(JsonDocument &doc);
+
+    void writeJson(JsonDocument &doc);
+
+    friend class SettingsClass;
+
+public:
+    int getProtocol() const;
+
+    void setProtocol(int protocol);
+
+    String getHostname() const;
+
+    void setHostname(const char *hostname);
+
+    unsigned int getPort() const;
+
+    void setPort(unsigned int port);
+
+    bool getSecure() const;
+
+    void setSecure(bool secure);
+
+    String getUsername() const;
+
+    void setUsername(const char *username);
+
+    String getPassword() const;
+
+    void setPassword(const char *password);
+
+    bool getAllowOffline() const;
+
+    void setAllowOffline(bool allowOffline);
+
+    unsigned int getDataInterval() const;
+
+    void setDataInterval(unsigned int dataInterval);
+
+    unsigned int getDiagnosticInterval() const;
+
+    void setDiagnosticInterval(unsigned int diagnosticInterval);
+
+    unsigned int getDiscoveryInterval() const;
+
+    void setDiscoveryInterval(unsigned int discoveryInterval);
+
+    unsigned int getLocationInterval() const;
+
+    void setLocationInterval(unsigned int locationInterval);
 };
 
 class SettingsClass {
-    GeneralSettings general{};
-    WiFiSettings wifi{};
-    MobileSettings mobile{};
-    OBD2Settings obd2{};
-    MQTTSettings mqtt{};
-
     void readJson(JsonDocument &doc);
 
     void writeJson(JsonDocument &doc);
 
 public:
     SettingsClass();
+
+    GeneralSettings General;
+
+    WiFiSettings WiFi;
+
+    MobileSettings Mobile;
+
+    OBD2Settings OBD2;
+
+    MQTTSettings MQTT;
 
     bool readSettings(fs::FS &fs);
 
@@ -105,110 +258,6 @@ public:
     std::string buildJson();
 
     bool parseJson(std::string json);
-
-    int getSleepTimeout() const;
-
-    void setSleepTimeout(int timeout);
-
-    int getSleepDuration() const;
-
-    void setSleepDuration(int time);
-
-    String getWiFiAPSSID(const String &alternate = String()) const;
-
-    void setWiFiAPSSID(const char *ssid);
-
-    String getWiFiAPPassword() const;
-
-    void setWiFiAPPassword(const char *password);
-
-    int getMobileNetworkMode() const;
-
-    void setMobileNetworkMode(int networkMode);
-
-    String getSimPin() const;
-
-    void setSimPin(const char *simPin);
-
-    String getMobileAPN() const;
-
-    void setMobileAPN(const char *apn);
-
-    String getMobileUsername() const;
-
-    void setMobileUsername(const char *username);
-
-    String getMobilePassword() const;
-
-    void setMobilePassword(const char *password);
-
-    String getOBD2Name(const String &alternate = String()) const;
-
-    void setOBD2Name(const char *name);
-
-    String getOBD2MAC() const;
-
-    void setOBD2MAC(const char *mac);
-
-    bool getOBD2CheckPIDSupport() const;
-
-    void setOBD2CheckPIDSupport(bool checkPIDSupport);
-
-    bool getOBD2Debug() const;
-
-    void setOBD2Debug(bool debug);
-
-    bool getOBD2SpecifyNumResponses() const;
-
-    void setOBD2SpecifyNumResponses(bool specifyNumResponses);
-
-    char getOBD2Protocol() const;
-
-    void setOBD2Protocol(char protocol);
-
-    int getMQTTProtocol() const;
-
-    void setMQTTProtocol(int protocol);
-
-    String getMQTTHostname() const;
-
-    void setMQTTHostname(const char *hostname);
-
-    unsigned int getMQTTPort() const;
-
-    void setMQTTPort(unsigned int port);
-
-    bool getMQTTSecure() const;
-
-    void setMQTTSecure(bool secure);
-
-    String getMQTTUsername() const;
-
-    void setMQTTUsername(const char *username);
-
-    String getMQTTPassword() const;
-
-    void setMQTTPassword(const char *password);
-
-    bool getMQTTAllowOffline() const;
-
-    void setMQTTAllowOffline(bool allowOffline);
-
-    unsigned int getMQTTDataInterval() const;
-
-    void setMQTTDataInterval(unsigned int dataInterval);
-
-    unsigned int getMQTTDiagnosticInterval() const;
-
-    void setMQTTDiagnosticInterval(unsigned int diagnosticInterval);
-
-    unsigned int getMQTTDiscoveryInterval() const;
-
-    void setMQTTDiscoveryInterval(unsigned int discoveryInterval);
-
-    unsigned int getMQTTLocationInterval() const;
-
-    void setMQTTLocationInterval(unsigned int locationInterval);
 };
 
 extern SettingsClass Settings;
