@@ -1,3 +1,15 @@
+# [0.26.0](https://github.com/adlerre/obd2-mqtt/compare/v0.25.0...v0.26.0) (2025-04-20)
+
+
+### Bug Fixes
+
+* fixing crash on invalid value ([36300ea](https://github.com/adlerre/obd2-mqtt/commit/36300eada4711a598d2b2e45aaeebf572eda25e0))
+
+
+### Features
+
+* rework settings class ([2441b00](https://github.com/adlerre/obd2-mqtt/commit/2441b0007c921a24a93f64b0820089dcb2cc9549))
+
 # [0.25.0](https://github.com/adlerre/obd2-mqtt/compare/v0.24.0...v0.25.0) (2025-04-18)
 
 
