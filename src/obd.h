@@ -16,7 +16,7 @@
  */
 #pragma once
 #ifdef USE_BLE
-#include <BLEClientSerial.h>
+#include <BLESerial.h>
 #else
 #include <BluetoothSerial.h>
 #endif
@@ -86,7 +86,7 @@ public:
 
 class OBDClass : public OBDStates {
 #ifdef USE_BLE
-    BLEClientSerial serialBLE;
+    BLESerial serialBLE;
 #else
     BluetoothSerial serialBt;
 #endif
