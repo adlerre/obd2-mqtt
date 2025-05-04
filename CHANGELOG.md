@@ -1,3 +1,15 @@
+# [0.27.0](https://github.com/adlerre/obd2-mqtt/compare/v0.26.0...v0.27.0) (2025-05-04)
+
+
+### Bug Fixes
+
+* bump versions ([851b98d](https://github.com/adlerre/obd2-mqtt/commit/851b98dd4b3670da70c21c1b6b490204f74f8ce4))
+
+
+### Features
+
+* switch to external BLE serial library ([e1acac8](https://github.com/adlerre/obd2-mqtt/commit/e1acac826b0d06a3f51facd44dfc5c7cacf2ffaf))
+
 # [0.26.0](https://github.com/adlerre/obd2-mqtt/compare/v0.25.0...v0.26.0) (2025-04-20)
 
 
