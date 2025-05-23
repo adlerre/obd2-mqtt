@@ -1,3 +1,12 @@
+## [0.27.1](https://github.com/adlerre/obd2-mqtt/compare/v0.27.0...v0.27.1) (2025-05-23)
+
+
+### Bug Fixes
+
+* bump versions ([bb31a8d](https://github.com/adlerre/obd2-mqtt/commit/bb31a8d4da2b60d21de14cc7a3e57463b6e0615a))
+* bump versions ([97cc488](https://github.com/adlerre/obd2-mqtt/commit/97cc4883814c06f967617cce8eafcc86c91afca1))
+* fixing not working OBD state type change (missing form elements) ([3a1d942](https://github.com/adlerre/obd2-mqtt/commit/3a1d942893194f05809802dfd7019266a57f610a))
+
 # [0.27.0](https://github.com/adlerre/obd2-mqtt/compare/v0.26.0...v0.27.0) (2025-05-04)
 
 
