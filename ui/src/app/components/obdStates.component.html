@@ -156,7 +156,7 @@
                                 }
                             </div>
                         </div>
-                        @if (state.controls.type.value === 0) {
+                        @if (state.controls.type.value === 0 || state.controls.type.value === "0") {
                             @if (state.controls.pid) {
                                 <div class="row mb-2">
                                     <label for="readFunc-{{ i }}" class="col-sm-2 col-form-label">Read Function</label>
@@ -272,7 +272,7 @@
                                     </div>
                                 </ng-container>
                             }
-                        } @else if (state.controls.type.value === 1) {
+                        } @else if (state.controls.type.value === 1 || state.controls.type.value === "1") {
                             <div class="row mb-2">
                                 <label for="calc-expr-{{ i }}" class="col-sm-2 control-label">Expression</label>
                                 <div class="col-sm-10">
