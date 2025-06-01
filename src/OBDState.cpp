@@ -89,6 +89,32 @@ bool OBDState::hasCalcExpression() const {
     return strlen(this->calcExpression) != 0;
 }
 
+double OBDState::conditionResponse(const double &value, const obd::OBDResponseFormat responseFormat,
+                                   const double &scaleFactor, const double &bias) {
+    if (responseFormat == obd::INT_8) {
+        if (scaleFactor == 1 && bias == 0)
+            return static_cast<int8_t>(value);
+        return (static_cast<int8_t>(value) * scaleFactor) + bias;
+    }
+    if (responseFormat == obd::INT_16) {
+        if (scaleFactor == 1 && bias == 0)
+            return static_cast<int16_t>(value);
+        return (static_cast<int16_t>(value) * scaleFactor) + bias;
+    }
+    if (responseFormat == obd::INT_32) {
+        if (scaleFactor == 1 && bias == 0)
+            return static_cast<int32_t>(value);
+        return (static_cast<int32_t>(value) * scaleFactor) + bias;
+    }
+    if (responseFormat == obd::INT_64) {
+        if (scaleFactor == 1 && bias == 0)
+            return static_cast<int64_t>(value);
+        return (static_cast<int64_t>(value) * scaleFactor) + bias;
+    }
+
+    return value;
+}
+
 uint32_t OBDState::supportedPIDs(const uint8_t &service, const uint16_t &pid) const {
     const uint8_t pidInterval = (pid / PID_INTERVAL_OFFSET) * PID_INTERVAL_OFFSET;
     return static_cast<uint32_t>(elm327->processPID(service, pidInterval, 1, 4));
@@ -108,22 +134,25 @@ bool OBDState::isPIDSupported(const uint8_t &service, const uint16_t &pid) const
 }
 
 void OBDState::setPIDSettings(const uint8_t &service, const uint16_t &pid, const uint16_t &header,
-                              const uint8_t &numResponses,
-                              const uint8_t &numExpectedBytes, const double &scaleFactor, const float &bias) {
+                              const uint8_t &numResponses, const uint8_t &numExpectedBytes,
+                              const obd::OBDResponseFormat responseFormat, const double &scaleFactor,
+                              const float &bias) {
     this->type = obd::READ;
     this->service = service;
     this->pid = pid;
     this->header = header;
     this->numResponses = numResponses;
     this->numExpectedBytes = numExpectedBytes;
+    this->responseFormat = responseFormat;
     this->scaleFactor = scaleFactor;
     this->bias = bias;
     this->updateInterval = 100;
 }
 
 void OBDState::setPIDSettings(const uint8_t &service, const uint16_t &pid, const uint16_t &header,
-                              const uint8_t &numResponses,
-                              const uint8_t &numExpectedBytes, const char *scaleFactorExpression, const float &bias) {
+                              const uint8_t &numResponses, const uint8_t &numExpectedBytes,
+                              const obd::OBDResponseFormat responseFormat, const char *scaleFactorExpression,
+                              const float &bias) {
     double scaleFactor = 1;
     if (scaleFactorExpression != nullptr && strlen(scaleFactorExpression) > 0) {
         ExprParser parser;
@@ -139,21 +168,22 @@ void OBDState::setPIDSettings(const uint8_t &service, const uint16_t &pid, const
     }
     strlcpy(this->scaleFactorExpression, scaleFactorExpression, sizeof(this->scaleFactorExpression));
 
-    this->setPIDSettings(service, pid, header, numResponses, numExpectedBytes, scaleFactor, bias);
+    this->setPIDSettings(service, pid, header, numResponses, numExpectedBytes, responseFormat, scaleFactor, bias);
 }
 
 OBDState *OBDState::withPIDSettings(const uint8_t &service, const uint16_t &pid, const uint16_t &header,
-                                    const uint8_t &numResponses,
-                                    const uint8_t &numExpectedBytes, const double &scaleFactor, const float &bias) {
-    this->setPIDSettings(service, pid, header, numResponses, numExpectedBytes, scaleFactor, bias);
+                                    const uint8_t &numResponses, const uint8_t &numExpectedBytes,
+                                    const obd::OBDResponseFormat responseFormat, const double &scaleFactor,
+                                    const float &bias) {
+    this->setPIDSettings(service, pid, header, numResponses, numExpectedBytes, responseFormat, scaleFactor, bias);
     return this;
 }
 
 OBDState *OBDState::withPIDSettings(const uint8_t &service, const uint16_t &pid, const uint16_t &header,
-                                    const uint8_t &numResponses,
-                                    const uint8_t &numExpectedBytes, const char *scaleFactorExpression,
+                                    const uint8_t &numResponses, const uint8_t &numExpectedBytes,
+                                    const obd::OBDResponseFormat responseFormat, const char *scaleFactorExpression,
                                     const float &bias) {
-    this->setPIDSettings(service, pid, header, numResponses, numExpectedBytes, scaleFactor, bias);
+    this->setPIDSettings(service, pid, header, numResponses, numExpectedBytes, responseFormat, scaleFactor, bias);
     return this;
 }
 
@@ -270,17 +300,19 @@ const char *TypedOBDState<T>::valueType() const {
 template<typename T>
 TypedOBDState<T> *TypedOBDState<T>::withPIDSettings(const uint8_t &service, const uint16_t &pid, const uint16_t &header,
                                                     const uint8_t &numResponses, const uint8_t &numExpectedBytes,
+                                                    const obd::OBDResponseFormat responseFormat,
                                                     const double &scaleFactor, const float &bias) {
-    this->setPIDSettings(service, pid, header, numResponses, numExpectedBytes, scaleFactor, bias);
+    this->setPIDSettings(service, pid, header, numResponses, numExpectedBytes, responseFormat, scaleFactor, bias);
     return this;
 }
 
 template<typename T>
 TypedOBDState<T> *TypedOBDState<T>::withPIDSettings(const uint8_t &service, const uint16_t &pid, const uint16_t &header,
                                                     const uint8_t &numResponses, const uint8_t &numExpectedBytes,
-                                                    const char *scaleFactorExpression,
-                                                    const float &bias) {
-    this->setPIDSettings(service, pid, header, numResponses, numExpectedBytes, scaleFactorExpression, bias);
+                                                    const obd::OBDResponseFormat responseFormat,
+                                                    const char *scaleFactorExpression, const float &bias) {
+    this->setPIDSettings(service, pid, header, numResponses, numExpectedBytes, responseFormat, scaleFactorExpression,
+                         bias);
     return this;
 }
 
@@ -377,12 +409,21 @@ void TypedOBDState<T>::readValue() {
 
             T value = static_cast<T>(this->readFunction != nullptr
                                          ? this->readFunction()
-                                         : elm327->processPID(this->service, this->pid, this->numResponses,
-                                                              this->numExpectedBytes,
-                                                              this->scaleFactor, this->bias));
+                                         : this->responseFormat == obd::PREDEFINED
+                                               ? elm327->processPID(this->service, this->pid, this->numResponses,
+                                                                    this->numExpectedBytes,
+                                                                    this->scaleFactor, this->bias)
+                                               : elm327->processPID(this->service, this->pid, this->numResponses,
+                                                                    this->numExpectedBytes, 1, 0)
+            );
 
             if (elm327->nb_rx_state == ELM_SUCCESS) {
-                this->value = value;
+                if (this->responseFormat != obd::PREDEFINED) {
+                    this->value = static_cast<T>(conditionResponse(static_cast<double>(value), this->responseFormat,
+                                                                   this->scaleFactor, this->bias));
+                } else {
+                    this->value = value;
+                }
 
                 if (this->postProcessFunction != nullptr) {
                     this->postProcessFunction(this);
@@ -543,6 +584,7 @@ void TypedOBDState<T>::toJSON(JsonDocument &doc) {
             doc["pid"]["header"] = this->header;
             doc["pid"]["numResponses"] = this->numResponses;
             doc["pid"]["numExpectedBytes"] = this->numExpectedBytes;
+            doc["pid"]["responseFormat"] = this->responseFormat;
             if (this->scaleFactorExpression != nullptr) {
                 doc["pid"]["scaleFactor"] = this->scaleFactorExpression;
             }
@@ -576,18 +618,19 @@ const char *OBDStateBool::valueType() const {
 }
 
 OBDStateBool *OBDStateBool::withPIDSettings(const uint8_t &service, const uint16_t &pid, const uint16_t &header,
-                                            const uint8_t &numResponses,
-                                            const uint8_t &numExpectedBytes, const double &scaleFactor,
-                                            const float &bias) {
-    this->setPIDSettings(service, pid, header, numResponses, numExpectedBytes, scaleFactor, bias);
+                                            const uint8_t &numResponses, const uint8_t &numExpectedBytes,
+                                            const obd::OBDResponseFormat responseFormat,
+                                            const char *scaleFactorExpression, const float &bias) {
+    this->setPIDSettings(service, pid, header, numResponses, numExpectedBytes, responseFormat, scaleFactorExpression,
+                         bias);
     return this;
 }
 
 OBDStateBool *OBDStateBool::withPIDSettings(const uint8_t &service, const uint16_t &pid, const uint16_t &header,
-                                            const uint8_t &numResponses,
-                                            const uint8_t &numExpectedBytes, const char *scaleFactorExpression,
+                                            const uint8_t &numResponses, const uint8_t &numExpectedBytes,
+                                            const obd::OBDResponseFormat responseFormat, const double &scaleFactor,
                                             const float &bias) {
-    this->setPIDSettings(service, pid, header, numResponses, numExpectedBytes, scaleFactorExpression, bias);
+    this->setPIDSettings(service, pid, header, numResponses, numExpectedBytes, responseFormat, scaleFactor, bias);
     return this;
 }
 
@@ -660,18 +703,20 @@ const char *OBDStateFloat::valueType() const {
 }
 
 OBDStateFloat *OBDStateFloat::withPIDSettings(const uint8_t &service, const uint16_t &pid, const uint16_t &header,
-                                              const uint8_t &numResponses,
-                                              const uint8_t &numExpectedBytes, const double &scaleFactor,
-                                              const float &bias) {
-    this->setPIDSettings(service, pid, header, numResponses, numExpectedBytes, scaleFactor, bias);
+                                              const uint8_t &numResponses, const uint8_t &numExpectedBytes,
+                                              const obd::OBDResponseFormat responseFormat,
+                                              const double &scaleFactor, const float &bias) {
+    this->setPIDSettings(service, pid, header, numResponses, numExpectedBytes, responseFormat, scaleFactor, bias);
     return this;
 }
 
 OBDStateFloat *OBDStateFloat::withPIDSettings(const uint8_t &service, const uint16_t &pid, const uint16_t &header,
                                               const uint8_t &numResponses,
-                                              const uint8_t &numExpectedBytes, const char *scaleFactorExpression,
-                                              const float &bias) {
-    this->setPIDSettings(service, pid, header, numResponses, numExpectedBytes, scaleFactorExpression, bias);
+                                              const uint8_t &numExpectedBytes,
+                                              const obd::OBDResponseFormat responseFormat,
+                                              const char *scaleFactorExpression, const float &bias) {
+    this->setPIDSettings(service, pid, header, numResponses, numExpectedBytes, responseFormat, scaleFactorExpression,
+                         bias);
     return this;
 }
 
@@ -744,18 +789,19 @@ const char *OBDStateInt::valueType() const {
 }
 
 OBDStateInt *OBDStateInt::withPIDSettings(const uint8_t &service, const uint16_t &pid, const uint16_t &header,
-                                          const uint8_t &numResponses,
-                                          const uint8_t &numExpectedBytes, const double &scaleFactor,
-                                          const float &bias) {
-    this->setPIDSettings(service, pid, header, numResponses, numExpectedBytes, scaleFactor, bias);
+                                          const uint8_t &numResponses, const uint8_t &numExpectedBytes,
+                                          const obd::OBDResponseFormat responseFormat,
+                                          const double &scaleFactor, const float &bias) {
+    this->setPIDSettings(service, pid, header, numResponses, numExpectedBytes, responseFormat, scaleFactor, bias);
     return this;
 }
 
 OBDStateInt *OBDStateInt::withPIDSettings(const uint8_t &service, const uint16_t &pid, const uint16_t &header,
-                                          const uint8_t &numResponses,
-                                          const uint8_t &numExpectedBytes, const char *scaleFactorExpression,
-                                          const float &bias) {
-    this->setPIDSettings(service, pid, header, numResponses, numExpectedBytes, scaleFactorExpression, bias);
+                                          const uint8_t &numResponses, const uint8_t &numExpectedBytes,
+                                          const obd::OBDResponseFormat responseFormat,
+                                          const char *scaleFactorExpression, const float &bias) {
+    this->setPIDSettings(service, pid, header, numResponses, numExpectedBytes, responseFormat, scaleFactorExpression,
+                         bias);
     return this;
 }
 

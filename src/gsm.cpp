@@ -414,7 +414,8 @@ restart:
         Serial.printf("IP Address: %s\n", ipAddress.c_str());
         delay(1000);
 
-        updateLocaleTime();
+        // currently not enough space for that
+        // updateLocaleTime();
     }
 }
 
@@ -482,7 +483,8 @@ bool GSM::checkNetwork(bool resetConnection) {
                     ipAddress = modem.getLocalIP().c_str();
                     Serial.printf("IP Address: %s\n", ipAddress.c_str());
 
-                    updateLocaleTime();
+                    // currently not enough space for that
+                    // updateLocaleTime();
                 }
             }
         }

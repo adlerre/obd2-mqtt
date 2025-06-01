@@ -26,6 +26,14 @@ namespace obd {
         READ,
         CALC,
     } OBDStateType;
+
+    typedef enum {
+        PREDEFINED,
+        INT_8,
+        INT_16,
+        INT_32,
+        INT_64,
+    } OBDResponseFormat;
 }
 
 class OBDState {
@@ -47,6 +55,7 @@ protected:
     uint16_t header = 0;
     uint8_t numResponses = 0;
     uint8_t numExpectedBytes = 0;
+    obd::OBDResponseFormat responseFormat;
     double scaleFactor = 1;
     char scaleFactorExpression[257] = "\0";
     float bias = 0;
@@ -107,26 +116,33 @@ public:
 
     virtual bool hasCalcExpression() const;
 
+    double conditionResponse(const double &value, obd::OBDResponseFormat responseFormat,
+                             const double &scaleFactor, const double &bias);
+
     uint32_t supportedPIDs(const uint8_t &service, const uint16_t &pid) const;
 
     bool isPIDSupported(const uint8_t &service, const uint16_t &pid) const;
 
     void setPIDSettings(const uint8_t &service, const uint16_t &pid, const uint16_t &header,
-                        const uint8_t &numResponses, const uint8_t &numExpectedBytes, const double &scaleFactor = 1,
+                        const uint8_t &numResponses, const uint8_t &numExpectedBytes,
+                        obd::OBDResponseFormat responseFormat = obd::PREDEFINED, const double &scaleFactor = 1,
                         const float &bias = 0);
 
     void setPIDSettings(const uint8_t &service, const uint16_t &pid, const uint16_t &header,
                         const uint8_t &numResponses, const uint8_t &numExpectedBytes,
+                        obd::OBDResponseFormat responseFormat = obd::PREDEFINED,
                         const char *scaleFactorExpression = nullptr,
                         const float &bias = 0);
 
     virtual OBDState *withPIDSettings(const uint8_t &service, const uint16_t &pid, const uint16_t &header,
                                       const uint8_t &numResponses, const uint8_t &numExpectedBytes,
+                                      obd::OBDResponseFormat responseFormat = obd::PREDEFINED,
                                       const double &scaleFactor = 1,
                                       const float &bias = 0);
 
     virtual OBDState *withPIDSettings(const uint8_t &service, const uint16_t &pid, const uint16_t &header,
                                       const uint8_t &numResponses, const uint8_t &numExpectedBytes,
+                                      obd::OBDResponseFormat responseFormat = obd::PREDEFINED,
                                       const char *scaleFactorExpression = nullptr,
                                       const float &bias = 0);
 
@@ -198,13 +214,13 @@ public:
 
     TypedOBDState *withPIDSettings(const uint8_t &service, const uint16_t &pid, const uint16_t &header,
                                    const uint8_t &numResponses, const uint8_t &numExpectedBytes,
-                                   const double &scaleFactor = 1,
-                                   const float &bias = 0) override;
+                                   obd::OBDResponseFormat responseFormat = obd::PREDEFINED,
+                                   const double &scaleFactor = 1, const float &bias = 0) override;
 
     TypedOBDState *withPIDSettings(const uint8_t &service, const uint16_t &pid, const uint16_t &header,
                                    const uint8_t &numResponses, const uint8_t &numExpectedBytes,
-                                   const char *scaleFactorExpression = nullptr,
-                                   const float &bias = 0) override;
+                                   obd::OBDResponseFormat responseFormat = obd::PREDEFINED,
+                                   const char *scaleFactorExpression = nullptr, const float &bias = 0) override;
 
     TypedOBDState *withEnabled(bool enable) override;
 
@@ -275,13 +291,13 @@ public:
 
     OBDStateBool *withPIDSettings(const uint8_t &service, const uint16_t &pid, const uint16_t &header,
                                   const uint8_t &numResponses, const uint8_t &numExpectedBytes,
-                                  const double &scaleFactor = 1,
-                                  const float &bias = 0) override;
+                                  obd::OBDResponseFormat responseFormat = obd::PREDEFINED,
+                                  const double &scaleFactor = 1, const float &bias = 0) override;
 
     OBDStateBool *withPIDSettings(const uint8_t &service, const uint16_t &pid, const uint16_t &header,
                                   const uint8_t &numResponses, const uint8_t &numExpectedBytes,
-                                  const char *scaleFactorExpression = nullptr,
-                                  const float &bias = 0) override;
+                                  obd::OBDResponseFormat responseFormat = obd::PREDEFINED,
+                                  const char *scaleFactorExpression = nullptr, const float &bias = 0) override;
 
     OBDStateBool *withEnabled(bool enable) override;
 
@@ -316,13 +332,13 @@ public:
 
     OBDStateFloat *withPIDSettings(const uint8_t &service, const uint16_t &pid, const uint16_t &header,
                                    const uint8_t &numResponses, const uint8_t &numExpectedBytes,
-                                   const double &scaleFactor = 1,
-                                   const float &bias = 0) override;
+                                   obd::OBDResponseFormat responseFormat = obd::PREDEFINED,
+                                   const double &scaleFactor = 1, const float &bias = 0) override;
 
     OBDStateFloat *withPIDSettings(const uint8_t &service, const uint16_t &pid, const uint16_t &header,
                                    const uint8_t &numResponses, const uint8_t &numExpectedBytes,
-                                   const char *scaleFactorExpression = nullptr,
-                                   const float &bias = 0) override;
+                                   obd::OBDResponseFormat responseFormat = obd::PREDEFINED,
+                                   const char *scaleFactorExpression = nullptr, const float &bias = 0) override;
 
     OBDStateFloat *withEnabled(bool enable) override;
 
@@ -356,13 +372,13 @@ public:
 
     OBDStateInt *withPIDSettings(const uint8_t &service, const uint16_t &pid, const uint16_t &header,
                                  const uint8_t &numResponses, const uint8_t &numExpectedBytes,
-                                 const double &scaleFactor = 1,
-                                 const float &bias = 0) override;
+                                 obd::OBDResponseFormat responseFormat = obd::PREDEFINED,
+                                 const double &scaleFactor = 1, const float &bias = 0) override;
 
     OBDStateInt *withPIDSettings(const uint8_t &service, const uint16_t &pid, const uint16_t &header,
                                  const uint8_t &numResponses, const uint8_t &numExpectedBytes,
-                                 const char *scaleFactorExpression = nullptr,
-                                 const float &bias = 0) override;
+                                 obd::OBDResponseFormat responseFormat = obd::PREDEFINED,
+                                 const char *scaleFactorExpression = nullptr, const float &bias = 0) override;
 
     OBDStateInt *withEnabled(bool enable) override;
 

@@ -31,6 +31,7 @@ import {
     BuildInExpressionVars,
     DeviceClasses,
     NamedItem,
+    OBDResponseFormat,
     OBDState,
     OBDStateType,
     ReadFunctions,
@@ -208,6 +209,7 @@ export class OBDStatesComponent implements OnInit {
                 header: new FormControl<number>(0, [Validators.required, Validators.min(0), Validators.max(65535)]),
                 numResponses: new FormControl<number>(0, [Validators.required, Validators.min(0), Validators.max(16)]),
                 numExpectedBytes: new FormControl<number>(0, [Validators.required, Validators.min(0), Validators.max(16)]),
+                responseFormat: new FormControl<number>(0, Validators.required),
                 scaleFactor: new FormControl<string | null>(null, [Validators.maxLength(256)]),
                 bias: new FormControl<number>(0),
             }),
@@ -239,6 +241,15 @@ export class OBDStatesComponent implements OnInit {
             .map(key => ({
                 key: key,
                 value: OBDStateType[key as keyof typeof OBDStateType]
+            }));
+    }
+
+    getResponseFormat(): Array<{ key: string, value: number }> {
+        return Object.keys(OBDResponseFormat)
+            .filter((k: any) => typeof k === "string" && isNaN(parseInt(k, 10)))
+            .map(key => ({
+                key: key,
+                value: OBDResponseFormat[key as keyof typeof OBDResponseFormat]
             }));
     }
 

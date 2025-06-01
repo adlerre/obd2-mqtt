@@ -225,10 +225,10 @@
                                         </div>
                                     </div>
                                     <div class="row mb-2">
-                                        <label for="numResponses-{{ i }}" class="col-sm-2 col-form-label">Responses /
-                                            Expected
-                                            Bytes</label>
-                                        <div class="col-sm-5 pe-md-1">
+                                        <label for="numResponses-{{ i }}" class="col-sm-2 col-form-label">
+                                            Responses / Expected Bytes / Response Format
+                                        </label>
+                                        <div class="col-sm-3 pe-md-1">
                                             <input formControlName="numResponses" type="number"
                                                    id="numResponses-{{ i }}"
                                                    autocapitalize="off"
@@ -238,7 +238,7 @@
                                                    [ngClass]="{'is-invalid': state.controls.pid.controls.numResponses.errors}"
                                             >
                                         </div>
-                                        <div class="col-sm-5 ps-md-1">
+                                        <div class="col-sm-3 ps-md-1">
                                             <input formControlName="numExpectedBytes" type="number"
                                                    id="numExpectedBytes-{{ i }}" autocapitalize="off"
                                                    autocorrect="off"
@@ -246,6 +246,15 @@
                                                    class="form-control"
                                                    [ngClass]="{'is-invalid': state.controls.pid.controls.numExpectedBytes.errors}"
                                             >
+                                        </div>
+                                        <div class="col-sm-4 ps-md-1">
+                                            <select class="form-control form-select" id="type-{{ i }}"
+                                                    formControlName="responseFormat"
+                                                    [ngClass]="{'is-invalid':state.controls.pid.controls.responseFormat.errors}">
+                                                <option *ngFor="let type of getResponseFormat()"
+                                                        [value]="type.value">{{ type.key }}
+                                                </option>
+                                            </select>
                                         </div>
                                     </div>
                                     <div class="row mb-2">
@@ -295,7 +304,8 @@
                                         @if (state.controls.expr.errors?.invalidVarExtension !== null) {
                                             <p class="text-danger mt-1 mb-1">
                                                 Invalid variable extension:
-                                                @for (err of state.controls.expr.errors.invalidVarExtension; track err + i) {
+                                                @for (
+                                                    err of state.controls.expr.errors.invalidVarExtension; track err + i) {
                                                     <span>{{ err }}</span>
                                                 }
                                             </p>
@@ -351,7 +361,8 @@
                                         @if (state.controls.value.controls.expr.errors?.invalidVars !== null) {
                                             <p class="text-danger mt-1 mb-1">
                                                 Invalid variable:
-                                                @for (err of state.controls.value.controls.expr.errors.invalidVars; track err + i) {
+                                                @for (
+                                                    err of state.controls.value.controls.expr.errors.invalidVars; track err + i) {
                                                     <span>{{ err }}</span>
                                                 }
                                             </p>
@@ -359,7 +370,8 @@
                                         @if (state.controls.value.controls.expr.errors?.invalidVarExtension !== null) {
                                             <p class="text-danger mt-1 mb-1">
                                                 Invalid variable extension:
-                                                @for (err of state.controls.value.controls.expr.errors.invalidVarExtension; track err + i) {
+                                                @for (
+                                                    err of state.controls.value.controls.expr.errors.invalidVarExtension; track err + i) {
                                                     <span>{{ err }}</span>
                                                 }
                                             </p>
@@ -367,7 +379,8 @@
                                         @if (state.controls.value.controls.expr.errors?.invalidFuncs !== null) {
                                             <p class="text-danger mt-1 mb-1">
                                                 Invalid function:
-                                                @for (err of state.controls.value.controls.expr.errors.invalidFuncs; track err + i) {
+                                                @for (
+                                                    err of state.controls.value.controls.expr.errors.invalidFuncs; track err + i) {
                                                     <span>{{ err }}</span>
                                                 }
                                             </p>
