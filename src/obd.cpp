@@ -164,6 +164,7 @@ void OBDClass::fromJSON(T *state, JsonDocument &doc) {
                 doc["pid"]["header"].as<uint16_t>(),
                 doc["pid"]["numResponses"].as<uint8_t>(),
                 doc["pid"]["numExpectedBytes"].as<uint8_t>(),
+                doc["pid"]["responseFormat"].as<obd::OBDResponseFormat>(),
                 !doc["pid"]["scaleFactor"].isNull() ? doc["pid"]["scaleFactor"].as<std::string>().c_str() : "1",
                 doc["pid"]["bias"].as<float>()
             );

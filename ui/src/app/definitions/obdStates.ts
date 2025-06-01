@@ -20,6 +20,14 @@ export enum OBDStateType {
     CALC,
 }
 
+export enum OBDResponseFormat {
+    PREDEFINED,
+    INT_8,
+    INT_16,
+    INT_32,
+    INT_64,
+}
+
 export enum ValueTypes {
     BOOL = "bool",
     FLOAT = "float",
@@ -32,6 +40,7 @@ export interface PID {
     header: number;
     numResponses: number;
     numExpectedBytes: number;
+    responseFormat: OBDResponseFormat;
     scaleFactor?: string;
     bias: number;
 }
