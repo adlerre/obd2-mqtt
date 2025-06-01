@@ -676,7 +676,7 @@ void OBDClass::loop() {
 #endif
 #ifdef DEBUG_OBDSTATE
         OBDState *state = nextState();
-        if (state != nullptr && state->getType() == READ && state->getLastUpdate() != -1 && state->isSupported()) {
+        if (state != nullptr && state->getType() == obd::READ && state->getLastUpdate() != -1 && state->isSupported()) {
             if (state->valueType() == "int") {
                 auto s = reinterpret_cast<TypedOBDState<int> *>(state);
                 Serial.printf("%s : %d -> %d\n", s->getName(), s->getOldValue(), s->getValue());
