@@ -413,6 +413,8 @@ restart:
         ipAddress = modem.getLocalIP().c_str();
         Serial.printf("IP Address: %s\n", ipAddress.c_str());
         delay(1000);
+
+        updateLocaleTime();
     }
 }
 
@@ -479,6 +481,8 @@ bool GSM::checkNetwork(bool resetConnection) {
 
                     ipAddress = modem.getLocalIP().c_str();
                     Serial.printf("IP Address: %s\n", ipAddress.c_str());
+
+                    updateLocaleTime();
                 }
             }
         }
@@ -488,6 +492,35 @@ bool GSM::checkNetwork(bool resetConnection) {
 
 bool GSM::isNetworkConnected() {
     return modem.isNetworkConnected();
+}
+
+bool GSM::updateLocaleTime() {
+    int GSMyear = 0;
+    int GSMmonth = 0;
+    int GSMdate = 0;
+    int GSMhours = 0;
+    int GSMminutes = 0;
+    int GSMseconds = 0;
+    float GSMtimezone = 0;
+    time_t GSMTime = 0;
+
+    if (modem.getNetworkTime(&GSMyear, &GSMmonth, &GSMdate, &GSMhours, &GSMminutes, &GSMseconds, &GSMtimezone)) {
+        tm s = {};
+        s.tm_sec = (GSMseconds);
+        s.tm_min = (GSMminutes);
+        s.tm_hour = (GSMhours);
+        s.tm_mday = (GSMdate);
+        s.tm_mon = (GSMmonth - 1);
+        s.tm_year = (GSMyear - 1900);
+        GSMTime = mktime(&s);
+
+        timeval tv = {};
+        tv.tv_sec = GSMTime;
+        settimeofday(&tv, nullptr);
+        Serial.printf("Time: %s\n", ctime(&GSMTime));
+        return true;
+    }
+    return false;
 }
 
 short int GSM::getSignalQuality() {
