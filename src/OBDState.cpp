@@ -413,17 +413,21 @@ void TypedOBDState<T>::readValue() {
                                                ? elm327->processPID(this->service, this->pid, this->numResponses,
                                                                     this->numExpectedBytes,
                                                                     this->scaleFactor, this->bias)
-                                               : elm327->processPID(this->service, this->pid, this->numResponses,
-                                                                    this->numExpectedBytes, 1, 0)
+                                               : conditionResponse(
+                                                   elm327->processPID(
+                                                       this->service,
+                                                       this->pid,
+                                                       this->numResponses,
+                                                       this->numExpectedBytes,
+                                                       1,
+                                                       0
+                                                   ),
+                                                   this->responseFormat, this->scaleFactor, this->bias
+                                               )
             );
 
             if (elm327->nb_rx_state == ELM_SUCCESS) {
-                if (this->responseFormat != obd::PREDEFINED) {
-                    this->value = static_cast<T>(conditionResponse(static_cast<double>(value), this->responseFormat,
-                                                                   this->scaleFactor, this->bias));
-                } else {
-                    this->value = value;
-                }
+                this->value = value;
 
                 if (this->postProcessFunction != nullptr) {
                     this->postProcessFunction(this);
