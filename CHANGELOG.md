@@ -1,3 +1,17 @@
+# [0.28.0](https://github.com/adlerre/obd2-mqtt/compare/v0.27.1...v0.28.0) (2025-06-05)
+
+
+### Bug Fixes
+
+* debug output ([09761d9](https://github.com/adlerre/obd2-mqtt/commit/09761d956940cc71a925973192b30485793403e8))
+
+
+### Features
+
+* add device classes energy distance/storage ([86ab545](https://github.com/adlerre/obd2-mqtt/commit/86ab545dbd9cb5db142f3b11546c6c00032603ef))
+* allow to define the response format (signed types) ([0b27fe4](https://github.com/adlerre/obd2-mqtt/commit/0b27fe46f010d1a4aaa6a4f2a50299b2dc71e64a))
+* get date/time from provider ([80564b4](https://github.com/adlerre/obd2-mqtt/commit/80564b40b68cad1d12bfd24ac74b4d257dd68ef7))
+
 ## [0.27.1](https://github.com/adlerre/obd2-mqtt/compare/v0.27.0...v0.27.1) (2025-05-23)
 
 
