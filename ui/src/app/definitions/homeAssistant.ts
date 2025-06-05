@@ -48,6 +48,16 @@ export const DeviceClasses: Array<DeviceClass> = [
         units: ["Wh", "kWh"]
     },
     {
+        name: "energy_distance",
+        description: "Energy Distance",
+        units: ["kWh/100km", "Wh/km", "mi/kWh", "km/kWh"]
+    },
+    {
+        name: "energy_storage",
+        description: "Energy Storage",
+        units: ["J", "kJ", "MJ", "GJ", "mWh", "Wh", "kWh", "MWh", "GWh", "TWh"]
+    },
+    {
         name: "power",
         description: "Power",
         units: ["W", "kW"]
