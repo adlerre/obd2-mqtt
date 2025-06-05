@@ -1,3 +1,10 @@
+## [0.28.1](https://github.com/adlerre/obd2-mqtt/compare/v0.28.0...v0.28.1) (2025-06-05)
+
+
+### Bug Fixes
+
+* fixing not working OTA update ([f06483e](https://github.com/adlerre/obd2-mqtt/commit/f06483e572fd3fdc6238ddbd09d49ff1afa6efcf))
+
 # [0.28.0](https://github.com/adlerre/obd2-mqtt/compare/v0.27.1...v0.28.0) (2025-06-05)
 
 
