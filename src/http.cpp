@@ -57,7 +57,7 @@ void HTTPServer::init(fs::FS &fs) {
         }
     );
 
-    server.on("/api/ota", HTTP_GET, [](AsyncWebServerRequest *request) {
+    server.on("/api/ota/status", HTTP_GET, [](AsyncWebServerRequest *request) {
 #if OTA_ENABLED
         request->send(200, "text/plain", "enabled");
 #else
