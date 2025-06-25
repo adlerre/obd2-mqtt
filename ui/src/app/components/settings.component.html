@@ -1,19 +1,19 @@
 <!--
-  ~ This program is free software; you can use it, redistribute it
-  ~ and / or modify it under the terms of the GNU General Public License
-  ~ (GPL) as published by the Free Software Foundation; either version 3
-  ~ of the License or (at your option) any later version.
-  ~
-  ~ This program is distributed in the hope that it will be useful, but
-  ~  WITHOUT ANY WARRANTY; without even the implied warranty of
-  ~  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  ~  GNU General Public License for more details.
-  ~
-  ~  You should have received a copy of the GNU General Public License
-  ~  along with this program, in a file called gpl.txt or license.txt.
-  ~  If not, write to the Free Software Foundation Inc.,
-  ~  59 Temple Place - Suite 330, Boston, MA  02111-1307 USA
-  -->
+~ This program is free software; you can use it, redistribute it
+~ and / or modify it under the terms of the GNU General Public License
+~ (GPL) as published by the Free Software Foundation; either version 3
+~ of the License or (at your option) any later version.
+~
+~ This program is distributed in the hope that it will be useful, but
+~  WITHOUT ANY WARRANTY; without even the implied warranty of
+~  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+~  GNU General Public License for more details.
+~
+~  You should have received a copy of the GNU General Public License
+~  along with this program, in a file called gpl.txt or license.txt.
+~  If not, write to the Free Software Foundation Inc.,
+~  59 Temple Place - Suite 330, Boston, MA  02111-1307 USA
+-->
 
 <ng-template #deviceName let-r="result" let-t="term">
     <ngb-highlight [result]="r.name + ' (' + r.mac + ')'" [term]="t"></ngb-highlight>
@@ -86,17 +86,20 @@
         </fieldset>
         <fieldset [formGroup]="mobile">
             <legend>Mobile</legend>
-            <div *ngIf="isNetworkModeAllowed()" class="row mb-2">
-                <label for="networkMode" class="col-sm-2 col-form-label">Network Mode</label>
-                <div class="col-sm-10">
-                    <select class="form-control form-select" id="networkMode"
-                            formControlName="networkMode"
-                            [ngClass]="{'is-invalid': mobile.controls.networkMode.errors}">
-                        <option *ngFor="let mode of getNetworkModes()" [ngValue]="mode.value">{{ mode.key }}
-                        </option>
-                    </select>
+            @if (isNetworkModeAllowed()) {
+                <div class="row mb-2">
+                    <label for="networkMode" class="col-sm-2 col-form-label">Network Mode</label>
+                    <div class="col-sm-10">
+                        <select class="form-control form-select" id="networkMode"
+                                formControlName="networkMode"
+                                [ngClass]="{'is-invalid': mobile.controls.networkMode.errors}">
+                            @for (mode of getNetworkModes(); track mode.key) {
+                                <option [ngValue]="mode.value">{{ mode.key }}</option>
+                            }
+                        </select>
+                    </div>
                 </div>
-            </div>
+            }
             <div class="row mb-2">
                 <label for="pin" class="col-sm-2 control-label">Sim PIN</label>
                 <div class="col-sm-10">
@@ -172,7 +175,9 @@
                 <div class="col-sm-10">
                     <select class="form-control form-select" id="protocol" formControlName="protocol"
                             [ngClass]="{'is-invalid': obd2.controls.protocol.errors}">
-                        <option *ngFor="let proto of getOBDProtocols()" [value]="proto.value">{{ proto.key }}</option>
+                        @for (proto of getOBDProtocols(); track proto.key) {
+                            <option [value]="proto.value">{{ proto.key }}</option>
+                        }
                     </select>
                 </div>
             </div>
@@ -207,8 +212,9 @@
                 <div class="col-sm-2 pe-md-1">
                     <select class="form-control form-select" id="mqttProtocol" formControlName="protocol"
                             [ngClass]="{'is-invalid': mqtt.controls.protocol.errors}">
-                        <option *ngFor="let proto of getMQTTProtocols()" [ngValue]="proto.value">{{ proto.key }}
-                        </option>
+                        @for (proto of getMQTTProtocols(); track proto.key) {
+                            <option [ngValue]="proto.value">{{ proto.key }}</option>
+                        }
                     </select>
                 </div>
                 <div class="col-sm-6 ps-md-1 pe-md-1">
@@ -276,8 +282,9 @@
                         <select class="form-control form-select" id="discoveryInterval"
                                 formControlName="discoveryInterval"
                                 [ngClass]="{'is-invalid': mqtt.controls.discoveryInterval.errors}">
-                            <option *ngFor="let interval of discoveryIntervals" [value]="interval">{{ interval }}&nbsp;sec
-                            </option>
+                            @for (interval of discoveryIntervals; track interval) {
+                                <option [value]="interval">{{ interval }}&nbsp;sec</option>
+                            }
                         </select>
                     </div>
                 </div>
@@ -286,8 +293,9 @@
                     <div class="col-sm-10">
                         <select class="form-control form-select" id="dataInterval" formControlName="dataInterval"
                                 [ngClass]="{'is-invalid': mqtt.controls.dataInterval.errors}">
-                            <option *ngFor="let interval of dataIntervals" [value]="interval">{{ interval }}&nbsp;sec
-                            </option>
+                            @for (interval of dataIntervals; track interval) {
+                                <option [value]="interval">{{ interval }}&nbsp;sec</option>
+                            }
                         </select>
                     </div>
                 </div>
@@ -297,8 +305,9 @@
                         <select class="form-control form-select" id="diagnosticInterval"
                                 formControlName="diagnosticInterval"
                                 [ngClass]="{'is-invalid': mqtt.controls.diagnosticInterval.errors}">
-                            <option *ngFor="let interval of diagnosticIntervals" [value]="interval">{{ interval }}&nbsp;sec
-                            </option>
+                            @for (interval of diagnosticIntervals; track interval) {
+                                <option [value]="interval">{{ interval }}&nbsp;sec</option>
+                            }
                         </select>
                     </div>
                 </div>
@@ -308,8 +317,9 @@
                         <select class="form-control form-select" id="locationInterval"
                                 formControlName="locationInterval"
                                 [ngClass]="{'is-invalid': mqtt.controls.locationInterval.errors}">
-                            <option *ngFor="let interval of locationIntervals" [ngValue]="interval">{{ interval }}&nbsp;sec
-                            </option>
+                            @for (interval of locationIntervals; track interval) {
+                                <option [ngValue]="interval">{{ interval }}&nbsp;sec</option>
+                            }
                         </select>
                     </div>
                 </div>

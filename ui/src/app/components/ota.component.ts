@@ -15,7 +15,7 @@
  *  59 Temple Place - Suite 330, Boston, MA  02111-1307 USA
  */
 
-import { Component, Directive, EventEmitter, HostListener, Output, ViewEncapsulation } from "@angular/core";
+import { Component, Directive, EventEmitter, HostListener, inject, Output, ViewEncapsulation } from "@angular/core";
 import { ApiService } from "../services/api.service";
 import { distinctUntilChanged, Subject } from "rxjs";
 import { NgbProgressbarModule } from "@ng-bootstrap/ng-bootstrap";
@@ -123,8 +123,7 @@ export class OTAComponent {
 
     queue: Array<FileItem> = [];
 
-    constructor(private $api: ApiService) {
-    }
+    private $api = inject(ApiService);
 
     onFiles(files: any) {
         if (files instanceof Array) {

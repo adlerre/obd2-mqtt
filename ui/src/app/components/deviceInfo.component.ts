@@ -15,7 +15,7 @@
  *  59 Temple Place - Suite 330, Boston, MA  02111-1307 USA
  */
 
-import { Component, OnInit } from "@angular/core";
+import { Component, inject, OnInit } from "@angular/core";
 import { DTCs, ModemInfo, WifiInfo } from "../definitions";
 import { ApiService } from "../services/api.service";
 
@@ -34,8 +34,7 @@ export class DeviceInfoComponent implements OnInit {
 
     dtcs: DTCs | undefined;
 
-    constructor(private $api: ApiService) {
-    }
+    private $api = inject(ApiService);
 
     ngOnInit(): void {
         this.$api.version().subscribe(ver => this.version = ver);

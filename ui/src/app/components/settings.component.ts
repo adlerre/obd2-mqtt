@@ -15,7 +15,7 @@
  *  59 Temple Place - Suite 330, Boston, MA  02111-1307 USA
  */
 
-import { Component, OnInit, ViewChild } from "@angular/core";
+import { Component, inject, OnInit, ViewChild } from "@angular/core";
 import { ApiService } from "../services/api.service";
 import { FormControl, FormGroup, Validators } from "@angular/forms";
 import {
@@ -105,7 +105,13 @@ export class SettingsComponent implements OnInit {
 
     protected readonly locationIntervals = locationIntervals;
 
-    constructor(private $api: ApiService, private sanitizer: DomSanitizer, private toast: ToastService) {
+    private $api = inject(ApiService);
+
+    private sanitizer = inject(DomSanitizer);
+
+    private toast = inject(ToastService);
+
+    constructor() {
         this.general = new FormGroup({
             sleepTimeout: new FormControl<number>(5 * 60, Validators.min(60)),
             sleepDuration: new FormControl<number>(60 * 60, Validators.min(300)),
