@@ -1,3 +1,10 @@
+# [0.29.0](https://github.com/adlerre/obd2-mqtt/compare/v0.28.1...v0.29.0) (2025-06-25)
+
+
+### Features
+
+* migrate to Angular 20 ([c487ec0](https://github.com/adlerre/obd2-mqtt/commit/c487ec033f6cf5e074cca18cbcda84a6e6d1f596))
+
 ## [0.28.1](https://github.com/adlerre/obd2-mqtt/compare/v0.28.0...v0.28.1) (2025-06-05)
 
 
