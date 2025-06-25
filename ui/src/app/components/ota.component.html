@@ -1,19 +1,19 @@
 <!--
-  ~ This program is free software; you can use it, redistribute it
-  ~ and / or modify it under the terms of the GNU General Public License
-  ~ (GPL) as published by the Free Software Foundation; either version 3
-  ~ of the License or (at your option) any later version.
-  ~
-  ~ This program is distributed in the hope that it will be useful, but
-  ~  WITHOUT ANY WARRANTY; without even the implied warranty of
-  ~  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  ~  GNU General Public License for more details.
-  ~
-  ~  You should have received a copy of the GNU General Public License
-  ~  along with this program, in a file called gpl.txt or license.txt.
-  ~  If not, write to the Free Software Foundation Inc.,
-  ~  59 Temple Place - Suite 330, Boston, MA  02111-1307 USA
-  -->
+~ This program is free software; you can use it, redistribute it
+~ and / or modify it under the terms of the GNU General Public License
+~ (GPL) as published by the Free Software Foundation; either version 3
+~ of the License or (at your option) any later version.
+~
+~ This program is distributed in the hope that it will be useful, but
+~  WITHOUT ANY WARRANTY; without even the implied warranty of
+~  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+~  GNU General Public License for more details.
+~
+~  You should have received a copy of the GNU General Public License
+~  along with this program, in a file called gpl.txt or license.txt.
+~  If not, write to the Free Software Foundation Inc.,
+~  59 Temple Place - Suite 330, Boston, MA  02111-1307 USA
+-->
 
 <div id="ota">
     <p>
@@ -55,21 +55,27 @@
 
         @if (queue && queue.length !== 0) {
             <ul class="file-queue list-group mb-2">
-                <li *ngFor="let item of queue"
-                    class="list-group-item d-inline-flex flex-row justify-content-between p-2"
-                    [ngClass]="{'list-group-item-danger': item.error}">
-                    <span class="text-truncate me-1">{{ item.file.filepath || item.file.name }}</span>
-                    <span *ngIf="item.errorMsg" class="text-danger">{{ item.errorMsg }}</span>
-                    <div class="d-inline-flex flex-row w-25">
-                        <div *ngIf="item.progress" class="w-100 mt-auto mb-auto">
-                            <ngb-progressbar
-                                    [type]="!item.complete ? 'info' : item.error !== true ? 'success' : 'danger'"
-                                    textType="white" [value]="item.progress" [animated]="item.processing"
-                                    [striped]="true" [showValue]="true">
-                            </ngb-progressbar>
+                @for (item of queue; track item) {
+                    <li
+                            class="list-group-item d-inline-flex flex-row justify-content-between p-2"
+                            [ngClass]="{'list-group-item-danger': item.error}">
+                        <span class="text-truncate me-1">{{ item.file.filepath || item.file.name }}</span>
+                        @if (item.errorMsg) {
+                            <span class="text-danger">{{ item.errorMsg }}</span>
+                        }
+                        <div class="d-inline-flex flex-row w-25">
+                            @if (item.progress) {
+                                <div class="w-100 mt-auto mb-auto">
+                                    <ngb-progressbar
+                                            [type]="!item.complete ? 'info' : item.error !== true ? 'success' : 'danger'"
+                                            textType="white" [value]="item.progress" [animated]="item.processing"
+                                            [striped]="true" [showValue]="true">
+                                    </ngb-progressbar>
+                                </div>
+                            }
                         </div>
-                    </div>
-                </li>
+                    </li>
+                }
             </ul>
         }
 

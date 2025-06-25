@@ -15,7 +15,7 @@
  *  59 Temple Place - Suite 330, Boston, MA  02111-1307 USA
  */
 
-import { Injectable } from "@angular/core";
+import { inject, Injectable } from "@angular/core";
 import { HttpClient, HttpEvent, HttpEventType, HttpHeaders, HttpRequest, HttpResponse } from "@angular/common/http";
 import {
     Configuration,
@@ -32,8 +32,7 @@ import { catchError, distinctUntilChanged, last, map, of, Subject } from "rxjs";
 @Injectable()
 export class ApiService {
 
-    constructor(public $http: HttpClient) {
-    }
+    $http = inject(HttpClient);
 
     configuration() {
         return this.$http.get<Configuration>("configuration.json");

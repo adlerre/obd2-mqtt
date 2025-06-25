@@ -15,9 +15,9 @@
  *  59 Temple Place - Suite 330, Boston, MA  02111-1307 USA
  */
 
-import { Component, Inject, OnInit, ViewEncapsulation } from "@angular/core";
+import { Component, DOCUMENT, inject, OnInit, ViewEncapsulation } from "@angular/core";
 import { ApiService } from "./services/api.service";
-import { DOCUMENT } from "@angular/common";
+
 import { Observable } from "rxjs";
 
 @Component({
@@ -39,10 +39,14 @@ export class AppComponent implements OnInit {
 
     public colorScheme: string;
 
+    private $api = inject(ApiService);
+
+    private document = inject<Document>(DOCUMENT);
+
     private readonly prefersColorScheme: string;
 
-    constructor(private $api: ApiService, @Inject(DOCUMENT) private document: Document) {
-        this.otaEnabled$ = $api.otaEnabled();
+    constructor() {
+        this.otaEnabled$ = this.$api.otaEnabled();
         this.prefersColorScheme = window.matchMedia("(prefers-color-scheme: dark)").matches ?
             AppComponent.COLOR_SCHEME_DARK : AppComponent.COLOR_SCHEME_LIGHT;
     }

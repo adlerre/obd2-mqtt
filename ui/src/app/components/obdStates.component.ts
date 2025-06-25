@@ -15,7 +15,7 @@
  *  59 Temple Place - Suite 330, Boston, MA  02111-1307 USA
  */
 
-import { Component, OnInit } from "@angular/core";
+import { Component, inject, OnInit } from "@angular/core";
 import { ApiService } from "../services/api.service";
 import {
     AbstractControl,
@@ -169,7 +169,13 @@ export class OBDStatesComponent implements OnInit {
 
     downloadHref: any;
 
-    constructor(private $api: ApiService, private sanitizer: DomSanitizer, private toast: ToastService) {
+    private $api = inject(ApiService);
+
+    private sanitizer = inject(DomSanitizer);
+
+    private toast = inject(ToastService);
+
+    constructor() {
         this.states = new FormArray([]);
         this.form = new FormGroup({states: this.states});
     }
