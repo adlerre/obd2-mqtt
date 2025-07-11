@@ -1,3 +1,11 @@
+# [0.30.0](https://github.com/adlerre/obd2-mqtt/compare/v0.29.0...v0.30.0) (2025-07-11)
+
+
+### Features
+
+* bump NimBLE and espressif32 version ([b3a4d67](https://github.com/adlerre/obd2-mqtt/commit/b3a4d67c1716098b3bccce3e79ea2ce9bb37629e))
+* update Angular 20.1 ([32702bd](https://github.com/adlerre/obd2-mqtt/commit/32702bd3cd9a9cab44ab37c4940bd22649873c52))
+
 # [0.29.0](https://github.com/adlerre/obd2-mqtt/compare/v0.28.1...v0.29.0) (2025-06-25)
 
 
