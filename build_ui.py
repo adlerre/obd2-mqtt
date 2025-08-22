@@ -20,6 +20,8 @@ from subprocess import run, CalledProcessError
 
 Import("env")
 
+# Install custom packages from the PyPi registry
+env.Execute("$PYTHONEXE -m pip install intelhex")
 
 def writeUIConfiguration(env):
     confJson = "./data/public/configuration.json"
