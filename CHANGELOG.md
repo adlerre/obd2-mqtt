@@ -1,3 +1,17 @@
+# [0.31.0](https://github.com/adlerre/obd2-mqtt/compare/v0.30.0...v0.31.0) (2025-08-22)
+
+
+### Bug Fixes
+
+* install missing esp-tools dependency ([34b2df8](https://github.com/adlerre/obd2-mqtt/commit/34b2df8e68495673c16f4eb7a3326a75bdd70590))
+
+
+### Features
+
+* bump versions ([93c1ea3](https://github.com/adlerre/obd2-mqtt/commit/93c1ea366f612f55eb75414792b8b34df6f941ac))
+* bump versions ([1f9486c](https://github.com/adlerre/obd2-mqtt/commit/1f9486c963b151008135549428974225cfa3641f))
+* bump versions ([add0fa3](https://github.com/adlerre/obd2-mqtt/commit/add0fa3acaaaeb250d71e66d28a246d939e5e17f))
+
 # [0.30.0](https://github.com/adlerre/obd2-mqtt/compare/v0.29.0...v0.30.0) (2025-07-11)
 
 
