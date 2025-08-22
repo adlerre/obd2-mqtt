@@ -49,7 +49,7 @@ $grid-size: 12 !default;
 @media (min-width: 576px) {
 
   @for $i from 1 through $grid-size {
-    $width: 100% / $grid-size * $i;
+    $width: calc(100% / $grid-size * $i);
 
     .col-sm-#{$i} {
       flex: 0 0 auto;
