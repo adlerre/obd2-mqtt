@@ -1,3 +1,16 @@
+# [0.32.0](https://github.com/adlerre/obd2-mqtt/compare/v0.31.0...v0.32.0) (2025-09-12)
+
+
+### Bug Fixes
+
+* migrate *ngFor to [@for](https://github.com/for) ([30747c9](https://github.com/adlerre/obd2-mqtt/commit/30747c944ed5f1644f70b1f4dba67f3bcc592829))
+
+
+### Features
+
+* bump versions ([1e7dba7](https://github.com/adlerre/obd2-mqtt/commit/1e7dba7feef5ee701245e8c494c148236188d7eb))
+* bump versions ([d67a4ce](https://github.com/adlerre/obd2-mqtt/commit/d67a4cec5843acea43fe40b8107e3bfda4f1a486))
+
 # [0.31.0](https://github.com/adlerre/obd2-mqtt/compare/v0.30.0...v0.31.0) (2025-08-22)
 
 
