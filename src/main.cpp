@@ -715,6 +715,14 @@ void mqttSendData() {
             }
         }
 
+        if (millis() > lastMQTTLocationOutput) {
+            if (sendLocationData()) {
+                lastMQTTLocationOutput = millis() + Settings.MQTT.getLocationInterval() * 1000L;
+            } else {
+                return;
+            }
+        }
+
         if (millis() > lastMQTTDiagnosticOutput) {
             if (sendDiagnosticData()) {
                 lastMQTTDiagnosticOutput = millis() + Settings.MQTT.getDiagnosticInterval() * 1000L;
@@ -726,14 +734,6 @@ void mqttSendData() {
         if (millis() > lastMQTTStaticDiagnosticOutput) {
             if (sendStaticDiagnosticData()) {
                 lastMQTTStaticDiagnosticOutput = millis() + Settings.MQTT.getDiagnosticInterval() * 2 * 1000L;
-            } else {
-                return;
-            }
-        }
-
-        if (millis() > lastMQTTLocationOutput) {
-            if (sendLocationData()) {
-                lastMQTTLocationOutput = millis() + Settings.MQTT.getLocationInterval() * 1000L;
             } else {
                 return;
             }
