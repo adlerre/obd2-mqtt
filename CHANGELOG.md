@@ -1,3 +1,12 @@
+# [0.33.0](https://github.com/adlerre/obd2-mqtt/compare/v0.32.0...v0.33.0) (2025-10-13)
+
+
+### Features
+
+* bump versions ([44eca5f](https://github.com/adlerre/obd2-mqtt/commit/44eca5f2de18446fab1e84e4dd90336b150cc75b))
+* bump versions ([1789575](https://github.com/adlerre/obd2-mqtt/commit/1789575b94587674f9309a4f0898e55e92cc61f4))
+* prioritize location send ([2c1247e](https://github.com/adlerre/obd2-mqtt/commit/2c1247e42fb51e0cf38919cfa47096d22956d43c))
+
 # [0.32.0](https://github.com/adlerre/obd2-mqtt/compare/v0.31.0...v0.32.0) (2025-09-12)
 
 
