@@ -161,7 +161,7 @@ void OBDClass::fromJSON(T *state, JsonDocument &doc) {
             state->setPIDSettings(
                 doc["pid"]["service"].as<uint8_t>(),
                 doc["pid"]["pid"].as<uint16_t>(),
-                doc["pid"]["header"].as<uint16_t>(),
+                doc["pid"]["header"].as<uint32_t>(),
                 doc["pid"]["numResponses"].as<uint8_t>(),
                 doc["pid"]["numExpectedBytes"].as<uint8_t>(),
                 doc["pid"]["responseFormat"].as<obd::OBDResponseFormat>(),
