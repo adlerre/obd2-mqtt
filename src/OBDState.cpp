@@ -19,12 +19,18 @@
 
 #include <ExprParser.h>
 
+#include "obd.h"
+
 void *OBDState::operator new(const size_t size) {
     return heap_caps_malloc(size, MALLOC_CAP_SPIRAM);
 }
 
 void OBDState::operator delete(void *ptr) {
     heap_caps_free(ptr);
+}
+
+OBDState::~OBDState() {
+    if (payload) free(payload);
 }
 
 OBDState::OBDState(const obd::OBDStateType type, const char *name, const char *description, const char *icon,
@@ -285,10 +291,25 @@ void OBDState::toJSON(JsonDocument &doc) {
     }
 }
 
+void OBDState::setPayload(const char *payload) {
+    size_t len = strlen(payload) + 1;
+    if (!payload) {
+        this->payload = (char *) heap_caps_malloc(len, MALLOC_CAP_SPIRAM);
+    } else {
+        this->payload = (char *) heap_caps_realloc(this->payload, len, MALLOC_CAP_SPIRAM);
+    }
+
+    strlcpy(this->payload, payload, len);
+}
+
+char *OBDState::getPayload() const {
+    return this->payload;
+}
+
 template<typename T>
 TypedOBDState<T>::TypedOBDState(obd::OBDStateType type, const char *name, const char *description,
                                 const char *icon, const char *unit, const char *deviceClass,
-                                const bool measurement, const bool diagnostic): OBDState(
+                                const bool measurement, const bool diagnostic) : OBDState(
     type, name, description, icon, unit, deviceClass, measurement, diagnostic) {
 }
 
@@ -427,6 +448,7 @@ void TypedOBDState<T>::readValue() {
             );
 
             if (elm327->nb_rx_state == ELM_SUCCESS) {
+                this->setPayload(elm327->payload);
                 this->value = value;
 
                 if (this->postProcessFunction != nullptr) {
@@ -548,11 +570,12 @@ TypedOBDState<T> *TypedOBDState<T>::withValueFormatFunc(const std::function<char
 
 template<typename T>
 char *TypedOBDState<T>::formatValue() {
+    char str[elm327->PAYLOAD_LEN + 1];
+
     if (this->valueFormatFunction != nullptr) {
         return this->valueFormatFunction(this->getValue());
     }
 
-    char str[50];
     if (strlen(this->valueFormatExpression) != 0) {
         ExprParser parser;
         parser.setVariableResolveFunction([&](const char *varName)-> double {
@@ -608,7 +631,7 @@ void TypedOBDState<T>::toJSON(JsonDocument &doc) {
 
 OBDStateBool::OBDStateBool(obd::OBDStateType type, const char *name, const char *description,
                            const char *icon, const char *unit, const char *deviceClass,
-                           const bool measurement, const bool diagnostic): TypedOBDState(
+                           const bool measurement, const bool diagnostic) : TypedOBDState(
     type, name, description, icon, unit, deviceClass, measurement, diagnostic) {
     this->oldValue = false;
     this->value = false;
@@ -695,7 +718,7 @@ OBDStateBool *OBDStateBool::withValueFormatFunc(const std::function<char *(bool)
 
 OBDStateFloat::OBDStateFloat(obd::OBDStateType type, const char *name, const char *description,
                              const char *icon, const char *unit, const char *deviceClass,
-                             const bool measurement, const bool diagnostic): TypedOBDState(
+                             const bool measurement, const bool diagnostic) : TypedOBDState(
     type, name, description, icon, unit, deviceClass, measurement, diagnostic) {
     this->oldValue = 0.0;
     this->value = 0.0;
@@ -781,7 +804,7 @@ OBDStateFloat *OBDStateFloat::withValueFormatFunc(const std::function<char *(flo
 
 OBDStateInt::OBDStateInt(obd::OBDStateType type, const char *name, const char *description,
                          const char *icon, const char *unit, const char *deviceClass,
-                         const bool measurement, const bool diagnostic): TypedOBDState(
+                         const bool measurement, const bool diagnostic) : TypedOBDState(
     type, name, description, icon, unit, deviceClass, measurement, diagnostic) {
     this->oldValue = 0;
     this->value = 0;

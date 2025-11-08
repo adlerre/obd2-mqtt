@@ -21,7 +21,7 @@
 #include <ExprParser.h>
 #include "helper.h"
 
-OBDClass::OBDClass(): OBDStates(&elm327), elm327() {
+OBDClass::OBDClass() : OBDStates(&elm327), elm327() {
     protocol = AUTOMATIC;
 
     addCustomFunction("afRatio", [](const double fuelType) {
@@ -105,20 +105,31 @@ OBDClass::OBDClass(): OBDStates(&elm327), elm327() {
                         return state->getLastUpdate();
                     }
 
-                    if (op == "ov" ||
-                        op == "a" || op == "b" || op == "c" || op == "d"
-                        && state->valueType() == "int") {
+                    if (op.substr(0, 1) == "b" && op.length() > 1 && (
+                            state->valueType() == "int" || state->valueType() == "float")) {
+                        size_t si = op.find(':');
+                        int i = strtol(
+                            (si != string::npos ? op.substr(1, si - 1) : op.substr(1)).c_str(),
+                            nullptr,
+                            10);
+                        int j = si != string::npos ? strtol(op.substr(si + 1).c_str(), nullptr, 10) : i + 1;
+                        if (j - i <= 8) {
+                            int sidx = (i - 1) * 2;
+                            int eidx = (j - 1) * 2;
+                            if (sidx > 0 && eidx > sidx && sidx <= strlen(state->getPayload()) && eidx <= strlen(
+                                    state->getPayload())) {
+                                string bstr = string(state->getPayload()).substr(sidx, eidx - sidx);
+                                return strtol(bstr.c_str(), nullptr, 16);
+                            }
+                            Serial.println("Index out of bound");
+                        } else {
+                            Serial.println("Range overflows double");
+                        }
+                    }
+
+                    if (op == "ov" && state->valueType() == "int") {
                         auto *is = reinterpret_cast<OBDStateInt *>(state);
-                        if (op == "a")
-                            return is->getValue() & 0xFF;
-                        if (op == "b")
-                            return (is->getValue() >> 8) & 0xFF;
-                        if (op == "c")
-                            return (is->getValue() >> 16) & 0xFF;
-                        if (op == "d")
-                            return (is->getValue() >> 24) & 0xFF;
-                        if (op == "ov")
-                            return is->getOldValue();
+                        return is->getOldValue();
                     }
                     if (op == "ov" && state->valueType() == "float") {
                         auto *is = reinterpret_cast<OBDStateFloat *>(state);
@@ -324,6 +335,12 @@ T *OBDClass::setFormatFuncByName(const char *funcName, T *state) {
                         snprintf(str, sizeof(str), "%d", static_cast<int>(static_cast<float>(value) / KPH_TO_MPH));
                         return strdup(str);
                     });
+        } else if (strcmp(funcName, "payload") == 0) {
+            is
+                    ->withValueFormatFuncName("payload")
+                    ->withValueFormatFunc([is](const int value) {
+                        return strdup(is->getPayload());
+                    });
         }
     } else if (strcmp(state->valueType(), "float") == 0) {
         auto *is = reinterpret_cast<OBDStateFloat *>(state);
@@ -350,6 +367,12 @@ T *OBDClass::setFormatFuncByName(const char *funcName, T *state) {
                         char str[16];
                         snprintf(str, sizeof(str), "%4.2f", value == 0.0f ? 0.0f : 235.214583333333f / value);
                         return strdup(str);
+                    });
+        } else if (strcmp(funcName, "payload") == 0) {
+            is
+                    ->withValueFormatFuncName("payload")
+                    ->withValueFormatFunc([is](const float value) {
+                        return strdup(is->getPayload());
                     });
         }
     }
@@ -712,7 +735,7 @@ DTCs *OBDClass::getDTCs() {
 }
 
 #ifdef USE_BLE
-void OBDClass::onDevicesDiscovered(const std::function<void(BLEScanResultsSet *scanResult)> &callable) {
+void OBDClass::onDevicesDiscovered(const std::function<void(BLEScanResultsSet * scanResult)> &callable) {
     devDiscoveredCallback = callable;
 }
 #else
@@ -723,6 +746,10 @@ void OBDClass::onDevicesDiscovered(const std::function<void(BTScanResults *scanR
 
 std::string OBDClass::getConnectedBTAddress() const {
     return connectedBTAddress;
+}
+
+uint16_t OBDClass::getPayloadLength() const {
+    return elm327.PAYLOAD_LEN;
 }
 
 OBDClass OBD;

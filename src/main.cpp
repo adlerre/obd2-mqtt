@@ -524,7 +524,7 @@ bool sendOBDData() {
     }, states);
     if (!states.empty()) {
         for (auto &state: states) {
-            char tmp_char[50];
+            char tmp_char[OBD.getPayloadLength() + 1];
             if (state->getLastUpdate() + state->getUpdateInterval() > millis()) {
                 continue;
             }
@@ -609,7 +609,7 @@ bool sendStaticDiagnosticData() {
     }, states);
     if (!states.empty()) {
         for (auto &state: states) {
-            char tmp_char[50];
+            char tmp_char[OBD.getPayloadLength() + 1];
             if (state->getLastUpdate() + state->getUpdateInterval() > millis()) {
                 continue;
             }
