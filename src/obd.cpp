@@ -107,23 +107,27 @@ OBDClass::OBDClass() : OBDStates(&elm327), elm327() {
 
                     if (op.substr(0, 1) == "b" && op.length() > 1 && (
                             state->valueType() == "int" || state->valueType() == "float")) {
-                        size_t si = op.find(':');
-                        int i = strtol(
-                            (si != string::npos ? op.substr(1, si - 1) : op.substr(1)).c_str(),
-                            nullptr,
-                            10);
-                        int j = si != string::npos ? strtol(op.substr(si + 1).c_str(), nullptr, 10) : i + 1;
-                        if (j - i <= 8) {
-                            int sidx = (i - 1) * 2;
-                            int eidx = (j - 1) * 2;
-                            if (sidx > 0 && eidx > sidx && sidx <= strlen(state->getPayload()) && eidx <= strlen(
-                                    state->getPayload())) {
-                                string bstr = string(state->getPayload()).substr(sidx, eidx - sidx);
-                                return strtol(bstr.c_str(), nullptr, 16);
+                        if (state->getPayload() != nullptr) {
+                            size_t si = op.find(':');
+                            int i = strtol(
+                                (si != string::npos ? op.substr(1, si - 1) : op.substr(1)).c_str(),
+                                nullptr,
+                                10);
+                            int j = si != string::npos ? strtol(op.substr(si + 1).c_str(), nullptr, 10) : i + 1;
+                            if (j - i <= 8) {
+                                int sidx = (i - 1) * 2;
+                                int eidx = (j - 1) * 2;
+                                if (sidx > 0 && eidx > sidx && sidx <= strlen(state->getPayload()) && eidx <= strlen(
+                                        state->getPayload())) {
+                                    string bstr = string(state->getPayload()).substr(sidx, eidx - sidx);
+                                    return strtol(bstr.c_str(), nullptr, 16);
+                                }
+                                Serial.println("Index out of bound");
+                            } else {
+                                Serial.println("Range overflows double");
                             }
-                            Serial.println("Index out of bound");
                         } else {
-                            Serial.println("Range overflows double");
+                            log_v("Payload was empty");
                         }
                     }
 
