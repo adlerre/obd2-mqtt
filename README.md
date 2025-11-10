@@ -310,7 +310,7 @@ single parameter functions:
 * asinh, acosh, atanh
 * ln, log, exp
 * sqrt, sqr
-* round, int
+* round, floor
 
 two parameter functions:
 
