@@ -717,7 +717,7 @@
     "icon": "engine-off",
     "measurement": false,
     "diagnostic": false,
-    "expr": "$monitorStatus.c & 128",
+    "expr": "$monitorStatus.b3 & 128",
     "pid": {
       "service": 0,
       "pid": 0,
@@ -740,7 +740,7 @@
     "icon": "code-array",
     "measurement": false,
     "diagnostic": true,
-    "expr": "numDTCs($monitorStatus.c - 128)",
+    "expr": "numDTCs($monitorStatus.b3 - 128)",
     "pid": {
       "service": 0,
       "pid": 0,
