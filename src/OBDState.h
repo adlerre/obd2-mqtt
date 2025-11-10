@@ -78,6 +78,8 @@ protected:
 
     int8_t updateStatus = 0;
 
+    char *payload = nullptr;
+
     void setPreviousUpdate(long timestamp);
 
     void setLastUpdate(long timestamp);
@@ -90,7 +92,7 @@ public:
     OBDState(obd::OBDStateType type, const char *name, const char *description, const char *icon,
              const char *unit = "", const char *deviceClass = "", bool measurement = true, bool diagnostic = false);
 
-    virtual ~OBDState() = default;
+    ~OBDState();
 
     obd::OBDStateType getType() const;
 
@@ -182,6 +184,10 @@ public:
                            const std::map<const char *, const std::function<double(double)>> &funcs = {});
 
     virtual void toJSON(JsonDocument &doc);
+
+    void setPayload(const char *payload);
+
+    char *getPayload() const;
 };
 
 template<typename T>

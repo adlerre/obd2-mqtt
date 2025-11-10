@@ -174,6 +174,8 @@ public:
 #endif
 
     std::string getConnectedBTAddress() const;
+
+    uint16_t getPayloadLength() const;
 };
 
 extern OBDClass OBD;

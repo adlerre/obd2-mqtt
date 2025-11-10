@@ -103,14 +103,14 @@ export function expressionValidator(checkStates: boolean = true, allowedVariable
     };
 
     const validateVar = (i: Array<string>): Array<string> | null => {
-        const ap = ["pu", "lu", "ov", "a", "b", "c", "d"];
+        const ap = ["pu", "lu", "ov"];
         let res = null;
 
         for (const a of i) {
             const idx = a.indexOf(".");
             if (idx !== -1) {
                 const p = a.substring(idx + 1);
-                if (ap.indexOf(p.toLowerCase()) === -1) {
+                if (!p.match(/b\d+(:\d+)?/) && ap.indexOf(p.toLowerCase()) === -1) {
                     if (!res) {
                         res = [];
                     }

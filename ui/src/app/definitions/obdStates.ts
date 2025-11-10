@@ -107,5 +107,9 @@ export const ValueFormatFunctions: Array<NamedItem> = [
     {
         name: "toMPG",
         description: "Convert L/100km to MPG"
+    },
+    {
+        name: "payload",
+        description: "Output raw payload"
     }
 ];
