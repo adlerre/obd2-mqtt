@@ -278,7 +278,7 @@ void ExprParser::evalExp6(double &result) {
                 result = result * result;
             else if (!strcmp(tempToken, "ROUND"))
                 result = round(result);
-            else if (!strcmp(tempToken, "INT"))
+            else if (!strcmp(tempToken, "FLOOR"))
                 result = floor(result);
             else if (*token == ',' && (!strcmp(tempToken, "MIN") || !strcmp(tempToken, "MAX"))) {
                 getToken(); // get next token, should be a numeric
