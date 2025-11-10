@@ -1,3 +1,18 @@
+# [0.34.0](https://github.com/adlerre/obd2-mqtt/compare/v0.33.0...v0.34.0) (2025-11-10)
+
+
+### Bug Fixes
+
+* bump versions ([5351928](https://github.com/adlerre/obd2-mqtt/commit/53519283cf1664be64d0809ca9182a7e77c31508))
+* rename function to floor instead of int ([a9aab2b](https://github.com/adlerre/obd2-mqtt/commit/a9aab2b3962b5e57779e5fb0dc5e3c342e6e4912))
+* use new byte extraction ([547b866](https://github.com/adlerre/obd2-mqtt/commit/547b86642d13e62cd17d38b41f298b20e18e5124))
+* validate only if enabled ([d785e78](https://github.com/adlerre/obd2-mqtt/commit/d785e7825f7095c49ad1dd6c375efee953749e66))
+
+
+### Features
+
+* support byte extract from raw payload ([#92](https://github.com/adlerre/obd2-mqtt/issues/92)) ([a74b395](https://github.com/adlerre/obd2-mqtt/commit/a74b395607ef1c16e2809e6ab4304ff4fa6dab8b))
+
 # [0.33.0](https://github.com/adlerre/obd2-mqtt/compare/v0.32.0...v0.33.0) (2025-10-13)
 
 
