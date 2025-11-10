@@ -294,25 +294,11 @@ Variables and it's substates:
 
   the last updated timestamp
 
-* **$var.a**<br />
-  *only for INT states*
+* **$var.b[index]{:[index]}**<br />
+  *extract byte or a byte array from raw payload*
 
-  the first byte
-
-* **$var.b**<br />
-  *only for INT states*
-
-  the second byte
-
-* **$var.c**<br />
-  *only for INT states*
-
-  the third byte
-
-* **$var.d**<br />
-  *only for INT states*
-
-  the fourth byte
+  for single byte specify the index, starting from 1
+  for a byte array, specify the start index followed by a colon and the end index
 
 There are also some internal mathematical functions like:
 
@@ -360,3 +346,7 @@ There are also some built-in functions for formatting values.
 * **toMPG**<br />
 
   Convert L/100km to MPG
+
+* **payload**<br />
+
+  Output raw payload
