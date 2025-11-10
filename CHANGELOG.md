@@ -1,3 +1,11 @@
+## [0.34.1](https://github.com/adlerre/obd2-mqtt/compare/v0.34.0...v0.34.1) (2025-11-10)
+
+
+### Bug Fixes
+
+* fix crash on empty payload ([e610394](https://github.com/adlerre/obd2-mqtt/commit/e6103943ede12168ad5f06ef08c2266523d250c5))
+* rename int to floor ([025cb1d](https://github.com/adlerre/obd2-mqtt/commit/025cb1d1432dc5cc65801bd2ab059c3eccf547a2))
+
 # [0.34.0](https://github.com/adlerre/obd2-mqtt/compare/v0.33.0...v0.34.0) (2025-11-10)
 
 
