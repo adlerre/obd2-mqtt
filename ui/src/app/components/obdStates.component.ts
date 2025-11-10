@@ -129,6 +129,11 @@ export function expressionValidator(checkStates: boolean = true, allowedVariable
             return null;
         }
 
+        const ec = control.parent?.get("enabled");
+        if (ec && ec.getRawValue() !== true) {
+            return null;
+        }
+
         let invalidVars: Array<string> | null = null;
         let invalidVarExt: Array<string> | null = null;
         let invalidFuncs: Array<string> | null = null;
