@@ -295,9 +295,10 @@ Variables and it's substates:
   the last updated timestamp
 
 * **$var.b[index]{:[index]}**<br />
-  *extract byte or a byte array from raw payload*
 
-  for single byte specify the index, starting from 1
+  extract byte or a byte array from raw payload<br />
+  <br />
+  for single byte specify the index, starting from 1<br />
   for a byte array, specify the start index followed by a colon and the end index
 
 There are also some internal mathematical functions like:
