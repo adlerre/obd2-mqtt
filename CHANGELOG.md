@@ -1,3 +1,10 @@
+# [0.35.0](https://github.com/adlerre/obd2-mqtt/compare/v0.34.1...v0.35.0) (2025-11-11)
+
+
+### Features
+
+* 29-bit extended CAN header support ([458af4b](https://github.com/adlerre/obd2-mqtt/commit/458af4bcf32dc01883194a2b7977df1d5883dccf))
+
 ## [0.34.1](https://github.com/adlerre/obd2-mqtt/compare/v0.34.0...v0.34.1) (2025-11-10)
 
 
