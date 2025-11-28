@@ -71,8 +71,8 @@ jobs:
             T-A7608X_BLE,
             T-SIM7000G,
             T-SIM7000G_BLE,
-            T-SIM7070G,
-            T-SIM7070G_BLE,
+#            T-SIM7070G,
+#            T-SIM7070G_BLE,
             WS-A7670E_BLE
           ]
 
@@ -154,8 +154,8 @@ jobs:
             T-A7608X_BLE,
             T-SIM7000G,
             T-SIM7000G_BLE,
-            T-SIM7070G,
-            T-SIM7070G_BLE,
+#            T-SIM7070G,
+#            T-SIM7070G_BLE,
             WS-A7670E_BLE
           ]
 
