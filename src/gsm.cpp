@@ -22,6 +22,8 @@
 #include "device_sim800.h"
 #elif defined(LILYGO_T_A7670) or defined(LILYGO_T_CALL_A7670_V1_0) or defined(LILYGO_T_CALL_A7670_V1_1) or defined(LILYGO_T_A7608X)
 #include "device_simA76xx.h"
+#elif defined(LILYGO_SIM7000G) || defined(LILYGO_SIM7070G)
+#include "device_sim7xxx.h"
 #elif defined(WS_A7670E)
 #include "device_ws.h"
 #endif
@@ -41,7 +43,7 @@ TinyGPSPlus gps;
 
 #ifdef BOARD_BAT_ADC_PIN
 #include <numeric>
-#if defined(LILYGO_T_A7670) || defined(LILYGO_T_A7608X)
+#if defined(LILYGO_T_A7670) || defined(LILYGO_T_A7608X) || defined(LILYGO_SIM7000G) || defined(LILYGO_SIM7070G)
 #include "driver/rtc_io.h"
 #include "driver/adc.h"
 
