@@ -1,0 +1,8 @@
+name: Delete Action Cache
+on:
+  workflow_dispatch:
+jobs:
+  delete-cache:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: toshimaru/delete-action-cache@main
