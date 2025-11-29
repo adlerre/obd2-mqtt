@@ -1,6 +1,10 @@
 name: PlatformIO CI
 
-on: [ push, pull_request ]
+on:
+  push:
+    branches:
+      - main
+  pull_request:
 
 jobs:
   test:
@@ -73,34 +77,6 @@ jobs:
         with:
           submodules: true
 
-      - name: Update PIP cache on every commit
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/pip
-          key: pip-${{ github.run_id }}-${{ matrix.envs }}
-          restore-keys: pip # This matches above key as it is only used as a prefix. it the restores the nearest cache, see https://github.com/restore-keys:/blob/main/tips-and-workarounds.md#update-a-cache
-
-      - name: Update PlatformIO cache on every commit
-        uses: actions/cache@v4
-        with:
-          path: ~/.platformio
-          key: platformio-${{ github.run_id }}-${{ matrix.envs }}
-          restore-keys: platformio # This matches above key as it is only used as a prefix. it the restores the nearest cache, see https://github.com/restore-keys:/blob/main/tips-and-workarounds.md#update-a-cache
-
-      - name: Update Build cache on every commit
-        uses: actions/cache@v4
-        with:
-          path: .pio/
-          key: build-${{ github.run_id }}-${{ matrix.envs }}
-          restore-keys: build # This matches above key as it is only used as a prefix. it the restores the nearest cache, see https://github.com/restore-keys:/blob/main/tips-and-workarounds.md#update-a-cache
-
-      - name: Update NodeJS cache on every commit
-        uses: actions/cache@v4
-        with:
-          path: node_modules/
-          key: node_modules-${{ github.run_id }}
-          restore-keys: node_modules # This matches above key as it is only used as a prefix. it the restores the nearest cache, see https://github.com/restore-keys:/blob/main/tips-and-workarounds.md#
-
       - name: Update generated-files cache on every commit
         uses: actions/cache@v4
         with:
@@ -169,13 +145,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-
-      - name: Update PlatformIO cache on every commit
-        uses: actions/cache@v4
-        with:
-          path: ~/.platformio
-          key: platformio-${{ github.run_id }}-${{ matrix.envs }}
-          restore-keys: platformio # This matches above key as it is only used as a prefix. it the restores the nearest cache, see https://github.com/restore-keys:/blob/main/tips-and-workarounds.md#update-a-cache
 
       - name: Update generated-files cache on every commit
         uses: actions/cache@v4
