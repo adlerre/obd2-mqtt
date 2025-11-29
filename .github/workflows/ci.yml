@@ -81,6 +81,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: |
+            ~/.platformio/packages/framework-arduinoespressif32/tools/partitions/boot_app0.bin
             .pio/build/${{ matrix.envs }}/firmware.bin
             .pio/build/${{ matrix.envs }}/partitions.bin
             .pio/build/${{ matrix.envs }}/bootloader.bin
@@ -150,6 +151,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: |
+            ~/.platformio/packages/framework-arduinoespressif32/tools/partitions/boot_app0.bin
             .pio/build/${{ matrix.envs }}/firmware.bin
             .pio/build/${{ matrix.envs }}/partitions.bin
             .pio/build/${{ matrix.envs }}/bootloader.bin
