@@ -509,6 +509,41 @@ bool sendStaticDiagnosticDiscoveryData() {
     return allSendsSuccessed;
 }
 
+bool sendStates(std::vector<OBDState *> &states, bool allSendsSuccessed) {
+    if (!states.empty()) {
+        for (auto &state: states) {
+            const size_t len = OBD.getPayloadLength() < 64 ? 64 : OBD.getPayloadLength() + 1;
+            char tmp_char[len];
+            if (state->getLastUpdate() + state->getUpdateInterval() > millis()) {
+                continue;
+            }
+
+            if (state->valueType() == "int") {
+                auto *is = reinterpret_cast<OBDStateInt *>(state);
+                char *str = is->formatValue();
+                strncpy(tmp_char, str, len);
+                free(str);
+            } else if (state->valueType() == "float") {
+                auto *is = reinterpret_cast<OBDStateFloat *>(state);
+                char *str = is->formatValue();
+                strncpy(tmp_char, str, len);
+                free(str);
+            } else if (state->valueType() == "bool") {
+                auto *is = reinterpret_cast<OBDStateBool *>(state);
+                char *str = is->formatValue();
+                strncpy(tmp_char, str, len);
+                free(str);
+            }
+
+            allSendsSuccessed |= mqtt.sendTopicUpdate(state->getName(), std::string(tmp_char));
+        }
+    } else {
+        allSendsSuccessed = true;
+    }
+
+    return allSendsSuccessed;
+}
+
 bool sendOBDData() {
     const unsigned long start = millis();
     bool allSendsSuccessed = false;
@@ -522,35 +557,7 @@ bool sendOBDData() {
         return state->isVisible() && state->isEnabled() && state->isSupported() && !(
                    state->isDiagnostic() && state->getUpdateInterval() == -1);
     }, states);
-    if (!states.empty()) {
-        for (auto &state: states) {
-            char tmp_char[OBD.getPayloadLength() + 1];
-            if (state->getLastUpdate() + state->getUpdateInterval() > millis()) {
-                continue;
-            }
-
-            if (state->valueType() == "int") {
-                auto *is = reinterpret_cast<OBDStateInt *>(state);
-                char *str = is->formatValue();
-                strcpy(tmp_char, str);
-                free(str);
-            } else if (state->valueType() == "float") {
-                auto *is = reinterpret_cast<OBDStateFloat *>(state);
-                char *str = is->formatValue();
-                strcpy(tmp_char, str);
-                free(str);
-            } else if (state->valueType() == "bool") {
-                auto *is = reinterpret_cast<OBDStateBool *>(state);
-                char *str = is->formatValue();
-                strcpy(tmp_char, str);
-                free(str);
-            }
-
-            allSendsSuccessed |= mqtt.sendTopicUpdate(state->getName(), std::string(tmp_char));
-        }
-    } else {
-        allSendsSuccessed = true;
-    }
+    allSendsSuccessed = sendStates(states, allSendsSuccessed);
 
     DEBUG_PORT.printf("...%s (%dms)\n", allSendsSuccessed ? "done" : "failed", millis() - start);
 
@@ -607,35 +614,7 @@ bool sendStaticDiagnosticData() {
         return state->isVisible() && state->isEnabled() && state->isSupported() && state->isDiagnostic() && state->
                getUpdateInterval() == -1;
     }, states);
-    if (!states.empty()) {
-        for (auto &state: states) {
-            char tmp_char[OBD.getPayloadLength() + 1];
-            if (state->getLastUpdate() + state->getUpdateInterval() > millis()) {
-                continue;
-            }
-
-            if (state->valueType() == "int") {
-                auto *is = reinterpret_cast<OBDStateInt *>(state);
-                char *str = is->formatValue();
-                strcpy(tmp_char, str);
-                free(str);
-            } else if (state->valueType() == "float") {
-                auto *is = reinterpret_cast<OBDStateFloat *>(state);
-                char *str = is->formatValue();
-                strcpy(tmp_char, str);
-                free(str);
-            } else if (state->valueType() == "bool") {
-                auto *is = reinterpret_cast<OBDStateBool *>(state);
-                char *str = is->formatValue();
-                strcpy(tmp_char, str);
-                free(str);
-            }
-
-            allSendsSuccessed |= mqtt.sendTopicUpdate(state->getName(), std::string(tmp_char));
-        }
-    } else {
-        allSendsSuccessed = true;
-    }
+    allSendsSuccessed = sendStates(states, allSendsSuccessed);
 
     DEBUG_PORT.printf("...%s (%dms)\n", allSendsSuccessed ? "done" : "failed", millis() - start);
 
