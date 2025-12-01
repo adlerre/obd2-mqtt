@@ -23,7 +23,7 @@
 #include <cmath>
 
 // Parser constructor.
-ExprParser::ExprParser(): token{}, tokType(0) {
+ExprParser::ExprParser() : token{}, tokType(0) {
     exp_ptr = nullptr;
     for (double &var: vars) {
         var = 0.0;
@@ -76,7 +76,7 @@ char *ExprParser::resolveVariables(char *expression) {
                 start = pos;
             }
             if (start != -1) {
-                if (std::isspace(expression[pos]) || strchr("+-*/%^&=(),", expression[pos]) != nullptr) {
+                if (std::isspace(expression[pos]) || strchr("+-*/%^&|=(),", expression[pos]) != nullptr) {
                     end = pos - 1;
                     varName[varPos] = '\0';
                 }
@@ -204,13 +204,15 @@ void ExprParser::evalExp4(double &result) {
     char op;
     double temp;
     evalExp5(result);
-    while ((op = *token) == '^' || op == '&') {
+    while ((op = *token) == '^' || op == '&' || op == '|') {
         getToken();
         evalExp5(temp);
         if (op == '^') {
             result = pow(result, temp);
         } else if (op == '&') {
-            result = static_cast<int>(result) & static_cast<int>(temp);
+            result = static_cast<long>(result) & static_cast<long>(temp);
+        } else if (op == '|') {
+            result = static_cast<long>(result) | static_cast<long>(temp);
         }
     }
 }
@@ -291,6 +293,19 @@ void ExprParser::evalExp6(double &result) {
                 } else {
                     strcpy(errormsg, "Is not a number");
                 }
+            } else if (*token == ',' && (!strcmp(tempToken, "SHL") || !strcmp(tempToken, "SHR"))) {
+                getToken(); // get next token, should be a numeric
+                const double val = strtod(token, &err_ptr);
+                if (*err_ptr == '\0') {
+                    result = !strcmp(tempToken, "SHL")
+                                 ? static_cast<long>(result) << static_cast<long>(val)
+                                 : static_cast<long>(result) >> static_cast<long>(val);
+                    getToken();
+                    if (*token != ')')
+                        strcpy(errormsg, "Unbalanced Parentheses");
+                } else {
+                    strcpy(errormsg, "Is not a number");
+                }
             } else {
                 bool found = false;
                 for (const auto &item: customFunctions) {
@@ -337,11 +352,11 @@ void ExprParser::getToken() {
     }
     while (isspace(*exp_ptr)) // skip over white space
         ++exp_ptr;
-    if (strchr("+-*/%^&=(),", *exp_ptr)) {
+    if (strchr("+-*/%^&|=(),", *exp_ptr)) {
         tokType = DELIMITER;
         *temp++ = *exp_ptr++; // advance to next char
     } else if (isalpha(*exp_ptr)) {
-        while (!strchr(" +-/*%^&=(),\t\r", *exp_ptr) && (*exp_ptr)) {
+        while (!strchr(" +-/*%^&|=(),\t\r", *exp_ptr) && (*exp_ptr)) {
             *temp++ = toupper(*exp_ptr++);
         }
         while (isspace(*exp_ptr)) {
@@ -350,7 +365,7 @@ void ExprParser::getToken() {
         }
         tokType = (*exp_ptr == '(') ? FUNCTION : VARIABLE;
     } else if (isdigit(*exp_ptr) || *exp_ptr == '.') {
-        while (!strchr(" +-/*%^&=(),\t\r", *exp_ptr) && (*exp_ptr)) {
+        while (!strchr(" +-/*%^&|=(),\t\r", *exp_ptr) && (*exp_ptr)) {
             *temp++ = toupper(*exp_ptr++);
         }
         tokType = NUMBER;
