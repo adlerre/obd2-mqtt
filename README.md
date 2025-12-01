@@ -316,6 +316,7 @@ single parameter functions:
 two parameter functions:
 
 * min, max
+* shl, shr - shift logical left/right
 
 as well as internal functions:
 

@@ -49,7 +49,8 @@ export function expressionValidator(checkStates: boolean = true, allowedVariable
 
     const buildInFuncs = [
         "sin", "cos", "tan", "asin", "acos", "atan", "sinh", "cosh", "tanh", "asinh",
-        "acosh", "atanh", "ln", "log", "exp", "sqrt", "sqr", "round", "int", "min", "max"
+        "acosh", "atanh", "ln", "log", "exp", "sqrt", "sqr", "round", "floor", "min", "max",
+        "shl", "shr"
     ];
 
     const buildVariables = (parent: FormGroup | FormArray): Array<string> => {
