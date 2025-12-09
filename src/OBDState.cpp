@@ -570,7 +570,8 @@ TypedOBDState<T> *TypedOBDState<T>::withValueFormatFunc(const std::function<char
 
 template<typename T>
 char *TypedOBDState<T>::formatValue() {
-    char str[elm327->PAYLOAD_LEN + 1];
+    const size_t len = elm327->PAYLOAD_LEN < 64 ? 64 : elm327->PAYLOAD_LEN + 1;
+    char str[len];
 
     if (this->valueFormatFunction != nullptr) {
         return this->valueFormatFunction(this->getValue());
@@ -590,9 +591,9 @@ char *TypedOBDState<T>::formatValue() {
             return 0.0;
         });
         double val = parser.evalExp(const_cast<char *>(this->valueFormatExpression));
-        sprintf(str, this->valueFormat, static_cast<T>(!isinf(val) ? val : 0));
+        snprintf(str, len, this->valueFormat, static_cast<T>(!isinf(val) ? val : 0));
     } else {
-        sprintf(str, this->valueFormat, this->getValue());
+        snprintf(str, len, this->valueFormat, this->getValue());
     }
 
     return strdup(str);
