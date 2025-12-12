@@ -22,7 +22,7 @@
 #include "device_sim800.h"
 #elif defined(LILYGO_T_A7670) or defined(LILYGO_T_CALL_A7670_V1_0) or defined(LILYGO_T_CALL_A7670_V1_1) or defined(LILYGO_T_A7608X)
 #include "device_simA76xx.h"
-#elif defined(LILYGO_SIM7000G) || defined(LILYGO_SIM7070G)
+#elif defined(LILYGO_SIM7000G) or defined(LILYGO_SIM7070G)
 #include "device_sim7xxx.h"
 #elif defined(WS_A7670E)
 #include "device_ws.h"
@@ -43,7 +43,7 @@ TinyGPSPlus gps;
 
 #ifdef BOARD_BAT_ADC_PIN
 #include <numeric>
-#if defined(LILYGO_T_A7670) || defined(LILYGO_T_A7608X) || defined(LILYGO_SIM7000G) || defined(LILYGO_SIM7070G)
+#if defined(LILYGO_T_A7670) or defined(LILYGO_T_A7608X) or defined(LILYGO_SIM7000G) or defined(LILYGO_SIM7070G)
 #include "driver/rtc_io.h"
 #include "driver/adc.h"
 
@@ -82,7 +82,7 @@ int GSM::adcChannelNum(const gpio_num_t pin) {
 }
 
 void GSM::ulpInit(unsigned int threshold, unsigned int highThreshold, int wakeupPeriod) {
-#if defined(BOARD_BAT_ADC_PIN) && defined(LILYGO_T_A7670) || defined(LILYGO_T_A7608X)
+#if defined(BOARD_BAT_ADC_PIN) && defined(LILYGO_T_A7670) || defined(LILYGO_T_A7608X) || defined(LILYGO_SIM7000G) || defined(LILYGO_SIM7070G)
     unsigned int idx = adcPeriphNum(static_cast<gpio_num_t>(BOARD_BAT_ADC_PIN));
 
     if (idx == 0) {
@@ -203,7 +203,7 @@ void GSM::ulpInit(unsigned int threshold, unsigned int highThreshold, int wakeup
 }
 
 void GSM::ulpPrepareSleep() {
-#if defined(BOARD_BAT_ADC_PIN) && defined(LILYGO_T_A7670) || defined(LILYGO_T_A7608X)
+#if defined(BOARD_BAT_ADC_PIN) && defined(LILYGO_T_A7670) || defined(LILYGO_T_A7608X) || defined(LILYGO_SIM7000G) || defined(LILYGO_SIM7070G)
     unsigned int idx = adcPeriphNum(static_cast<gpio_num_t>(BOARD_BAT_ADC_PIN));
 
     if (idx == 0) {
@@ -224,7 +224,7 @@ void GSM::ulpPrepareSleep() {
 GSM::GSM(Stream &stream) : stream(stream), modem(TinyGsm(stream)) {
     ipAddress = "";
     reconnectAttempts = 0;
-#if defined(LILYGO_T_A7670) or defined(LILYGO_T_CALL_A7670_V1_0) or defined(LILYGO_T_CALL_A7670_V1_1) or defined(LILYGO_T_A7608X)
+#if defined(LILYGO_T_A7670) or defined(LILYGO_T_CALL_A7670_V1_0) or defined(LILYGO_T_CALL_A7670_V1_1) or defined(LILYGO_T_A7608X) or defined(LILYGO_SIM7000G) or defined(LILYGO_SIM7070G)
     networkMode = MODEM_NETWORK_AUTO;
 #endif
 }
@@ -258,7 +258,7 @@ void GSM::resetModem() {
     digitalWrite(MODEM_POWER_ON, LOW);
     delay(1000);
     digitalWrite(MODEM_POWER_ON, HIGH);
-#elif defined(LILYGO_T_A7670) or defined(LILYGO_T_CALL_A7670_V1_0) or defined(LILYGO_T_CALL_A7670_V1_1) or defined(LILYGO_T_A7608X)
+#elif defined(LILYGO_T_A7670) or defined(LILYGO_T_CALL_A7670_V1_0) or defined(LILYGO_T_CALL_A7670_V1_1) or defined(LILYGO_T_A7608X) or defined(LILYGO_SIM7000G) or defined(LILYGO_SIM7070G)
 #ifdef BOARD_POWERON_PIN
     digitalWrite(BOARD_POWERON_PIN, LOW);
     delay(1000);
@@ -277,7 +277,7 @@ void GSM::resetModem() {
             digitalWrite(MODEM_PWRKEY, HIGH);
             delay(1000);
             digitalWrite(MODEM_PWRKEY, LOW);
-#elif defined(LILYGO_T_A7670) or defined(LILYGO_T_CALL_A7670_V1_0) or defined(LILYGO_T_CALL_A7670_V1_1) or defined(LILYGO_T_A7608X)
+#elif defined(LILYGO_T_A7670) or defined(LILYGO_T_CALL_A7670_V1_0) or defined(LILYGO_T_CALL_A7670_V1_1) or defined(LILYGO_T_A7608X) or defined(LILYGO_SIM7000G) or defined(LILYGO_SIM7070G)
             digitalWrite(BOARD_PWRKEY_PIN, LOW);
             delay(100);
             digitalWrite(BOARD_PWRKEY_PIN, HIGH);
@@ -298,7 +298,7 @@ bool GSM::isUseGPRS() {
 #if TINY_GSM_USE_GPRS
     return true;
 #else
-        return false;
+    return false;
 #endif
 }
 
@@ -315,13 +315,14 @@ void GSM::connectToNetwork() {
     // Set GSM module baud rate and UART pins
     SerialAT.begin(115200, SERIAL_8N1, MODEM_RX, MODEM_TX);
 
-#elif defined(LILYGO_T_A7670) or defined(LILYGO_T_CALL_A7670_V1_0) or defined(LILYGO_T_CALL_A7670_V1_1) or defined(LILYGO_T_A7608X) or defined(WS_A7670E)
+#elif defined(LILYGO_T_A7670) or defined(LILYGO_T_CALL_A7670_V1_0) or defined(LILYGO_T_CALL_A7670_V1_1) or defined(LILYGO_T_A7608X) or defined(LILYGO_SIM7000G) or defined(LILYGO_SIM7070G) or defined(WS_A7670E)
     // Turn on DC boost to power on the modem
 #ifdef BOARD_POWERON_PIN
     pinMode(BOARD_POWERON_PIN, OUTPUT);
     digitalWrite(BOARD_POWERON_PIN, HIGH);
 #endif
 
+#ifdef MODEM_RESET_PIN
     // Set modem reset pin ,reset modem
     pinMode(MODEM_RESET_PIN, OUTPUT);
     digitalWrite(MODEM_RESET_PIN, !MODEM_RESET_LEVEL);
@@ -329,6 +330,19 @@ void GSM::connectToNetwork() {
     digitalWrite(MODEM_RESET_PIN, MODEM_RESET_LEVEL);
     delay(2600);
     digitalWrite(MODEM_RESET_PIN, !MODEM_RESET_LEVEL);
+#endif
+
+#ifdef MODEM_FLIGHT_PIN
+    // If there is an airplane mode control, you need to exit airplane mode
+    pinMode(MODEM_FLIGHT_PIN, OUTPUT);
+    digitalWrite(MODEM_FLIGHT_PIN, HIGH);
+#endif
+
+#ifdef MODEM_DTR_PIN
+    // Pull down DTR to ensure the modem is not in sleep state
+    pinMode(MODEM_DTR_PIN, OUTPUT);
+    digitalWrite(MODEM_DTR_PIN, LOW);
+#endif
 
     // Turn on modem
     pinMode(BOARD_PWRKEY_PIN, OUTPUT);
@@ -362,7 +376,7 @@ restart:
     String modemInfo = modem.getModemInfo();
     Serial.printf("Modem Info: %s\n", modemInfo.c_str());
 
-#if defined(LILYGO_T_A7670) or defined(LILYGO_T_CALL_A7670_V1_0) or defined(LILYGO_T_CALL_A7670_V1_1) or defined(LILYGO_T_A7608X)
+#if defined(LILYGO_T_A7670) or defined(LILYGO_T_CALL_A7670_V1_0) or defined(LILYGO_T_CALL_A7670_V1_1) or defined(LILYGO_T_A7608X) or defined(LILYGO_SIM7000G) or defined(LILYGO_SIM7070G)
     modem.setNetworkMode(static_cast<NetworkMode>(networkMode));
 #endif
 
@@ -377,7 +391,7 @@ restart:
     // The XBee must run the gprsConnect function BEFORE waiting for network!
     Serial.print("Waiting for GPRS connect...");
     modem.gprsConnect(Settings.getMobileAPN().c_str(), Settings.getMobileUsername().c_str(),
-        Settings.getMobilePassword().c_str());
+                      Settings.getMobilePassword().c_str());
 #endif
 
     Serial.print("Waiting for network...");
@@ -446,7 +460,7 @@ bool GSM::checkNetwork(bool resetConnection) {
             reconnectAttempts = 0;
         }
 
-#if defined(LILYGO_T_A7670) or defined(LILYGO_T_CALL_A7670_V1_0) or defined(LILYGO_T_CALL_A7670_V1_1) or defined(LILYGO_T_A7608X)
+#if defined(LILYGO_T_A7670) or defined(LILYGO_T_CALL_A7670_V1_0) or defined(LILYGO_T_CALL_A7670_V1_1) or defined(LILYGO_T_A7608X) or defined(LILYGO_SIM7000G) or defined(LILYGO_SIM7070G)
         modem.setNetworkMode(static_cast<NetworkMode>(networkMode));
 #endif
 
@@ -538,7 +552,7 @@ bool GSM::hasGSMLocation() {
 #if defined TINY_GSM_MODEM_HAS_GSM_LOCATION
     return true;
 #else
-        return false;
+    return false;
 #endif
 }
 
