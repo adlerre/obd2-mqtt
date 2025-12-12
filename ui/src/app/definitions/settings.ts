@@ -30,6 +30,7 @@ export enum NetworkMode {
     GSM = 13,
     WCDMA = 14,
     LTE = 38,
+    GSM_LTE = 51
 }
 
 export interface MobileSettings {
