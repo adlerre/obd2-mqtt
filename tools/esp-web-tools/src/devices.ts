@@ -36,5 +36,9 @@ export const DEVICES = [
     "T-Call-A7670X-V1-1_BLE",
     "T-A7608X",
     "T-A7608X_BLE",
+    "T-SIM7000G",
+    "T-SIM7000G_BLE",
+    "T-SIM7070G",
+    "T-SIM7070G_BLE",
     "WS-A7670E_BLE"
 ];
