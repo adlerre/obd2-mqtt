@@ -208,6 +208,29 @@
         <fieldset [formGroup]="mqtt">
             <legend>MQTT Broker</legend>
             <div class="row mb-2">
+                <label for="mqttIdType" class="col-sm-2 control-label">Identifier Type</label>
+                <div class="col-sm-10">
+                    <select class="form-control form-select" id="mqttIdType" formControlName="idType"
+                            [ngClass]="{'is-invalid': mqtt.controls.protocol.errors}">
+                        @for (type of getMQTTIdentifierTypes(); track type.key) {
+                            <option [ngValue]="type.value">{{ type.key }}</option>
+                        }
+                    </select>
+                </div>
+            </div>
+            @if (mqtt.controls.idType.value === 2) {
+                <div class="row mb-2">
+                    <label for="idSuffix" class="col-sm-2 control-label">Identifier Suffix</label>
+                    <div class="col-sm-10">
+                        <input formControlName="idSuffix" type="text" id="idSuffix" autocapitalize="off" autocorrect="off"
+                               placeholder="Identifier Suffix"
+                               class="form-control"
+                               [ngClass]="{'is-invalid': mqtt.controls.idSuffix.errors}"
+                        >
+                    </div>
+                </div>
+            }
+            <div class="row mb-2">
                 <label for="hostname" class="col-sm-2 control-label">Protocol/Hostname/Port</label>
                 <div class="col-sm-2 pe-md-1">
                     <select class="form-control form-select" id="mqttProtocol" formControlName="protocol"

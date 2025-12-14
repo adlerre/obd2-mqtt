@@ -273,6 +273,8 @@ void OBD2Settings::setProtocol(char protocol) {
 }
 
 void MQTTSettings::readJson(JsonDocument &doc) {
+    mqtt.idType = doc["mqtt"]["idType"] | 0;
+    strlcpy(mqtt.idSuffix, doc["mqtt"]["idSuffix"] | "", sizeof(mqtt.idSuffix));
     mqtt.protocol = doc["mqtt"]["protocol"] | 0; // USE_MQTT as default
     strlcpy(mqtt.hostname, doc["mqtt"]["hostname"] | "", sizeof(mqtt.hostname));
     mqtt.port = doc["mqtt"]["port"] | (mqtt.protocol == 0 ? 1883 : 1884);
@@ -287,6 +289,8 @@ void MQTTSettings::readJson(JsonDocument &doc) {
 }
 
 void MQTTSettings::writeJson(JsonDocument &doc) {
+    doc["mqtt"]["idType"] = mqtt.idType;
+    doc["mqtt"]["idSuffix"] = mqtt.idSuffix;
     doc["mqtt"]["protocol"] = mqtt.protocol;
     doc["mqtt"]["hostname"] = mqtt.hostname;
     doc["mqtt"]["port"] = mqtt.port;
@@ -298,6 +302,22 @@ void MQTTSettings::writeJson(JsonDocument &doc) {
     doc["mqtt"]["diagnosticInterval"] = mqtt.diagnosticInterval;
     doc["mqtt"]["discoveryInterval"] = mqtt.discoveryInterval;
     doc["mqtt"]["locationInterval"] = mqtt.locationInterval;
+}
+
+int MQTTSettings::getIdType() const {
+    return mqtt.idType;
+}
+
+void MQTTSettings::setIdType(int idType) {
+    mqtt.idType = idType;
+}
+
+String MQTTSettings::getIdSuffix() const {
+    return mqtt.idSuffix;
+}
+
+void MQTTSettings::setIdSuffix(const char *idSuffix) {
+    strlcpy(mqtt.idSuffix, idSuffix, sizeof(mqtt.idSuffix));
 }
 
 int MQTTSettings::getProtocol() const {

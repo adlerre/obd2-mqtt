@@ -25,7 +25,7 @@ import {
     DiscoveredDevice,
     DiscoveredDevices,
     discoveryIntervals,
-    locationIntervals,
+    locationIntervals, MQTTIdentifierType,
     MQTTProtocol,
     NetworkMode,
     OBD2Protocol,
@@ -136,6 +136,14 @@ export class SettingsComponent implements OnInit {
             protocol: new FormControl(OBD2Protocol.AUTOMATIC),
         });
         this.mqtt = new FormGroup({
+            idType: new FormControl<number>(MQTTIdentifierType.MAC),
+            idSuffix: new FormControl("", [
+                Validators.minLength(8),
+                Validators.maxLength(36),
+                Validators.pattern(
+                    /^[a-zA-Z0-9\-_]+$/
+                )
+            ]),
             protocol: new FormControl<number>(MQTTProtocol.MQTT),
             hostname: new FormControl("", [
                 Validators.required,
@@ -192,6 +200,15 @@ export class SettingsComponent implements OnInit {
             key: key.replaceAll("_", " "),
             value: OBD2Protocol[key as keyof typeof OBD2Protocol]
         }));
+    }
+
+    getMQTTIdentifierTypes(): Array<{ key: string, value: number }> {
+        return Object.keys(MQTTIdentifierType)
+            .filter((k: any) => typeof k === "string" && isNaN(parseInt(k, 10)))
+            .map(key => ({
+                key: key,
+                value: MQTTIdentifierType[key as keyof typeof MQTTIdentifierType]
+            }));
     }
 
     getMQTTProtocols(): Array<{ key: string, value: number }> {

@@ -63,12 +63,20 @@ export interface OBD2Settings {
     protocol?: OBD2Protocol;
 }
 
+export enum MQTTIdentifierType {
+    MAC = 0,
+    MAC_IMEI = 1,
+    CUSTOM = 2,
+}
+
 export enum MQTTProtocol {
     MQTT = 0,
     WEBSOCKET = 1,
 }
 
 export interface MQTTSettings {
+    idType?: MQTTIdentifierType;
+    idSufix?: string;
     protocol?: MQTTProtocol;
     hostname: string;
     port?: number;
