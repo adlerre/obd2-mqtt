@@ -874,7 +874,19 @@ void setup() {
 
     if (!Settings.MQTT.getHostname().isEmpty()) {
         mqtt.setClient(gsm.getClient(Settings.MQTT.getSecure()));
-        mqtt.setIdentifier(OBD.getConnectedBTAddress());
+        if (static_cast<MQTTSettings::MQTTIdentifierType>(Settings.MQTT.getIdType()) ==
+            MQTTSettings::MQTTIdentifierType::MAC_IMEI) {
+            char id[33] = "\0";
+            sprintf(id, "%s-%s", OBD.getConnectedBTAddress().c_str(),
+                    gsm.modem.getIMEI().substring(gsm.modem.getIMEI().length() - 4).c_str());
+            mqtt.setIdentifier(id);
+        } else if (static_cast<MQTTSettings::MQTTIdentifierType>(Settings.MQTT.getIdType()) ==
+                   MQTTSettings::MQTTIdentifierType::CUSTOM && Settings.MQTT.getIdSuffix().length() > 0) {
+            mqtt.setIdentifier(Settings.MQTT.getIdSuffix().c_str());
+        } else {
+            mqtt.setIdentifier(OBD.getConnectedBTAddress());
+        }
+        Serial.printf("MQTT ID: %s\n", mqtt.getIdentifier().c_str());
 
         xTaskCreatePinnedToCore(outputTask, "OutputTask", 9216, nullptr, 10, &outputTaskHdl, 0);
     }

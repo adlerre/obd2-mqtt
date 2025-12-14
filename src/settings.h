@@ -168,6 +168,8 @@ public:
 
 class MQTTSettings {
     struct {
+        int idType;
+        char idSuffix[37];
         int protocol;
         char hostname[65];
         unsigned int port;
@@ -188,6 +190,20 @@ class MQTTSettings {
     friend class SettingsClass;
 
 public:
+    typedef enum {
+        MAC = 0,
+        MAC_IMEI = 1,
+        CUSTOM = 2
+    } MQTTIdentifierType;
+
+    int getIdType() const;
+
+    void setIdType(int idType);
+
+    String getIdSuffix() const;
+
+    void setIdSuffix(const char *idSuffix);
+
     int getProtocol() const;
 
     void setProtocol(int protocol);
