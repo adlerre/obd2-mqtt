@@ -1,3 +1,17 @@
+# [0.36.0](https://github.com/adlerre/obd2-mqtt/compare/v0.35.0...v0.36.0) (2025-12-14)
+
+
+### Bug Fixes
+
+* switch to byte extraction ([0285094](https://github.com/adlerre/obd2-mqtt/commit/028509431573acabf5d54311ac5a336b5f4b2b9a))
+* value format output on zero payload length ([#97](https://github.com/adlerre/obd2-mqtt/issues/97)) ([09a8ce8](https://github.com/adlerre/obd2-mqtt/commit/09a8ce8c0ed0116e74f3372d1777102638d5c576))
+
+
+### Features
+
+* allow to change mqtt id suffix ([7a89d12](https://github.com/adlerre/obd2-mqtt/commit/7a89d1232bc7bfd8c6711dfead3ae7e506f8a9d4))
+* implemented support for logical left/right shifting ([8e42e36](https://github.com/adlerre/obd2-mqtt/commit/8e42e36e24ae6f94554ca26a406ee546c1b73d03))
+
 # [0.35.0](https://github.com/adlerre/obd2-mqtt/compare/v0.34.1...v0.35.0) (2025-11-11)
 
 
