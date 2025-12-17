@@ -1,3 +1,10 @@
+# [0.37.0](https://github.com/adlerre/obd2-mqtt/compare/v0.36.0...v0.37.0) (2025-12-17)
+
+
+### Features
+
+* add support for T-SIM7000G and T-SIM7070G ([#94](https://github.com/adlerre/obd2-mqtt/issues/94)) ([77c4cc4](https://github.com/adlerre/obd2-mqtt/commit/77c4cc480820306c6ee972ae922e2097f95da164))
+
 # [0.36.0](https://github.com/adlerre/obd2-mqtt/compare/v0.35.0...v0.36.0) (2025-12-14)
 
 
