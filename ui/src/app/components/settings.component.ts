@@ -56,20 +56,24 @@ import { DomSanitizer } from "@angular/platform-browser";
 })
 export class SettingsComponent implements OnInit {
 
-    private static DEVICE_WITH_NETWORK_MODE = [
-        "T-A7670X",
-        "T-A7670X_BLE",
-        "T-A7670X-NO-GPS",
-        "T-A7670X-NO-GPS_BLE",
-        "T-A7670X-GPS-SHIELD",
-        "T-A7670X-GPS-SHIELD_BLE",
-        "T-Call-A7670X-V1-0",
-        "T-Call-A7670X-V1-0_BLE",
-        "T-Call-A7670X-V1-1",
-        "T-Call-A7670X-V1-1_BLE",
-        "T-A7608X",
-        "T-A7608X_BLE"
-    ];
+    private static DEVICE_WITH_NETWORK_MODE: { [key: string]: Array<NetworkMode> } = {
+        "T-A7670X": [NetworkMode.AUTO, NetworkMode.GSM, NetworkMode.WCDMA, NetworkMode.LTE],
+        "T-A7670X_BLE": [NetworkMode.AUTO, NetworkMode.GSM, NetworkMode.WCDMA, NetworkMode.LTE],
+        "T-A7670X-NO-GPS": [NetworkMode.AUTO, NetworkMode.GSM, NetworkMode.WCDMA, NetworkMode.LTE],
+        "T-A7670X-NO-GPS_BLE": [NetworkMode.AUTO, NetworkMode.GSM, NetworkMode.WCDMA, NetworkMode.LTE],
+        "T-A7670X-GPS-SHIELD": [NetworkMode.AUTO, NetworkMode.GSM, NetworkMode.WCDMA, NetworkMode.LTE],
+        "T-A7670X-GPS-SHIELD_BLE": [NetworkMode.AUTO, NetworkMode.GSM, NetworkMode.WCDMA, NetworkMode.LTE],
+        "T-Call-A7670X-V1-0": [NetworkMode.AUTO, NetworkMode.GSM, NetworkMode.WCDMA, NetworkMode.LTE],
+        "T-Call-A7670X-V1-0_BLE": [NetworkMode.AUTO, NetworkMode.GSM, NetworkMode.WCDMA, NetworkMode.LTE],
+        "T-Call-A7670X-V1-1": [NetworkMode.AUTO, NetworkMode.GSM, NetworkMode.WCDMA, NetworkMode.LTE],
+        "T-Call-A7670X-V1-1_BLE": [NetworkMode.AUTO, NetworkMode.GSM, NetworkMode.WCDMA, NetworkMode.LTE],
+        "T-A7608X": [NetworkMode.AUTO, NetworkMode.GSM, NetworkMode.WCDMA, NetworkMode.LTE],
+        "T-A7608X_BLE": [NetworkMode.AUTO, NetworkMode.GSM, NetworkMode.WCDMA, NetworkMode.LTE],
+        "T-SIM7000G": [NetworkMode.AUTO, NetworkMode.GSM, NetworkMode.LTE, NetworkMode.GSM_LTE],
+        "T-SIM7000G_BLE": [NetworkMode.AUTO, NetworkMode.GSM, NetworkMode.LTE, NetworkMode.GSM_LTE],
+        "T-SIM7070G": [NetworkMode.AUTO, NetworkMode.GSM, NetworkMode.LTE, NetworkMode.GSM_LTE],
+        "T-SIM7070G_BLE": [NetworkMode.AUTO, NetworkMode.GSM, NetworkMode.LTE, NetworkMode.GSM_LTE]
+    };
 
     @ViewChild("devTypeahead", {static: true}) devTypeahead: NgbTypeahead;
 
@@ -183,12 +187,16 @@ export class SettingsComponent implements OnInit {
 
     isNetworkModeAllowed(): boolean {
         return this.configuration &&
-            SettingsComponent.DEVICE_WITH_NETWORK_MODE.indexOf(this.configuration.deviceType) !== -1 || false;
+            Object.keys(SettingsComponent.DEVICE_WITH_NETWORK_MODE).indexOf(this.configuration.deviceType) !== -1 || false;
     }
 
     getNetworkModes(): Array<{ key: string, value: number }> {
         return Object.keys(NetworkMode)
             .filter((k: any) => typeof k === "string" && isNaN(parseInt(k, 10)))
+            .filter((k: any) =>
+                SettingsComponent.DEVICE_WITH_NETWORK_MODE[this.configuration.deviceType]
+                    .indexOf(NetworkMode[k as keyof typeof NetworkMode]) !== -1
+            )
             .map(key => ({
                 key: key,
                 value: NetworkMode[key as keyof typeof NetworkMode]
