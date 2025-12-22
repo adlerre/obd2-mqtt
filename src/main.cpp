@@ -886,7 +886,6 @@ void setup() {
         } else {
             mqtt.setIdentifier(OBD.getConnectedBTAddress());
         }
-        Serial.printf("MQTT ID: %s\n", mqtt.getIdentifier().c_str());
 
         xTaskCreatePinnedToCore(outputTask, "OutputTask", 9216, nullptr, 10, &outputTaskHdl, 0);
     }
