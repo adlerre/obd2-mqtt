@@ -19,6 +19,45 @@
 #include <helper.h>
 #include <MQTTWebSocketStreamClient.h>
 
+#include <utility>
+
+MQTTSubscription::MQTTSubscription(const std::string &field, const std::string &topic) {
+    this->field = field;
+    this->topic = topic;
+}
+
+std::string MQTTSubscription::getField() const {
+    return field;
+}
+
+std::string MQTTSubscription::getTopic() const {
+    return topic;
+}
+
+void MQTTSubscription::setCallback(std::function<void(const char *)> callback) {
+    this->callback = callback;
+}
+
+void MQTTSubscription::fireCallback(const char *msg) const {
+    if (this->callback != nullptr) {
+        this->callback(msg);
+    }
+}
+
+void MQTT::callback(const char *topic, const byte *payload, const unsigned int length) {
+    char msg[length + 1];
+    for (int i = 0; i < length; i++) {
+        msg[i] = static_cast<char>(payload[i]);
+    }
+    msg[length] = '\0';
+
+    for (auto &sub: subscriptions) {
+        if (sub->getTopic() == topic) {
+            sub->fireCallback(msg);
+        }
+    }
+}
+
 std::string MQTT::createNodeId(const std::string &topic) {
     auto splitPos = topic.find_last_of('/');
     return stripChars((splitPos == std::string::npos) ? topic : topic.substr(splitPos + 1));
@@ -28,7 +67,23 @@ std::string MQTT::createFieldTopic(const std::string &field) const {
     return stripChars((!identifier.empty() ? identifier : maintopic) + "_" + field);
 }
 
-MQTT::MQTT(): client(nullptr), wsClient(nullptr), wsStreamClient(nullptr) {
+bool MQTT::hasSubscription(const std::string &field) const {
+    for (auto &sub: subscriptions) {
+        if (sub->getField() == field) {
+            return true;
+        }
+    }
+    return false;
+}
+
+void MQTT::addSubscription(const std::string &field, const std::string &topic) {
+    if (!hasSubscription(field)) {
+        subscriptions.push_back(new MQTTSubscription(field, topic));
+        mqtt.subscribe(topic.c_str());
+    }
+}
+
+MQTT::MQTT() : client(nullptr), wsClient(nullptr), wsStreamClient(nullptr) {
     mqtt.setKeepAlive(60);
     mqtt.setBufferSize(MQTT_MAX_PACKET_SIZE);
 }
@@ -48,13 +103,22 @@ bool MQTT::connect(const char *clientId, const char *broker, const unsigned int 
         mqtt.setClient(*wsStreamClient);
     }
 
+    mqtt.setCallback([&](char *topic, byte *payload, unsigned int length) {
+        this->callback(topic, payload, length);
+    });
+
     int numFailed = 0;
     while (!mqtt.connected() && numFailed < MQTT_CON_RETRIES) {
-        Serial.printf("The client %s connects to the MQTT broker...", clientId);
+        Serial.printf("Client %s connects to the MQTT broker...", clientId);
         std::string lwtTopic = maintopic + "/" + createFieldTopic(LWT_TOPIC);
         if (mqtt.connect(clientId, username, password, lwtTopic.c_str(), 0, false, LWT_DISCONNECTED, true)) {
             Serial.println("...connected.");
             ++this->numReconnects;
+
+            for (auto &sub: subscriptions) {
+                mqtt.subscribe(sub->getTopic().c_str());
+            }
+
             return true;
         }
 
@@ -140,11 +204,13 @@ bool MQTT::publish(const std::string &topic, const std::string &payload, bool re
     return mqtt.publish(topic.c_str(), payload.c_str(), retained);
 }
 
-bool MQTT::sendTopicConfig(const std::string &group, const std::string &field,
+bool MQTT::sendTopicConfig(const std::string &field,
                            const std::string &name,
                            const std::string &icon, const std::string &unit, const std::string &deviceClass,
                            const std::string &stateClass, const std::string &entityCategory,
-                           const std::string &topicType, const std::string &sourceType, bool allowOffline) {
+                           const std::string &topicType, const std::string &sourceType, bool allowOffline,
+                           const std::string &valueTemplate) {
+    // Abbreviations - https://github.com/home-assistant/core/blob/dev/homeassistant/components/mqtt/abbreviations.py
     std::string payload;
 
     std::string configTopic = createFieldTopic(field);
@@ -154,74 +220,67 @@ bool MQTT::sendTopicConfig(const std::string &group, const std::string &field,
     JsonDocument config;
 
     config["~"] = maintopic;
-    config["unique_id"] = configTopic;
-    config["object_id"] = configTopic;
+    config["uniq_id"] = configTopic;
+    config["obj_id"] = configTopic;
     config["name"] = name;
 
     if (!icon.empty()) {
         config["icon"] = "mdi:" + icon;
     }
 
-    if (topicType != "device_tracker") {
-        if (!group.empty()) {
-            config["state_topic"] = "~/" + group + "/" + configTopic;
-        } else {
-            config["state_topic"] = "~/" + configTopic;
-        }
+    if (topicType != TT_BUTTON && topicType != TT_D_TRACKER) {
+        config["stat_t"] = "~/" + configTopic;
     }
 
-    if (topicType == "binary_sensor") {
-        config["value_template"] = "{{ 'OFF' if 'off' in value else 'ON'}}";
-    } else if (topicType == "device_tracker") {
-        if (!group.empty()) {
-            config["json_attributes_topic"] = "~/" + group + "/" + configTopic + "/attributes";
-        } else {
-            config["json_attributes_topic"] = "~/" + configTopic + "/attributes";
-        }
+    if (topicType == TT_B_SENSOR) {
+        config["val_tpl"] = "{{ 'OFF' if 'off' in value else 'ON'}}";
+    } else if (topicType == TT_BUTTON) {
+        std::string cmdTopic = node_id + "/" + configTopic + "/ctrl";
+        config["cmd_t"] = cmdTopic;
+        addSubscription(field, cmdTopic);
+    } else if (topicType == TT_D_TRACKER) {
+        config["json_attr_t"] = "~/" + configTopic + "/attributes";
     }
 
     if (!sourceType.empty()) {
-        config["source_type"] = sourceType;
+        config["src_type"] = sourceType;
     }
 
     if (!unit.empty()) {
-        config["unit_of_measurement"] = unit;
+        config["unit_of_meas"] = unit;
     }
 
     if (!deviceClass.empty()) {
-        config["device_class"] = deviceClass;
+        config["dev_cla"] = deviceClass;
     }
 
     if (!stateClass.empty()) {
-        config["state_class"] = stateClass;
+        config["stat_cla"] = stateClass;
     }
 
     if (!entityCategory.empty()) {
-        config["entity_category"] = entityCategory;
+        config["ent_cat"] = entityCategory;
     }
 
     if (!allowOffline) {
-        config["availability_topic"] = "~/" + createFieldTopic(LWT_TOPIC);
-        config["payload_available"] = LWT_CONNECTED;
-        config["payload_not_available"] = LWT_DISCONNECTED;
+        config["avty_t"] = "~/" + createFieldTopic(LWT_TOPIC);
+        config["pl_avail"] = LWT_CONNECTED;
+        config["pl_not_avail"] = LWT_DISCONNECTED;
     }
 
-    config["device"]["identifiers"].add(!identifier.empty() ? identifier : maintopic);
-    config["device"]["name"] = !identifierName.empty()
-                                   ? identifierName
-                                   : !identifier.empty()
-                                         ? identifier
-                                         : maintopic;;
-    config["device"]["model"] = "OBD2 to MQTT";
-    config["device"]["manufacturer"] = "René Adler";
-
-    if (BUILD_GIT_BRANCH != "" && BUILD_GIT_COMMIT_HASH != "") {
-        String version = String(BUILD_GIT_BRANCH);
-        if (!version.startsWith("v")) {
-            version += " (" + String(BUILD_GIT_COMMIT_HASH) + ")";
-        }
-        config["device"]["sw_version"] = version;
+    if (!valueTemplate.empty()) {
+        config["val_tpl"] = valueTemplate;
     }
+
+    config["dev"]["ids"].add(!identifier.empty() ? identifier : maintopic);
+    config["dev"]["name"] = !identifierName.empty()
+                                ? identifierName
+                                : !identifier.empty()
+                                      ? identifier
+                                      : maintopic;;
+    config["dev"]["mdl"] = "OBD2 to MQTT";
+    config["dev"]["mf"] = "René Adler";
+    config["dev"]["sw"] = getVersion();
 
     serializeJson(config, payload);
 
@@ -237,4 +296,12 @@ bool MQTT::sendTopicUpdate(const std::string &field, const std::string &payload,
     }
 
     return publish(topicFull, payload, true, MQTT_MAX_PACKET_SIZE / 2);
+}
+
+void MQTT::subscribe(const std::string &field, const std::function<void(const char *)> &callback) {
+    for (auto &sub: subscriptions) {
+        if (sub->getField() == field) {
+            sub->setCallback(callback);
+        }
+    }
 }

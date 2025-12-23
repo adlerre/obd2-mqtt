@@ -16,6 +16,14 @@
  */
 #include "helper.h"
 
+String getVersion() {
+    auto version = String(BUILD_GIT_BRANCH);
+    if (!version.startsWith("v")) {
+        version += " (" + String(BUILD_GIT_COMMIT_HASH) + ")";
+    }
+    return version;
+}
+
 std::vector<std::string> split(const std::string &s, const std::string &delimiter) {
     size_t pos_start = 0, pos_end, delim_len = delimiter.length();
     std::vector<std::string> res;

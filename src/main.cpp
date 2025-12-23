@@ -42,6 +42,21 @@
 
 #define DISCOVERED_DEVICES_FILE "/discovered_devices.json"
 
+#define MIME_TYPE_JSON          "application/json"
+#define MIME_TYPE_PLAIN         "text/plain"
+
+#define HA_T_CPUTEMP            "cpuTemp"
+#define HA_T_FREEMEM            "freeMem"
+#define HA_T_UPTIME             "uptime"
+#define HA_T_RECONNECTS         "reconnects"
+#define HA_T_IP_ADDR            "ipAddress"
+#define HA_T_SQ                 "signalQuality"
+#define HA_T_BAT_VOL            "internalBatteryVoltage"
+#define HA_T_GSM_LOC            "gsmLocation"
+#define HA_T_GPS_LOC            "gpsLocation"
+#define HAT_T_DTC               "dtc"
+#define HAT_T_CLEAR_DTC         "clearDTC"
+
 #include <numeric>
 
 #include "settings.h"
@@ -88,6 +103,7 @@ std::atomic<unsigned long> lastMQTTStaticDiagnosticDiscoveryOutput{0};
 std::atomic<unsigned long> lastMQTTOutput{0};
 std::atomic<unsigned long> lastMQTTDiagnosticOutput{0};
 std::atomic<unsigned long> lastMQTTStaticDiagnosticOutput{0};
+std::atomic<unsigned long> lastMQTTDTCDiagnosticOutput{0};
 std::atomic<unsigned long> lastMQTTLocationOutput{0};
 
 std::atomic<int> signalQuality{0};
@@ -98,6 +114,8 @@ std::atomic<float> gpsLatitude{0};
 std::atomic<float> gpsLongitude{0};
 std::atomic<float> gpsAccuracy{0};
 
+std::atomic_bool clearDTC{false};
+
 TaskHandle_t outputTaskHdl;
 TaskHandle_t stateTaskHdl;
 
@@ -106,7 +124,7 @@ size_t getESPHeapSize() {
 }
 
 void deepSleep(const int sec) {
-    DEBUG_PORT.println("Prepare nap...");
+    log_d("Prepare nap...");
     WiFi.disconnect(true);
     OBD.end();
     gsm.powerOff();
@@ -116,21 +134,32 @@ void deepSleep(const int sec) {
     if (stateTaskHdl != nullptr) {
         vTaskDelete(stateTaskHdl);
     }
-    DEBUG_PORT.println("...ZzZzZz.");
+    log_d("...ZzZzZz.");
     GSM::deepSleep(sec * 1000);
 }
 
-String getVersion() {
-    auto version = String(BUILD_GIT_BRANCH);
-    if (!version.startsWith("v")) {
-        version += " (" + String(BUILD_GIT_COMMIT_HASH) + ")";
+void consoleSendHeader(const char *str) {
+    DEBUG_PORT.printf("Send %s data...", str);
+}
+
+void consoleSendFooter(const bool success, const unsigned long time) {
+    DEBUG_PORT.printf("...%s (%lums)\n", success ? "done" : "failed", time);
+}
+
+std::string buildDTCPayload(DTCs *dtcs) {
+    JsonDocument doc;
+    JsonArray a = doc["dtc"].to<JsonArray>();
+    for (int i = 0; i < dtcs->getCount(); ++i) {
+        a.add(dtcs->getCode(i)->c_str());
     }
-    return version;
+    std::string payload;
+    serializeJson(doc, payload);
+    return payload;
 }
 
 void WiFiAPStart(WiFiEvent_t event, WiFiEventInfo_t info) {
     wifiAPStarted = true;
-    DEBUG_PORT.println("WiFi AP started.");
+    DEBUG_PORT.println("AP started.");
 
     DEBUG_PORT.printf("AP - IP address: %s\n", WiFi.softAPIP().toString().c_str());
 }
@@ -139,7 +168,7 @@ void WiFiAPStop(WiFiEvent_t event, WiFiEventInfo_t info) {
     wifiAPStarted = false;
     wifiAPInUse = false;
     wifiAPStaConnected = 0;
-    DEBUG_PORT.println("WiFi AP stopped.");
+    DEBUG_PORT.println("AP stopped.");
 }
 
 void WiFiAPStationConnected(WiFiEvent_t event, WiFiEventInfo_t info) {
@@ -147,7 +176,7 @@ void WiFiAPStationConnected(WiFiEvent_t event, WiFiEventInfo_t info) {
     wifiAPInUse = true;
 
     if (wifiAPStaConnected == 1) {
-        DEBUG_PORT.println("WiFi AP in use. Stop all other task.");
+        DEBUG_PORT.println("AP in use.");
         OBD.end();
     }
 }
@@ -158,7 +187,7 @@ void WiFiAPStationDisconnected(WiFiEvent_t event, WiFiEventInfo_t info) {
     }
 
     if (wifiAPStaConnected == 0) {
-        DEBUG_PORT.println("WiFi AP all clients disconnected. Start all other task.");
+        DEBUG_PORT.println("AP all clients disconnected.");
         OBD.begin(Settings.OBD2.getName(OBD_ADP_NAME), Settings.OBD2.getMAC(), Settings.OBD2.getProtocol(),
                   Settings.OBD2.getCheckPIDSupport(), Settings.OBD2.getDebug(), Settings.OBD2.getSpecifyNumResponses());
         OBD.connect(true);
@@ -167,7 +196,7 @@ void WiFiAPStationDisconnected(WiFiEvent_t event, WiFiEventInfo_t info) {
 }
 
 void startWiFiAP() {
-    DEBUG_PORT.print("Start Access Point...");
+    DEBUG_PORT.print("Start AP...");
 
     WiFi.disconnect(true);
 
@@ -191,11 +220,11 @@ void startWiFiAP() {
 
 void startHttpServer() {
     server.on("/api/version", HTTP_GET, [](AsyncWebServerRequest *request) {
-        request->send(200, "text/plain", getVersion());
+        request->send(200, MIME_TYPE_PLAIN, getVersion());
     });
 
     server.on("/api/settings", HTTP_GET, [](AsyncWebServerRequest *request) {
-        request->send(200, "application/json", Settings.buildJson().c_str());
+        request->send(200, MIME_TYPE_JSON, Settings.buildJson().c_str());
     });
 
     server.on(
@@ -205,7 +234,7 @@ void startHttpServer() {
         },
         nullptr,
         [](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total) {
-            if (request->contentType() == "application/json") {
+            if (request->contentType() == MIME_TYPE_JSON) {
                 if (!index) {
                     request->_tempObject = malloc(total);
                 }
@@ -231,7 +260,7 @@ void startHttpServer() {
     );
 
     server.on("/api/states", HTTP_GET, [](AsyncWebServerRequest *request) {
-        request->send(200, "application/json", OBD.buildJSON().c_str());
+        request->send(200, MIME_TYPE_JSON, OBD.buildJSON().c_str());
     });
 
     server.on(
@@ -241,7 +270,7 @@ void startHttpServer() {
         },
         nullptr,
         [](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total) {
-            if (request->contentType() == "application/json") {
+            if (request->contentType() == MIME_TYPE_JSON) {
                 if (!index) {
                     request->_tempObject = malloc(total);
                 }
@@ -274,7 +303,7 @@ void startHttpServer() {
 
         serializeJson(doc, payload);
 
-        request->send(200, "application/json", payload.c_str());
+        request->send(200, MIME_TYPE_JSON, payload.c_str());
     });
 
     server.on("/api/wifi", HTTP_GET, [](AsyncWebServerRequest *request) {
@@ -288,7 +317,7 @@ void startHttpServer() {
 
         serializeJson(wifiInfo, payload);
 
-        request->send(200, "application/json", payload.c_str());
+        request->send(200, MIME_TYPE_JSON, payload.c_str());
     });
 
     server.on("/api/modem", HTTP_GET, [](AsyncWebServerRequest *request) {
@@ -306,7 +335,7 @@ void startHttpServer() {
 
         serializeJson(modemInfo, payload);
 
-        request->send(200, "application/json", payload.c_str());
+        request->send(200, MIME_TYPE_JSON, payload.c_str());
     });
 
     server.on("/api/discoveredDevices", HTTP_GET, [](AsyncWebServerRequest *request) {
@@ -316,7 +345,7 @@ void startHttpServer() {
             if (!deserializeJson(doc, file)) {
                 std::string payload;
                 serializeJson(doc, payload);
-                request->send(200, "application/json", payload.c_str());
+                request->send(200, MIME_TYPE_JSON, payload.c_str());
             } else {
                 request->send(500);
             }
@@ -328,17 +357,8 @@ void startHttpServer() {
 
     server.on("/api/DTCs", HTTP_GET, [](AsyncWebServerRequest *request) {
         DTCs *dtcs = OBD.getDTCs();
-        if (dtcs->getCount() != 0) {
-            JsonDocument doc;
-            for (int i = 0; i < dtcs->getCount(); ++i) {
-                doc["dtc"].add(dtcs->getCode(i)->c_str());
-            }
-            std::string payload;
-            if (serializeJson(doc, payload)) {
-                request->send(200, "application/json", payload.c_str());
-            } else {
-                request->send(500);
-            }
+        if (dtcs != nullptr && dtcs->getCount() != 0) {
+            request->send(200, MIME_TYPE_JSON, buildDTCPayload(dtcs).c_str());
         } else {
             request->send(404);
         }
@@ -364,7 +384,8 @@ void onBLEDevicesDiscovered(BLEScanResultsSet *btDeviceList) {
 
     File file = LittleFS.open(DISCOVERED_DEVICES_FILE, FILE_WRITE);
     if (!file) {
-        Serial.println("Failed to open file discovered_devices.json for writing.");
+        log_d("Failed to open file discovered_devices.json for writing.");
+        return;
     }
 
     for (int i = 0; i < btDeviceList->getCount(); i++) {
@@ -388,7 +409,8 @@ void onBTDevicesDiscovered(BTScanResults *btDeviceList) {
 
     File file = LittleFS.open(DISCOVERED_DEVICES_FILE, FILE_WRITE);
     if (!file) {
-        Serial.println("Failed to open file discovered_devices.json for writing.");
+        log_d("Failed to open file discovered_devices.json for writing.");
+        return;
     }
 
     for (int i = 0; i < btDeviceList->getCount(); i++) {
@@ -410,7 +432,7 @@ bool sendDiscoveryData() {
     bool allSendsSuccessed = false;
     bool allowOffline = Settings.MQTT.getAllowOffline();
 
-    DEBUG_PORT.print("Send discovery data...");
+    consoleSendHeader("discovery");
 
     std::vector<OBDState *> states{};
     OBD.getStates([](const OBDState *state) {
@@ -419,18 +441,18 @@ bool sendDiscoveryData() {
     }, states);
     if (!states.empty()) {
         for (auto &state: states) {
-            allSendsSuccessed |= mqtt.sendTopicConfig("", state->getName(), state->getDescription(), state->getIcon(),
+            allSendsSuccessed |= mqtt.sendTopicConfig(state->getName(), state->getDescription(), state->getIcon(),
                                                       state->getUnit(), state->getDeviceClass(),
-                                                      state->isMeasurement() ? "measurement" : "",
-                                                      state->isDiagnostic() ? "diagnostic" : "",
-                                                      state->valueType() == "bool" ? "binary_sensor" : "sensor",
+                                                      state->isMeasurement() ? SC_MEASUREMENT : "",
+                                                      state->isDiagnostic() ? EC_DIAGNOSTIC : "",
+                                                      state->valueType() == "bool" ? TT_B_SENSOR : TT_SENSOR,
                                                       "", allowOffline);
         }
     } else {
         allSendsSuccessed = true;
     }
 
-    DEBUG_PORT.printf("...%s (%dms)\n", allSendsSuccessed ? "done" : "failed", millis() - start);
+    consoleSendFooter(allSendsSuccessed, millis() - start);
 
     return allSendsSuccessed;
 }
@@ -439,44 +461,43 @@ bool sendDiagnosticDiscoveryData() {
     const unsigned long start = millis();
     bool allSendsSuccessed = false;
 
-    DEBUG_PORT.print("Send diagnostic discovery data...");
+    consoleSendHeader("diagnostic discovery");
 
-    allSendsSuccessed |= mqtt.sendTopicConfig("", "cpuTemp", "CPU Temperature", "thermometer", "°C", "temperature",
-                                              "measurement", "diagnostic");
-    allSendsSuccessed |= mqtt.sendTopicConfig("", "freeMem", "Free Memory", "memory", "B", "", "measurement",
-                                              "diagnostic");
-    allSendsSuccessed |= mqtt.sendTopicConfig("", "uptime", "Uptime", "timer-play", "sec", "", "measurement",
-                                              "diagnostic");
-    allSendsSuccessed |= mqtt.sendTopicConfig("", "reconnects", "Number of reconnects", "connection", "", "",
-                                              "measurement", "diagnostic");
+    allSendsSuccessed |= mqtt.sendTopicConfig(HA_T_CPUTEMP, "CPU Temperature", "thermometer", "°C", "temperature",
+                                              SC_MEASUREMENT, EC_DIAGNOSTIC);
+    allSendsSuccessed |= mqtt.sendTopicConfig(HA_T_FREEMEM, "Free Memory", "memory", "B", "", SC_MEASUREMENT,
+                                              EC_DIAGNOSTIC);
+    allSendsSuccessed |= mqtt.sendTopicConfig(HA_T_UPTIME, "Uptime", "timer-play", "sec", "", SC_MEASUREMENT,
+                                              EC_DIAGNOSTIC);
+    allSendsSuccessed |= mqtt.sendTopicConfig(HA_T_RECONNECTS, "Number of reconnects", "connection", "", "",
+                                              SC_MEASUREMENT, EC_DIAGNOSTIC);
 
     if (!gsm.getIpAddress().empty()) {
-        allSendsSuccessed |= mqtt.sendTopicConfig("", "ipAddress", "IP Address", "network-outline", "", "", "",
-                                                  "diagnostic");
+        allSendsSuccessed |= mqtt.sendTopicConfig(HA_T_IP_ADDR, "IP Address", "network-outline", "", "", "",
+                                                  EC_DIAGNOSTIC);
     }
 
     if (GSM::isUseGPRS()) {
-        allSendsSuccessed |= mqtt.sendTopicConfig("", "signalQuality", "Signal Quality", "signal", "dBm",
-                                                  "signal_strength", "", "diagnostic");
+        allSendsSuccessed |= mqtt.sendTopicConfig(HA_T_SQ, "Signal Quality", "signal", "dBm",
+                                                  "signal_strength", "", EC_DIAGNOSTIC);
     }
 
     if (GSM::hasGSMLocation()) {
-        allSendsSuccessed |= mqtt.sendTopicConfig("", "gsmLocation", "GSM Location", "crosshairs-gps", "", "", "",
-                                                  "diagnostic", "device_tracker", "gps", true);
+        allSendsSuccessed |= mqtt.sendTopicConfig(HA_T_GSM_LOC, "GSM Location", "crosshairs-gps", "", "", "",
+                                                  EC_DIAGNOSTIC, TT_D_TRACKER, "gps", true);
     }
 
     if (GSM::hasGPSLocation()) {
-        allSendsSuccessed |= mqtt.sendTopicConfig("", "gpsLocation", "GPS Location", "crosshairs-gps", "", "", "",
-                                                  "diagnostic", "device_tracker", "gps", true);
+        allSendsSuccessed |= mqtt.sendTopicConfig(HA_T_GPS_LOC, "GPS Location", "crosshairs-gps", "", "", "",
+                                                  EC_DIAGNOSTIC, TT_D_TRACKER, "gps", true);
     }
 
     if (GSM::hasBattery()) {
-        allSendsSuccessed |= mqtt.sendTopicConfig("", "internalBatteryVoltage", "Internal Battery Voltage", "battery",
-                                                  "mV",
-                                                  "voltage", "", "diagnostic");
+        allSendsSuccessed |= mqtt.sendTopicConfig(HA_T_BAT_VOL, "Internal Battery Voltage", "battery",
+                                                  "mV", "voltage", "", EC_DIAGNOSTIC);
     }
 
-    DEBUG_PORT.printf("...%s (%dms)\n", allSendsSuccessed ? "done" : "failed", millis() - start);
+    consoleSendFooter(allSendsSuccessed, millis() - start);
 
     return allSendsSuccessed;
 }
@@ -485,7 +506,7 @@ bool sendStaticDiagnosticDiscoveryData() {
     const unsigned long start = millis();
     bool allSendsSuccessed = false;
 
-    DEBUG_PORT.print("Send static diagnostic discovery data...");
+    consoleSendHeader("static diagnostic discovery");
 
     std::vector<OBDState *> states{};
     OBD.getStates([](const OBDState *state) {
@@ -494,17 +515,17 @@ bool sendStaticDiagnosticDiscoveryData() {
     }, states);
     if (!states.empty()) {
         for (auto &state: states) {
-            allSendsSuccessed |= mqtt.sendTopicConfig("", state->getName(), state->getDescription(), state->getIcon(),
+            allSendsSuccessed |= mqtt.sendTopicConfig(state->getName(), state->getDescription(), state->getIcon(),
                                                       state->getUnit(), state->getDeviceClass(),
-                                                      state->isMeasurement() ? "measurement" : "",
-                                                      state->isDiagnostic() ? "diagnostic" : "",
-                                                      state->valueType() == "bool" ? "binary_sensor" : "sensor");
+                                                      state->isMeasurement() ? SC_MEASUREMENT : "",
+                                                      state->isDiagnostic() ? EC_DIAGNOSTIC : "",
+                                                      state->valueType() == "bool" ? TT_B_SENSOR : TT_SENSOR);
         }
     } else {
         allSendsSuccessed = true;
     }
 
-    DEBUG_PORT.printf("...%s (%dms)\n", allSendsSuccessed ? "done" : "failed", millis() - start);
+    consoleSendFooter(allSendsSuccessed, millis() - start);
 
     return allSendsSuccessed;
 }
@@ -548,7 +569,7 @@ bool sendOBDData() {
     const unsigned long start = millis();
     bool allSendsSuccessed = false;
 
-    DEBUG_PORT.print("Send OBD data...");
+    consoleSendHeader("OBD");
 
     allSendsSuccessed |= mqtt.sendTopicUpdate(LWT_TOPIC, LWT_CONNECTED);
 
@@ -559,7 +580,7 @@ bool sendOBDData() {
     }, states);
     allSendsSuccessed = sendStates(states, allSendsSuccessed);
 
-    DEBUG_PORT.printf("...%s (%dms)\n", allSendsSuccessed ? "done" : "failed", millis() - start);
+    consoleSendFooter(allSendsSuccessed, millis() - start);
 
     return allSendsSuccessed;
 }
@@ -569,36 +590,36 @@ bool sendDiagnosticData() {
     bool allSendsSuccessed = false;
     char tmp_char[50];
 
-    DEBUG_PORT.print("Send diagnostic data...");
+    consoleSendHeader("diagnostic");
 
     sprintf(tmp_char, "%d", static_cast<int>(temperatureRead()));
-    allSendsSuccessed |= mqtt.sendTopicUpdate("cpuTemp", std::string(tmp_char));
+    allSendsSuccessed |= mqtt.sendTopicUpdate(HA_T_CPUTEMP, std::string(tmp_char));
 
     sprintf(tmp_char, "%lu", static_cast<long>(getESPHeapSize()));
-    allSendsSuccessed |= mqtt.sendTopicUpdate("freeMem", std::string(tmp_char));
+    allSendsSuccessed |= mqtt.sendTopicUpdate(HA_T_FREEMEM, std::string(tmp_char));
 
     sprintf(tmp_char, "%lu", (millis() - startTime) / 1000);
-    allSendsSuccessed |= mqtt.sendTopicUpdate("uptime", std::string(tmp_char));
+    allSendsSuccessed |= mqtt.sendTopicUpdate(HA_T_UPTIME, std::string(tmp_char));
 
     sprintf(tmp_char, "%d", mqtt.reconnectAttemps());
-    allSendsSuccessed |= mqtt.sendTopicUpdate("reconnects", std::string(tmp_char));
+    allSendsSuccessed |= mqtt.sendTopicUpdate(HA_T_RECONNECTS, std::string(tmp_char));
 
     if (!gsm.getIpAddress().empty()) {
         sprintf(tmp_char, "%s", gsm.getIpAddress().c_str());
-        allSendsSuccessed |= mqtt.sendTopicUpdate("ipAddress", std::string(tmp_char));
+        allSendsSuccessed |= mqtt.sendTopicUpdate(HA_T_IP_ADDR, std::string(tmp_char));
     }
 
     if (GSM::isUseGPRS() && signalQuality != SQ_NOT_KNOWN) {
         sprintf(tmp_char, "%d", GSM::convertSQToRSSI(signalQuality));
-        allSendsSuccessed |= mqtt.sendTopicUpdate("signalQuality", std::string(tmp_char));
+        allSendsSuccessed |= mqtt.sendTopicUpdate(HA_T_SQ, std::string(tmp_char));
     }
 
     if (GSM::hasBattery()) {
         sprintf(tmp_char, "%d", GSM::getBatteryVoltage());
-        allSendsSuccessed |= mqtt.sendTopicUpdate("internalBatteryVoltage", std::string(tmp_char));
+        allSendsSuccessed |= mqtt.sendTopicUpdate(HA_T_BAT_VOL, std::string(tmp_char));
     }
 
-    DEBUG_PORT.printf("...%s (%dms)\n", allSendsSuccessed ? "done" : "failed", millis() - start);
+    consoleSendFooter(allSendsSuccessed, millis() - start);
 
     return allSendsSuccessed;
 }
@@ -607,7 +628,7 @@ bool sendStaticDiagnosticData() {
     const unsigned long start = millis();
     bool allSendsSuccessed = false;
 
-    DEBUG_PORT.print("Send static diagnostic data...");
+    consoleSendHeader("static diagnostic");
 
     std::vector<OBDState *> states{};
     OBD.getStates([](const OBDState *state) {
@@ -616,38 +637,76 @@ bool sendStaticDiagnosticData() {
     }, states);
     allSendsSuccessed = sendStates(states, allSendsSuccessed);
 
-    DEBUG_PORT.printf("...%s (%dms)\n", allSendsSuccessed ? "done" : "failed", millis() - start);
+    consoleSendFooter(allSendsSuccessed, millis() - start);
 
     return allSendsSuccessed;
+}
+
+bool sendDTCDiagnosticData() {
+    const unsigned long start = millis();
+    bool allSendsSuccessed = false;
+
+    consoleSendHeader("DTC diagnostic");
+
+    DTCs *dtcs = OBD.getDTCs();
+    if (dtcs != nullptr) {
+        allSendsSuccessed |= mqtt.sendTopicConfig(HAT_T_DTC, "DTC", "engine",
+                                                  "", "", "", EC_DIAGNOSTIC, TT_SENSOR, "", false,
+                                                  "{{ value_json.dtc | join(\",\") }}");
+        if (dtcs->getCount() != 0) {
+            allSendsSuccessed |= mqtt.sendTopicConfig(HAT_T_CLEAR_DTC, "Clear DTC", "",
+                                                      "", "", "", EC_DIAGNOSTIC, TT_BUTTON, "", false);
+
+            mqtt.subscribe(HAT_T_CLEAR_DTC, [](const char *) {
+                clearDTC = true;
+            });
+        }
+
+        allSendsSuccessed |= mqtt.sendTopicUpdate(HAT_T_DTC, buildDTCPayload(dtcs));
+    } else {
+        allSendsSuccessed = true;
+    }
+
+    consoleSendFooter(allSendsSuccessed, millis() - start);
+
+    return allSendsSuccessed;
+}
+
+std::string buildLocationAttrib(const float lat, const float lon, const float acc) {
+    std::string payload;
+    JsonDocument attribs;
+
+    attribs["latitude"] = lat;
+    attribs["longitude"] = lon;
+    attribs["gps_accuracy"] = acc;
+
+    serializeJson(attribs, payload);
+
+    return payload;
 }
 
 bool sendLocationData() {
     const unsigned long start = millis();
     bool allSendsSuccessed = false;
 
-    DEBUG_PORT.print("Send location data...");
-
-    std::string payload;
-    JsonDocument attribs;
+    consoleSendHeader("location");
 
     if (GSM::hasGSMLocation()) {
-        attribs["latitude"] = static_cast<float>(gsmLatitude);
-        attribs["longitude"] = static_cast<float>(gsmLongitude);
-        attribs["gps_accuracy"] = static_cast<float>(gsmAccuracy);
-        serializeJson(attribs, payload);
-
-        allSendsSuccessed |= mqtt.sendTopicUpdate("gsmLocation", payload, true);
+        allSendsSuccessed |= mqtt.sendTopicUpdate(
+            HA_T_GSM_LOC,
+            buildLocationAttrib(gsmLatitude, gsmLongitude, gsmAccuracy),
+            true
+        );
     }
     if (GSM::hasGPSLocation()) {
-        attribs["latitude"] = static_cast<float>(gpsLatitude);
-        attribs["longitude"] = static_cast<float>(gpsLongitude);
-        attribs["gps_accuracy"] = static_cast<float>(gpsAccuracy);
-        serializeJson(attribs, payload);
-
-        allSendsSuccessed |= mqtt.sendTopicUpdate("gpsLocation", payload, true);
+        allSendsSuccessed |= mqtt.sendTopicUpdate(
+            HA_T_GPS_LOC,
+            buildLocationAttrib(gpsLatitude, gpsLongitude, gpsAccuracy),
+            true
+        );
     }
 
-    DEBUG_PORT.printf("...%s (%dms)\n", allSendsSuccessed ? "done" : "failed", millis() - start);
+    consoleSendFooter(allSendsSuccessed, millis() - start);
 
     return allSendsSuccessed;
 }
@@ -718,6 +777,14 @@ void mqttSendData() {
             }
         }
 
+        if (millis() > lastMQTTDTCDiagnosticOutput) {
+            if (sendDTCDiagnosticData()) {
+                lastMQTTDTCDiagnosticOutput = millis() + Settings.MQTT.getDiagnosticInterval() * 1000L;
+            } else {
+                return;
+            }
+        }
+
         if (sendOBDData()) {
             lastMQTTOutput = millis() + Settings.MQTT.getDataInterval() * 1000L;
         }
@@ -729,6 +796,16 @@ void mqttSendData() {
 [[noreturn]] void readStatesTask(void *parameters) {
     for (;;) {
         if (!wifiAPInUse) {
+            if (clearDTC) {
+                DEBUG_PORT.print("DTC reset ");
+                if (OBD.resetDTCs()) {
+                    DEBUG_PORT.println("done.");
+                } else {
+                    DEBUG_PORT.println("failed.");
+                }
+                clearDTC = false;
+            }
+
             OBD.loop();
         }
         delay(10);
@@ -762,7 +839,7 @@ void mqttSendData() {
                     if (batVoltage < LOW_VOLTAGE_LEVEL || (
                             drain && avgLU > Settings.General.getSleepTimeout() * 1000)) {
                         if (batVoltage < LOW_VOLTAGE_LEVEL) {
-                            DEBUG_PORT.println("Battery has low voltage.");
+                            log_d("Battery has low voltage.");
                         }
                         deepSleep(Settings.General.getSleepDuration());
                     }
@@ -807,7 +884,7 @@ void mqttSendData() {
                 }
 
                 checkInterval = millis() + Settings.MQTT.getLocationInterval() * 1000L;
-                DEBUG_PORT.printf("...%s (%dms)\n", allReadSuccessed ? "done" : "failed", millis() - start);
+                consoleSendFooter(allReadSuccessed, millis() - start);
             }
 
             if (GSM::isUseGPRS()) {
@@ -815,7 +892,7 @@ void mqttSendData() {
             }
 
             if (!mqtt.connected()) {
-                auto client_id = String(MQTT_CLIENT_ID) + "-" + stripChars(OBD.getConnectedBTAddress()).c_str();
+                auto client_id = String(MQTT_CLIENT_ID) + "-" + stripChars(mqtt.getIdentifier()).c_str();
                 if (!mqtt.connect(
                     client_id.c_str(),
                     Settings.MQTT.getHostname().c_str(),
@@ -840,7 +917,7 @@ void setup() {
     DEBUG_PORT.begin(115200);
 
     if (!LittleFS.begin(FORMAT_LITTLEFS_IF_FAILED)) {
-        DEBUG_PORT.println("LittleFS Mount Failed");
+        log_d("LittleFS Mount Failed");
         return;
     }
 

@@ -67,12 +67,11 @@ OBDClass::OBDClass() : OBDStates(&elm327), elm327() {
         if (static_cast<u_int8_t>(numCodes) > 0) {
             elm327.currentDTCCodes();
             if (elm327.nb_rx_state == ELM_SUCCESS) {
+                dtcsRead = true;
                 dtcs.clear();
                 numDTCs = static_cast<int>(elm327.DTC_Response.codesFound);
                 if (numDTCs > 0) {
-                    Serial.println("\nDTCs Found: ");
                     for (int i = 0; i < numDTCs; i++) {
-                        Serial.println(elm327.DTC_Response.codes[i]);
                         dtcs.add(elm327.DTC_Response.codes[i]);
                     }
                 }
@@ -735,7 +734,11 @@ void OBDClass::onConnectError(const std::function<void()> &callback) {
 }
 
 DTCs *OBDClass::getDTCs() {
-    return &dtcs;
+    return dtcsRead ? &dtcs : nullptr;
+}
+
+bool OBDClass::resetDTCs() {
+    return elm327.resetDTC();
 }
 
 #ifdef USE_BLE
