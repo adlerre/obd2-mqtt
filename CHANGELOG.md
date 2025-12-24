@@ -1,3 +1,15 @@
+# [0.38.0](https://github.com/adlerre/obd2-mqtt/compare/v0.37.0...v0.38.0) (2025-12-24)
+
+
+### Bug Fixes
+
+* remove unneeded debug output ([1cb8a68](https://github.com/adlerre/obd2-mqtt/commit/1cb8a68d7e592fd2155bf58a998f84143e4e631d))
+
+
+### Features
+
+* output DTCs and clear support ([#106](https://github.com/adlerre/obd2-mqtt/issues/106)) ([803554d](https://github.com/adlerre/obd2-mqtt/commit/803554d79bb8a8bb1b24bdcdee327b34376c3b78))
+
 # [0.37.0](https://github.com/adlerre/obd2-mqtt/compare/v0.36.0...v0.37.0) (2025-12-17)
 
 
