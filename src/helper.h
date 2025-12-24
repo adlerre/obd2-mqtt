@@ -20,6 +20,8 @@
 #include <string>
 #include <regex>
 
+String getVersion();
+
 /**
  * Spilt string with given delimiter.
  *

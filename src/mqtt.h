@@ -33,6 +33,15 @@
 #define LWT_CONNECTED       "connected"
 #define LWT_DISCONNECTED    "connection lost"
 
+#define TT_BUTTON           "button"
+#define TT_B_SENSOR         "binary_sensor"
+#define TT_D_TRACKER        "device_tracker"
+#define TT_SENSOR           "sensor"
+
+#define EC_DIAGNOSTIC       "diagnostic"
+
+#define SC_MEASUREMENT      "measurement"
+
 #define MQTT_CLIENT_ID      "obd2mqtt"
 
 #define MQTT_CON_RETRIES    10
@@ -41,6 +50,23 @@ typedef enum {
     USE_MQTT = 0,
     USE_WS = 1
 } mqttProtocol;
+
+class MQTTSubscription {
+    std::string field;
+    std::string topic;
+    std::function<void(const char *)> callback = nullptr;
+
+public:
+    MQTTSubscription(const std::string &field, const std::string &topic);
+
+    std::string getField() const;
+
+    std::string getTopic() const;
+
+    void setCallback(std::function<void(const char *)> callback);
+
+    void fireCallback(const char *msg) const;
+};
 
 class MQTT {
     Client *client;
@@ -53,9 +79,17 @@ class MQTT {
     std::string identifier;
     std::string identifierName;
 
+    std::vector<MQTTSubscription *> subscriptions = {};
+
+    void callback(const char *topic, const byte *payload, unsigned int length);
+
     static std::string createNodeId(const std::string &topic);
 
     std::string createFieldTopic(const std::string &field) const;
+
+    bool hasSubscription(const std::string &field) const;
+
+    void addSubscription(const std::string &field, const std::string &topic);
 
 public:
     /**
@@ -167,7 +201,6 @@ public:
     /**
      * Send topic config.
      *
-     * @param group the group
      * @param field the field name
      * @param name the name or description of field
      * @param icon the icon
@@ -178,6 +211,7 @@ public:
      * @param topicType the topic type e.g. sensor or other
      * @param sourceType the source type e.g. gps
      * @param allowOffline <code>true</code> if topic should not remove
+     * @param valueTemplate the value template
      * @return <code>true</code> on success
      *
      * @see
@@ -186,12 +220,12 @@ public:
      *   https://www.home-assistant.io/integrations/device_tracker.mqtt/
      *   icons -> https://mdisearch.com
      */
-    bool sendTopicConfig(const std::string &group, const std::string &field,
+    bool sendTopicConfig(const std::string &field,
                          const std::string &name,
                          const std::string &icon, const std::string &unit, const std::string &deviceClass,
                          const std::string &stateClass, const std::string &entityCategory,
-                         const std::string &topicType = "sensor", const std::string &sourceType = "",
-                         bool allowOffline = false);
+                         const std::string &topicType = TT_SENSOR, const std::string &sourceType = "",
+                         bool allowOffline = false, const std::string &valueTemplate = "");
 
     /**
      * Send topic update payload.
@@ -201,4 +235,6 @@ public:
      * @param isAttribJson <code>true</code> if json attribute
      */
     bool sendTopicUpdate(const std::string &field, const std::string &payload, bool isAttribJson = false);
+
+    void subscribe(const std::string &field, const std::function<void(const char *)> &callback);
 };

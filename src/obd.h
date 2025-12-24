@@ -103,6 +103,7 @@ class OBDClass : public OBDStates {
     bool specifyNumResponses = true;
 
     DTCs dtcs;
+    bool dtcsRead = false;
 
     std::string connectedBTAddress;
 
@@ -166,6 +167,8 @@ public:
     void onConnectError(const std::function<void()> &callback);
 
     DTCs *getDTCs();
+
+    bool resetDTCs();
 
 #ifdef USE_BLE
     void onDevicesDiscovered(const std::function<void(BLEScanResultsSet *scanResult)> &callable);
