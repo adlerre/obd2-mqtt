@@ -85,6 +85,7 @@ std::atomic_bool wifiAPStarted{false};
 std::atomic_bool wifiAPInUse{false};
 std::atomic<unsigned int> wifiAPStaConnected{0};
 
+std::atomic_bool obdConnected{false};
 std::atomic<int> obdConnectErrors{0};
 
 std::atomic<unsigned long> startTime{0};
@@ -368,10 +369,12 @@ void startHttpServer() {
 }
 
 void onOBDConnected() {
+    obdConnected = true;
     obdConnectErrors = 0;
 }
 
 void onOBDConnectError() {
+    obdConnected = false;
     ++obdConnectErrors;
     if (GSM::hasBattery() && GSM::isBatteryUsed() && obdConnectErrors > 5) {
         deepSleep(Settings.General.getSleepDuration());
@@ -571,8 +574,6 @@ bool sendOBDData() {
 
     consoleSendHeader("OBD");
 
-    allSendsSuccessed |= mqtt.sendTopicUpdate(LWT_TOPIC, LWT_CONNECTED);
-
     std::vector<OBDState *> states{};
     OBD.getStates([](const OBDState *state) {
         return state->isVisible() && state->isEnabled() && state->isSupported() && !(
@@ -717,6 +718,8 @@ void mqttSendData() {
     }
 
     if (mqtt.connected()) {
+        mqtt.sendTopicUpdate(LWT_TOPIC, LWT_CONNECTED);
+
         if (millis() > lastMQTTDiscoveryOutput) {
             allDiscoverySend = false;
         }
@@ -769,24 +772,26 @@ void mqttSendData() {
             }
         }
 
-        if (millis() > lastMQTTStaticDiagnosticOutput) {
-            if (sendStaticDiagnosticData()) {
-                lastMQTTStaticDiagnosticOutput = millis() + Settings.MQTT.getDiagnosticInterval() * 2 * 1000L;
-            } else {
-                return;
+        if (obdConnected) {
+            if (millis() > lastMQTTStaticDiagnosticOutput) {
+                if (sendStaticDiagnosticData()) {
+                    lastMQTTStaticDiagnosticOutput = millis() + Settings.MQTT.getDiagnosticInterval() * 2 * 1000L;
+                } else {
+                    return;
+                }
             }
-        }
 
-        if (millis() > lastMQTTDTCDiagnosticOutput) {
-            if (sendDTCDiagnosticData()) {
-                lastMQTTDTCDiagnosticOutput = millis() + Settings.MQTT.getDiagnosticInterval() * 1000L;
-            } else {
-                return;
+            if (millis() > lastMQTTDTCDiagnosticOutput) {
+                if (sendDTCDiagnosticData()) {
+                    lastMQTTDTCDiagnosticOutput = millis() + Settings.MQTT.getDiagnosticInterval() * 1000L;
+                } else {
+                    return;
+                }
             }
-        }
 
-        if (sendOBDData()) {
-            lastMQTTOutput = millis() + Settings.MQTT.getDataInterval() * 1000L;
+            if (sendOBDData()) {
+                lastMQTTOutput = millis() + Settings.MQTT.getDataInterval() * 1000L;
+            }
         }
     } else {
         delay(500);
@@ -862,7 +867,7 @@ void mqttSendData() {
                     float gsm_longitude = 0;
                     float gsm_accuracy = 0;
 
-                    if (allReadSuccessed |= gsm.readGSMLocation(gsm_latitude, gsm_longitude, gsm_accuracy)) {
+                    if ((allReadSuccessed |= gsm.readGSMLocation(gsm_latitude, gsm_longitude, gsm_accuracy))) {
                         gsmLatitude = gsm_latitude;
                         gsmLongitude = gsm_longitude;
                         gsmAccuracy = gsm_accuracy;
@@ -911,6 +916,42 @@ void mqttSendData() {
     }
 }
 
+String buildIdentifier(const char *devMac) {
+    String mID = "";
+    if (static_cast<MQTTSettings::MQTTIdentifierType>(Settings.MQTT.getIdType()) ==
+        MQTTSettings::MQTTIdentifierType::CUSTOM && Settings.MQTT.getIdSuffix().length() > 0) {
+        mID = Settings.MQTT.getIdSuffix().c_str();
+    } else if (devMac != nullptr && strlen(devMac) > 0) {
+        mID = devMac;
+        if (static_cast<MQTTSettings::MQTTIdentifierType>(Settings.MQTT.getIdType()) ==
+            MQTTSettings::MQTTIdentifierType::MAC_IMEI) {
+            mID += "-";
+            mID += gsm.modem.getIMEI().substring(gsm.modem.getIMEI().length() - 4).c_str();
+        }
+    }
+    return mID;
+}
+
+void startOutputTask(const char *id) {
+    if (!Settings.MQTT.getHostname().isEmpty()) {
+        mqtt.setClient(gsm.getClient(Settings.MQTT.getSecure()));
+        mqtt.setIdentifier(id);
+
+        xTaskCreatePinnedToCore(outputTask, "OutputTask", 9216, nullptr, 10, &outputTaskHdl, 0);
+    }
+}
+
+void startReadTask() {
+#ifdef USE_BLE
+    OBD.onDevicesDiscovered(onBLEDevicesDiscovered);
+#else
+    OBD.onDevicesDiscovered(onBTDevicesDiscovered);
+#endif
+    OBD.connect();
+
+    xTaskCreatePinnedToCore(readStatesTask, "ReadStatesTask", 9216, nullptr, 1, &stateTaskHdl, 1);
+}
+
 void setup() {
     startTime = millis();
 
@@ -942,32 +983,16 @@ void setup() {
     OBD.onConnectError(onOBDConnectError);
     OBD.begin(Settings.OBD2.getName(OBD_ADP_NAME), Settings.OBD2.getMAC(), Settings.OBD2.getProtocol(),
               Settings.OBD2.getCheckPIDSupport(), Settings.OBD2.getDebug(), Settings.OBD2.getSpecifyNumResponses());
-#ifdef USE_BLE
-    OBD.onDevicesDiscovered(onBLEDevicesDiscovered);
-#else
-    OBD.onDevicesDiscovered(onBTDevicesDiscovered);
-#endif
-    OBD.connect();
 
-    if (!Settings.MQTT.getHostname().isEmpty()) {
-        mqtt.setClient(gsm.getClient(Settings.MQTT.getSecure()));
-        if (static_cast<MQTTSettings::MQTTIdentifierType>(Settings.MQTT.getIdType()) ==
-            MQTTSettings::MQTTIdentifierType::MAC_IMEI) {
-            char id[33] = "\0";
-            sprintf(id, "%s-%s", OBD.getConnectedBTAddress().c_str(),
-                    gsm.modem.getIMEI().substring(gsm.modem.getIMEI().length() - 4).c_str());
-            mqtt.setIdentifier(id);
-        } else if (static_cast<MQTTSettings::MQTTIdentifierType>(Settings.MQTT.getIdType()) ==
-                   MQTTSettings::MQTTIdentifierType::CUSTOM && Settings.MQTT.getIdSuffix().length() > 0) {
-            mqtt.setIdentifier(Settings.MQTT.getIdSuffix().c_str());
-        } else {
-            mqtt.setIdentifier(OBD.getConnectedBTAddress());
-        }
-
-        xTaskCreatePinnedToCore(outputTask, "OutputTask", 9216, nullptr, 10, &outputTaskHdl, 0);
+    String mID = buildIdentifier(Settings.OBD2.getMAC().c_str());
+    if (!mID.isEmpty()) {
+        startOutputTask(mID.c_str());
+        startReadTask();
+    } else {
+        startReadTask();
+        mID = buildIdentifier(OBD.getConnectedBTAddress().c_str());
+        startOutputTask(mID.c_str());
     }
-
-    xTaskCreatePinnedToCore(readStatesTask, "ReadStatesTask", 9216, nullptr, 1, &stateTaskHdl, 1);
 }
 
 void loop() {
