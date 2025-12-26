@@ -1,3 +1,10 @@
+# [0.39.0](https://github.com/adlerre/obd2-mqtt/compare/v0.38.0...v0.39.0) (2025-12-26)
+
+
+### Features
+
+* make it possible to send data before obd connection ([#107](https://github.com/adlerre/obd2-mqtt/issues/107)) ([c72f6f4](https://github.com/adlerre/obd2-mqtt/commit/c72f6f4c78e8f4e79f364eb0069cc62f413d228c))
+
 # [0.38.0](https://github.com/adlerre/obd2-mqtt/compare/v0.37.0...v0.38.0) (2025-12-24)
 
 
