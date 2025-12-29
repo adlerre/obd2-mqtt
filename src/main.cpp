@@ -574,6 +574,8 @@ bool sendOBDData() {
 
     consoleSendHeader("OBD");
 
+    allSendsSuccessed |= mqtt.sendTopicUpdate(LWT_TOPIC, LWT_CONNECTED);
+
     std::vector<OBDState *> states{};
     OBD.getStates([](const OBDState *state) {
         return state->isVisible() && state->isEnabled() && state->isSupported() && !(
@@ -712,21 +714,23 @@ bool sendLocationData() {
     return allSendsSuccessed;
 }
 
+unsigned long calcTimestamp(const unsigned int interval) {
+    return millis() + interval * 1000L;
+}
+
 void mqttSendData() {
     if (millis() < lastMQTTOutput) {
         return;
     }
 
     if (mqtt.connected()) {
-        mqtt.sendTopicUpdate(LWT_TOPIC, LWT_CONNECTED);
-
         if (millis() > lastMQTTDiscoveryOutput) {
             allDiscoverySend = false;
         }
 
         if (!allDiscoverySend) {
             if ((allDiscoverySend = sendDiscoveryData())) {
-                lastMQTTDiscoveryOutput = millis() + Settings.MQTT.getDiscoveryInterval() * 1000L;
+                lastMQTTDiscoveryOutput = calcTimestamp(Settings.MQTT.getDiscoveryInterval());
             } else {
                 return;
             }
@@ -738,7 +742,7 @@ void mqttSendData() {
 
         if (!allDiagnosticDiscoverySend) {
             if ((allDiagnosticDiscoverySend = sendDiagnosticDiscoveryData())) {
-                lastMQTTDiagnosticDiscoveryOutput = millis() + Settings.MQTT.getDiscoveryInterval() * 1000L;
+                lastMQTTDiagnosticDiscoveryOutput = calcTimestamp(Settings.MQTT.getDiscoveryInterval());
             } else {
                 return;
             }
@@ -750,7 +754,7 @@ void mqttSendData() {
 
         if (!allStaticDiagnosticDiscoverySend) {
             if ((allStaticDiagnosticDiscoverySend = sendStaticDiagnosticDiscoveryData())) {
-                lastMQTTStaticDiagnosticDiscoveryOutput = millis() + Settings.MQTT.getDiscoveryInterval() * 1000L;
+                lastMQTTStaticDiagnosticDiscoveryOutput = calcTimestamp(Settings.MQTT.getDiscoveryInterval());
             } else {
                 return;
             }
@@ -758,7 +762,7 @@ void mqttSendData() {
 
         if (millis() > lastMQTTLocationOutput) {
             if (sendLocationData()) {
-                lastMQTTLocationOutput = millis() + Settings.MQTT.getLocationInterval() * 1000L;
+                lastMQTTLocationOutput = calcTimestamp(Settings.MQTT.getLocationInterval());
             } else {
                 return;
             }
@@ -766,7 +770,7 @@ void mqttSendData() {
 
         if (millis() > lastMQTTDiagnosticOutput) {
             if (sendDiagnosticData()) {
-                lastMQTTDiagnosticOutput = millis() + Settings.MQTT.getDiagnosticInterval() * 1000L;
+                lastMQTTDiagnosticOutput = calcTimestamp(Settings.MQTT.getDiagnosticInterval());
             } else {
                 return;
             }
@@ -775,7 +779,7 @@ void mqttSendData() {
         if (obdConnected) {
             if (millis() > lastMQTTStaticDiagnosticOutput) {
                 if (sendStaticDiagnosticData()) {
-                    lastMQTTStaticDiagnosticOutput = millis() + Settings.MQTT.getDiagnosticInterval() * 2 * 1000L;
+                    lastMQTTStaticDiagnosticOutput = calcTimestamp(Settings.MQTT.getDiagnosticInterval() * 2);
                 } else {
                     return;
                 }
@@ -783,15 +787,17 @@ void mqttSendData() {
 
             if (millis() > lastMQTTDTCDiagnosticOutput) {
                 if (sendDTCDiagnosticData()) {
-                    lastMQTTDTCDiagnosticOutput = millis() + Settings.MQTT.getDiagnosticInterval() * 1000L;
+                    lastMQTTDTCDiagnosticOutput = calcTimestamp(Settings.MQTT.getDiagnosticInterval());
                 } else {
                     return;
                 }
             }
 
             if (sendOBDData()) {
-                lastMQTTOutput = millis() + Settings.MQTT.getDataInterval() * 1000L;
+                lastMQTTOutput = calcTimestamp(Settings.MQTT.getDataInterval());
             }
+        } else if (mqtt.sendTopicUpdate(LWT_TOPIC, LWT_CONNECTED)) {
+            lastMQTTOutput = calcTimestamp(Settings.MQTT.getDataInterval() * 2);
         }
     } else {
         delay(500);
