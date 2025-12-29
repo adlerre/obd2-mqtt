@@ -1,3 +1,10 @@
+## [0.39.1](https://github.com/adlerre/obd2-mqtt/compare/v0.39.0...v0.39.1) (2025-12-29)
+
+
+### Bug Fixes
+
+* fix sending of LWT topic ([#109](https://github.com/adlerre/obd2-mqtt/issues/109)) ([6ab6b8f](https://github.com/adlerre/obd2-mqtt/commit/6ab6b8f16cbe1fa39027642362a1afa88a705721))
+
 # [0.39.0](https://github.com/adlerre/obd2-mqtt/compare/v0.38.0...v0.39.0) (2025-12-26)
 
 
