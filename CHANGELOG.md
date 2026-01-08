@@ -1,3 +1,17 @@
+# [0.40.0](https://github.com/adlerre/obd2-mqtt/compare/v0.39.1...v0.40.0) (2026-01-08)
+
+
+### Bug Fixes
+
+* change back and increase ([#114](https://github.com/adlerre/obd2-mqtt/issues/114)) ([97e5a84](https://github.com/adlerre/obd2-mqtt/commit/97e5a848b45b3bcbee4d6ed50c3a376efd558412))
+* rework send of connected topic, depend on mqtt keep alive ([#115](https://github.com/adlerre/obd2-mqtt/issues/115)) ([a43318f](https://github.com/adlerre/obd2-mqtt/commit/a43318f12370372a9624ed2991374bf26a284580))
+* use diagnostic interval instead of data one ([#113](https://github.com/adlerre/obd2-mqtt/issues/113)) ([7348619](https://github.com/adlerre/obd2-mqtt/commit/73486193de87fdc725f939aed06bfe9f56e5eec7))
+
+
+### Features
+
+* migrate to Angular 21 ([#112](https://github.com/adlerre/obd2-mqtt/issues/112)) ([2e46cb0](https://github.com/adlerre/obd2-mqtt/commit/2e46cb0fa1345075ee0780053542fb6a3556c54f))
+
 ## [0.39.1](https://github.com/adlerre/obd2-mqtt/compare/v0.39.0...v0.39.1) (2025-12-29)
 
 
