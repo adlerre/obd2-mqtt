@@ -15,15 +15,19 @@
  *  59 Temple Place - Suite 330, Boston, MA  02111-1307 USA
  */
 
-import { enableProdMode } from "@angular/core";
-import { platformBrowserDynamic } from "@angular/platform-browser-dynamic";
+import { enableProdMode, provideZoneChangeDetection } from "@angular/core";
 
 import { AppModule } from "./app/app.module";
 import { environment } from "./environments/environment";
+import { platformBrowser } from "@angular/platform-browser";
 
 if (environment.production) {
     enableProdMode();
 }
 
-platformBrowserDynamic().bootstrapModule(AppModule)
-    .catch(err => console.error(err));
+platformBrowser().bootstrapModule(
+    AppModule,
+    {
+        applicationProviders: [provideZoneChangeDetection()]
+    }
+).catch(err => console.error(err));

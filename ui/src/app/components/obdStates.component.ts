@@ -22,6 +22,7 @@ import {
     FormArray,
     FormControl,
     FormGroup,
+    ReactiveFormsModule,
     ValidationErrors,
     ValidatorFn,
     Validators
