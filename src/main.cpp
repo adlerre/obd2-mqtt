@@ -797,7 +797,8 @@ void mqttSendData() {
                 lastMQTTOutput = calcTimestamp(Settings.MQTT.getDataInterval());
             }
         } else if (mqtt.sendTopicUpdate(LWT_TOPIC, LWT_CONNECTED)) {
-            lastMQTTOutput = calcTimestamp(Settings.MQTT.getDataInterval() * 10);
+            const uint iv = Settings.MQTT.getDataInterval() * 5;
+            lastMQTTOutput = calcTimestamp(iv < MQTT_KEEPALIVE ? iv : MQTT_KEEPALIVE - 1);
         }
     } else {
         delay(500);
