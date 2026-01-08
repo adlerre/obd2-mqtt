@@ -38,7 +38,7 @@
                             <div class="col-sm-10">
                                 <select class="form-control form-select" id="type-{{ i }}" formControlName="type"
                                         (change)="onTypeChange($event, i)"
-                                        [ngClass]="{'is-invalid':state.controls.type.errors}">
+                                        [class]="{'is-invalid':state.controls.type.errors}">
                                     @for (type of getTypes(); track type.key) {
                                         <option [value]="type.value">{{ type.key }}</option>
                                     }
@@ -50,7 +50,7 @@
                             <div class="col-sm-10">
                                 <select class="form-control form-select" id="valueType-{{ i }}"
                                         formControlName="valueType"
-                                        [ngClass]="{'is-invalid':state.controls.valueType.errors}">
+                                        [class]="{'is-invalid':state.controls.valueType.errors}">
                                     @for (type of getValueTypes(); track type.key) {
                                         <option [value]="type.value">{{ type.key }}</option>
                                     }
@@ -88,7 +88,7 @@
                                        autocorrect="off"
                                        placeholder="Interval"
                                        class="form-control"
-                                       [ngClass]="{'is-invalid': state.controls.interval.errors}"
+                                       [class]="{'is-invalid': state.controls.interval.errors}"
                                 >
                             </div>
                         </div>
@@ -99,7 +99,7 @@
                                        autocorrect="off"
                                        placeholder="Name"
                                        class="form-control"
-                                       [ngClass]="{'is-invalid': state.controls.name.errors}"
+                                       [class]="{'is-invalid': state.controls.name.errors}"
                                 >
                             </div>
                         </div>
@@ -111,7 +111,7 @@
                                        autocorrect="off"
                                        placeholder="Description"
                                        class="form-control"
-                                       [ngClass]="{'is-invalid': state.controls.description.errors}"
+                                       [class]="{'is-invalid': state.controls.description.errors}"
                                 >
                             </div>
                         </div>
@@ -122,7 +122,7 @@
                                        autocorrect="off"
                                        placeholder="Icon"
                                        class="form-control"
-                                       [ngClass]="{'is-invalid': state.controls.icon.errors}"
+                                       [class]="{'is-invalid': state.controls.icon.errors}"
                                 >
                             </div>
                         </div>
@@ -132,7 +132,7 @@
                             <div class="col-sm-5 pe-md-1">
                                 <select class="form-control form-select" id="deviceClass-{{ i }}"
                                         formControlName="deviceClass"
-                                        [ngClass]="{'is-invalid':state.controls.deviceClass.errors}">
+                                        [class]="{'is-invalid':state.controls.deviceClass.errors}">
                                     <option value="">none</option>
                                     @for (dc of getDeviceClasses(); track dc.name) {
                                         <option [value]="dc.name">{{ dc.description }}</option>
@@ -142,7 +142,7 @@
                             <div class="col-sm-5 ps-md-1">
                                 @if (getDeviceClassUnits(state.controls.deviceClass.value).length > 0) {
                                     <select class="form-control form-select" id="unit-{{ i }}" formControlName="unit"
-                                            [ngClass]="{'is-invalid':state.controls.unit.errors}">
+                                            [class]="{'is-invalid':state.controls.unit.errors}">
                                         <option value="">none</option>
                                         @for (
                                             unit of getDeviceClassUnits(state.controls.deviceClass.value); track unit) {
@@ -154,7 +154,7 @@
                                            autocorrect="off"
                                            placeholder="Unit"
                                            class="form-control"
-                                           [ngClass]="{'is-invalid': state.controls.unit.errors}"
+                                           [class]="{'is-invalid': state.controls.unit.errors}"
                                     >
                                 }
                             </div>
@@ -167,7 +167,7 @@
                                         <select class="form-control form-select" id="readFunc-{{ i }}"
                                                 formControlName="readFunc"
                                                 (change)="onReadFunctionChange($event, i)"
-                                                [ngClass]="{'is-invalid':state.controls.readFunc.errors}">
+                                                [class]="{'is-invalid':state.controls.readFunc.errors}">
                                             <option value="">none</option>
                                             @for (func of getReadFunctions(); track func.name) {
                                                 <option [value]="func.name">{{ func.description }}</option>
@@ -190,7 +190,7 @@
                                                        autocorrect="off"
                                                        placeholder="Service"
                                                        class="form-control"
-                                                       [ngClass]="{'is-invalid': state.controls.pid.controls.service.errors}"
+                                                       [class]="{'is-invalid': state.controls.pid.controls.service.errors}"
                                                 >
                                                 <span class="input-group-text" id="service-{{ i }}-format">DEC</span>
                                             </div>
@@ -206,7 +206,7 @@
                                                        autocorrect="off"
                                                        placeholder="PID"
                                                        class="form-control"
-                                                       [ngClass]="{'is-invalid': state.controls.pid.controls.pid.errors}"
+                                                       [class]="{'is-invalid': state.controls.pid.controls.pid.errors}"
                                                 >
                                                 <span class="input-group-text" id="pid-{{ i }}-format">DEC</span>
                                             </div>
@@ -222,7 +222,7 @@
                                                        autocorrect="off"
                                                        placeholder="Header"
                                                        class="form-control"
-                                                       [ngClass]="{'is-invalid': state.controls.pid.controls.header.errors}"
+                                                       [class]="{'is-invalid': state.controls.pid.controls.header.errors}"
                                                 >
                                                 <span class="input-group-text" id="header-{{ i }}-format">DEC</span>
                                             </div>
@@ -239,7 +239,7 @@
                                                    autocorrect="off"
                                                    placeholder="Number of Responses"
                                                    class="form-control"
-                                                   [ngClass]="{'is-invalid': state.controls.pid.controls.numResponses.errors}"
+                                                   [class]="{'is-invalid': state.controls.pid.controls.numResponses.errors}"
                                             >
                                         </div>
                                         <div class="col-sm-3 ps-md-1">
@@ -248,13 +248,13 @@
                                                    autocorrect="off"
                                                    placeholder="Number of expected Bytes"
                                                    class="form-control"
-                                                   [ngClass]="{'is-invalid': state.controls.pid.controls.numExpectedBytes.errors}"
+                                                   [class]="{'is-invalid': state.controls.pid.controls.numExpectedBytes.errors}"
                                             >
                                         </div>
                                         <div class="col-sm-4 ps-md-1">
                                             <select class="form-control form-select" id="type-{{ i }}"
                                                     formControlName="responseFormat"
-                                                    [ngClass]="{'is-invalid':state.controls.pid.controls.responseFormat.errors}">
+                                                    [class]="{'is-invalid':state.controls.pid.controls.responseFormat.errors}">
                                                 @for (type of getResponseFormat(); track type.key) {
                                                     <option [value]="type.value">{{ type.key }}</option>
                                                 }
@@ -270,7 +270,7 @@
                                                    autocorrect="off"
                                                    placeholder="Scale Factor"
                                                    class="form-control"
-                                                   [ngClass]="{'is-invalid': state.controls.pid.controls.scaleFactor.errors}"
+                                                   [class]="{'is-invalid': state.controls.pid.controls.scaleFactor.errors}"
                                             >
                                         </div>
                                         <div class="col-sm-5 ps-md-1">
@@ -279,7 +279,7 @@
                                                    autocorrect="off"
                                                    placeholder="Bias"
                                                    class="form-control"
-                                                   [ngClass]="{'is-invalid': state.controls.pid.controls.bias.errors}"
+                                                   [class]="{'is-invalid': state.controls.pid.controls.bias.errors}"
                                             >
                                         </div>
                                     </div>
@@ -294,7 +294,7 @@
                                               autocorrect="off"
                                               placeholder="Expression"
                                               class="form-control"
-                                              [ngClass]="{'is-invalid': state.controls.expr.errors}"
+                                              [class]="{'is-invalid': state.controls.expr.errors}"
                                     ></textarea>
                                     @if (state.controls.expr.errors?.invalidExpression) {
                                         @if (state.controls.expr.errors?.invalidVars !== null) {
@@ -333,7 +333,7 @@
                                     <select class="form-control form-select" id="formatFunc-{{ i }}"
                                             formControlName="func"
                                             (change)="onValueFormatFuncChange($event, i)"
-                                            [ngClass]="{'is-invalid':state.controls.value.controls.func.errors}">
+                                            [class]="{'is-invalid':state.controls.value.controls.func.errors}">
                                         <option value="">none</option>
                                         @for (func of getValueFormatFunctions(); track func.name) {
                                             <option [value]="func.name">{{ func.description }}</option>
@@ -350,7 +350,7 @@
                                            autocorrect="off"
                                            placeholder="Value Format"
                                            class="form-control"
-                                           [ngClass]="{'is-invalid': state.controls.value.controls.format.errors}"
+                                           [class]="{'is-invalid': state.controls.value.controls.format.errors}"
                                     >
                                 </div>
                                 <div class="col-sm-5 ps-md-1">
@@ -359,7 +359,7 @@
                                            autocorrect="off"
                                            placeholder="Format Expression"
                                            class="form-control"
-                                           [ngClass]="{'is-invalid': state.controls.value.controls.expr.errors}"
+                                           [class]="{'is-invalid': state.controls.value.controls.expr.errors}"
                                     >
                                     @if (state.controls.value.controls.expr.errors?.invalidExpression) {
                                         @if (state.controls.value.controls.expr.errors?.invalidVars !== null) {

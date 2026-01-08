@@ -17,7 +17,7 @@
 
 import { Component, inject, OnInit, ViewChild } from "@angular/core";
 import { ApiService } from "../services/api.service";
-import { FormControl, FormGroup, Validators } from "@angular/forms";
+import { FormControl, FormGroup, ReactiveFormsModule, Validators } from "@angular/forms";
 import {
     Configuration,
     dataIntervals,
@@ -32,7 +32,7 @@ import {
     Settings,
     stripEmptyProps
 } from "../definitions";
-import { NgbTypeahead, NgbTypeaheadSelectItemEvent } from "@ng-bootstrap/ng-bootstrap";
+import { NgbHighlight, NgbTypeahead, NgbTypeaheadSelectItemEvent } from "@ng-bootstrap/ng-bootstrap";
 import {
     catchError,
     debounceTime,
@@ -46,7 +46,7 @@ import {
     Subject
 } from "rxjs";
 import { ToastService } from "../services/toast.service";
-import { DomSanitizer } from "@angular/platform-browser";
+import { BrowserModule, DomSanitizer } from "@angular/platform-browser";
 
 @Component({
     selector: "ui-settings",
