@@ -84,7 +84,7 @@ void MQTT::addSubscription(const std::string &field, const std::string &topic) {
 }
 
 MQTT::MQTT() : client(nullptr), wsClient(nullptr), wsStreamClient(nullptr) {
-    mqtt.setKeepAlive(60);
+    mqtt.setKeepAlive(MQTT_KEEPALIVE);
     mqtt.setBufferSize(MQTT_MAX_PACKET_SIZE);
 }
 
