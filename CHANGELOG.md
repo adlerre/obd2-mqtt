@@ -1,3 +1,11 @@
+## [0.40.1](https://github.com/adlerre/obd2-mqtt/compare/v0.40.0...v0.40.1) (2026-01-28)
+
+
+### Bug Fixes
+
+* bump versions ([8982eb4](https://github.com/adlerre/obd2-mqtt/commit/8982eb4257be029c895b19262d7044925f1b6185))
+* bump versions ([7f55d2d](https://github.com/adlerre/obd2-mqtt/commit/7f55d2dd65a706974f68ca50458fddb9ec9c269f))
+
 # [0.40.0](https://github.com/adlerre/obd2-mqtt/compare/v0.39.1...v0.40.0) (2026-01-08)
 
 
