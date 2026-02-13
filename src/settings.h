@@ -126,6 +126,7 @@ public:
 
 class OBD2Settings {
     struct {
+        bool disable;
         char name[65];
         char mac[19];
         bool checkPIDSupport;
@@ -141,6 +142,10 @@ class OBD2Settings {
     friend class SettingsClass;
 
 public:
+    bool getDisable() const;
+
+    void setDisable(bool disable);
+
     String getName(const String &alternate = String()) const;
 
     void setName(const char *name);

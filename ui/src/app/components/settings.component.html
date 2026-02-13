@@ -145,6 +145,15 @@
         <fieldset [formGroup]="obd2">
             <legend>OBD2/ELM 327 Device</legend>
             <div class="row mb-2">
+                <div class="offset-sm-2 col-sm-10">
+                    <div class="form-check">
+                        <input type="checkbox" value="true" id="obd2Disabled" formControlName="disable"
+                               class="form-check-input">
+                        <label for="obd2Disabled" class="form-check-label">disable OBD connection</label>
+                    </div>
+                </div>
+            </div>
+            <div class="row mb-2">
                 <label for="obd2Name" class="col-sm-2 control-label">Name</label>
                 <div class="col-sm-10">
                     <input formControlName="name" type="text" id="obd2Name" autocapitalize="off" autocorrect="off"
@@ -222,7 +231,8 @@
                 <div class="row mb-2">
                     <label for="idSuffix" class="col-sm-2 control-label">Identifier Suffix</label>
                     <div class="col-sm-10">
-                        <input formControlName="idSuffix" type="text" id="idSuffix" autocapitalize="off" autocorrect="off"
+                        <input formControlName="idSuffix" type="text" id="idSuffix" autocapitalize="off"
+                               autocorrect="off"
                                placeholder="Identifier Suffix"
                                class="form-control"
                                [class]="{'is-invalid': mqtt.controls.idSuffix.errors}"

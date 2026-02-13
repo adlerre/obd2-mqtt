@@ -949,14 +949,16 @@ void startOutputTask(const char *id) {
 }
 
 void startReadTask() {
+    if (!Settings.OBD2.getDisable()) {
 #ifdef USE_BLE
-    OBD.onDevicesDiscovered(onBLEDevicesDiscovered);
+        OBD.onDevicesDiscovered(onBLEDevicesDiscovered);
 #else
-    OBD.onDevicesDiscovered(onBTDevicesDiscovered);
+        OBD.onDevicesDiscovered(onBTDevicesDiscovered);
 #endif
-    OBD.connect();
+        OBD.connect();
 
-    xTaskCreatePinnedToCore(readStatesTask, "ReadStatesTask", 9216, nullptr, 1, &stateTaskHdl, 1);
+        xTaskCreatePinnedToCore(readStatesTask, "ReadStatesTask", 9216, nullptr, 1, &stateTaskHdl, 1);
+    }
 }
 
 void setup() {
