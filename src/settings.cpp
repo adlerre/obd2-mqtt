@@ -204,6 +204,7 @@ void MobileSettings::setPassword(const char *password) {
 }
 
 void OBD2Settings::readJson(JsonDocument &doc) {
+    obd2.disable = doc["obd2"]["disable"] | false;
     strlcpy(obd2.name, doc["obd2"]["name"] | "", sizeof(obd2.name));
     strlcpy(obd2.mac, doc["obd2"]["mac"] | "", sizeof(obd2.mac));
     obd2.checkPIDSupport = doc["obd2"]["checkPIDSupport"] | false;
@@ -213,12 +214,21 @@ void OBD2Settings::readJson(JsonDocument &doc) {
 }
 
 void OBD2Settings::writeJson(JsonDocument &doc) {
+    doc["obd2"]["disable"] = obd2.disable;
     doc["obd2"]["name"] = obd2.name;
     doc["obd2"]["mac"] = obd2.mac;
     doc["obd2"]["checkPIDSupport"] = obd2.checkPIDSupport;
     doc["obd2"]["debug"] = obd2.debug;
     doc["obd2"]["specifyNumResponses"] = obd2.specifyNumResponses;
     doc["obd2"]["protocol"] = obd2.protocol;
+}
+
+bool OBD2Settings::getDisable() const {
+    return obd2.disable;
+}
+
+void OBD2Settings::setDisable(bool disable) {
+    obd2.disable = disable;
 }
 
 String OBD2Settings::getName(const String &alternate) const {

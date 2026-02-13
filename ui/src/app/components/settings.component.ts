@@ -132,6 +132,7 @@ export class SettingsComponent implements OnInit {
             password: new FormControl("", Validators.maxLength(32))
         });
         this.obd2 = new FormGroup({
+            disable: new FormControl<boolean>(false),
             name: new FormControl("", Validators.maxLength(64)),
             mac: new FormControl("", Validators.pattern(/^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$/)),
             checkPIDSupport: new FormControl<boolean>(false),
