@@ -1,3 +1,15 @@
+# [0.41.0](https://github.com/adlerre/obd2-mqtt/compare/v0.40.1...v0.41.0) (2026-02-16)
+
+
+### Bug Fixes
+
+* bump versions ([2d7c74b](https://github.com/adlerre/obd2-mqtt/commit/2d7c74bfc7dc22ba3698e162c481bfc92598375f))
+
+
+### Features
+
+* allow to disable OBD connection ([b89f751](https://github.com/adlerre/obd2-mqtt/commit/b89f751264818532d9d1da8dbd81a2afd7095f65))
+
 ## [0.40.1](https://github.com/adlerre/obd2-mqtt/compare/v0.40.0...v0.40.1) (2026-01-28)
 
 
