@@ -17,7 +17,7 @@
 
 #pragma once
 
-#if defined(WS_A7670E)
+#if defined(WS_A7670E) or defined(WS_A7670E_R2)
 #define MODEM_BAUDRATE                      (115200)
 #define MODEM_DTR_PIN                       (25)
 #define MODEM_TX_PIN                        (18)
@@ -36,7 +36,11 @@
 #define MODEM_RESET_LEVEL                   HIGH
 #define SerialAT                            Serial1
 
+#if defined(WS_A7670E)
 #define MODEM_GPS_ENABLE_GPIO               (-1)
+#else
+#define MODEM_GPS_ENABLE_GPIO               (127)
+#endif
 
 #ifndef TINY_GSM_MODEM_A7670
 #define TINY_GSM_MODEM_A7670
