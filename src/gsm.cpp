@@ -24,7 +24,7 @@
 #include "device_simA76xx.h"
 #elif defined(LILYGO_SIM7000G) or defined(LILYGO_SIM7070G)
 #include "device_sim7xxx.h"
-#elif defined(WS_A7670E)
+#elif defined(WS_A7670E) or defined(WS_A7670E_R2)
 #include "device_ws.h"
 #endif
 
@@ -258,7 +258,7 @@ void GSM::resetModem() {
     digitalWrite(MODEM_POWER_ON, LOW);
     delay(1000);
     digitalWrite(MODEM_POWER_ON, HIGH);
-#elif defined(LILYGO_T_A7670) or defined(LILYGO_T_CALL_A7670_V1_0) or defined(LILYGO_T_CALL_A7670_V1_1) or defined(LILYGO_T_A7608X) or defined(LILYGO_SIM7000G) or defined(LILYGO_SIM7070G)
+#elif defined(LILYGO_T_A7670) or defined(LILYGO_T_CALL_A7670_V1_0) or defined(LILYGO_T_CALL_A7670_V1_1) or defined(LILYGO_T_A7608X) or defined(LILYGO_SIM7000G) or defined(LILYGO_SIM7070G) or defined(WS_A7670E) or defined(WS_A7670E_R2)
 #ifdef BOARD_POWERON_PIN
     digitalWrite(BOARD_POWERON_PIN, LOW);
     delay(1000);
@@ -277,7 +277,7 @@ void GSM::resetModem() {
             digitalWrite(MODEM_PWRKEY, HIGH);
             delay(1000);
             digitalWrite(MODEM_PWRKEY, LOW);
-#elif defined(LILYGO_T_A7670) or defined(LILYGO_T_CALL_A7670_V1_0) or defined(LILYGO_T_CALL_A7670_V1_1) or defined(LILYGO_T_A7608X) or defined(LILYGO_SIM7000G) or defined(LILYGO_SIM7070G)
+#elif defined(LILYGO_T_A7670) or defined(LILYGO_T_CALL_A7670_V1_0) or defined(LILYGO_T_CALL_A7670_V1_1) or defined(LILYGO_T_A7608X) or defined(LILYGO_SIM7000G) or defined(LILYGO_SIM7070G) or defined(WS_A7670E) or defined(WS_A7670E_R2)
             digitalWrite(BOARD_PWRKEY_PIN, LOW);
             delay(100);
             digitalWrite(BOARD_PWRKEY_PIN, HIGH);
@@ -315,7 +315,7 @@ void GSM::connectToNetwork() {
     // Set GSM module baud rate and UART pins
     SerialAT.begin(115200, SERIAL_8N1, MODEM_RX, MODEM_TX);
 
-#elif defined(LILYGO_T_A7670) or defined(LILYGO_T_CALL_A7670_V1_0) or defined(LILYGO_T_CALL_A7670_V1_1) or defined(LILYGO_T_A7608X) or defined(LILYGO_SIM7000G) or defined(LILYGO_SIM7070G) or defined(WS_A7670E)
+#elif defined(LILYGO_T_A7670) or defined(LILYGO_T_CALL_A7670_V1_0) or defined(LILYGO_T_CALL_A7670_V1_1) or defined(LILYGO_T_A7608X) or defined(LILYGO_SIM7000G) or defined(LILYGO_SIM7070G) or defined(WS_A7670E) or defined(WS_A7670E_R2)
     // Turn on DC boost to power on the modem
 #ifdef BOARD_POWERON_PIN
     pinMode(BOARD_POWERON_PIN, OUTPUT);
