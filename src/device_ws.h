@@ -46,8 +46,6 @@
 #define TINY_GSM_MODEM_A7670
 #endif
 
-#undef TINY_GSM_MODEM_HAS_GPS
-
 #endif
 
 #endif //DEVICE_WS_H
