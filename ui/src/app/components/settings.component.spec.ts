@@ -40,8 +40,8 @@ export class MockApiService {
         return of(testSettings);
     }
 
-    hasBattery() {
-        return of({hasBattery: true})
+    canDeepSleep() {
+        return of({canDeepSleep: true})
     }
 
     updateSettings(settings: Settings) {

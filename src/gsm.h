@@ -208,6 +208,11 @@ public:
     bool readGPSLocation(float &gpsLatitude, float &gpsLongitude, float &gpsAccuracy);
 
     /**
+     * Init battery.
+     */
+    static void initBattery();
+
+    /**
      * Returns if battery is supported.
      *
      * @return <code>true</code> if supported
@@ -222,11 +227,32 @@ public:
     static bool isBatteryUsed();
 
     /**
+     * Returns the battery type.
+     *
+     * @return -1 N/A, 0 voltage, 1 level
+     */
+    static int getBatteryType();
+
+    /**
      * Reads the battery voltage.
      *
      * @return the battery voltage in mV
      */
     static unsigned int getBatteryVoltage();
+
+    /**
+     * Reads the battery level.
+     *
+     * @return the battery level in %
+     */
+    static float getBatteryLevel();
+
+    /**
+     * Returns if deep sleep is supported/implemented for this board.
+     *
+     * @return <code>true</code> if can
+     */
+    static bool canDeepSleep();
 
     /**
      * Enter deep sleep.

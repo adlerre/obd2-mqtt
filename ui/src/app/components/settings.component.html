@@ -33,7 +33,7 @@
         </div>
     </div>
     <form novalidate (ngSubmit)="onSubmit(form)" [formGroup]="form">
-        @if (hasBattery) {
+        @if (canDeepSleep) {
             <fieldset [formGroup]="general" class="mt-0">
                 <legend>General</legend>
                 <div class="row mb-2">
@@ -60,7 +60,7 @@
                 </div>
             </fieldset>
         }
-        <fieldset [formGroup]="wifi" [class]="{'mt-0': !hasBattery}">
+        <fieldset [formGroup]="wifi" [class]="{'mt-0': !canDeepSleep}">
             <legend>WiFi Access Point</legend>
             <div class="row mb-2">
                 <label for="ssid" class="col-sm-2 control-label">SSID</label>

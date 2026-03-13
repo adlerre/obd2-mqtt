@@ -52,6 +52,7 @@
 #define HA_T_IP_ADDR            "ipAddress"
 #define HA_T_SQ                 "signalQuality"
 #define HA_T_BAT_VOL            "internalBatteryVoltage"
+#define HA_T_BAT_LVL            "internalBatteryLevel"
 #define HA_T_GSM_LOC            "gsmLocation"
 #define HA_T_GPS_LOC            "gpsLocation"
 #define HAT_T_DTC               "dtc"
@@ -296,11 +297,11 @@ void startHttpServer() {
         }
     );
 
-    server.on("/api/hasBattery", HTTP_GET, [](AsyncWebServerRequest *request) {
+    server.on("/api/canDeepSleep", HTTP_GET, [](AsyncWebServerRequest *request) {
         std::string payload;
         JsonDocument doc;
 
-        doc["hasBattery"] = GSM::hasBattery();
+        doc["canDeepSleep"] = GSM::canDeepSleep();
 
         serializeJson(doc, payload);
 
@@ -496,8 +497,13 @@ bool sendDiagnosticDiscoveryData() {
     }
 
     if (GSM::hasBattery()) {
-        allSendsSuccessed |= mqtt.sendTopicConfig(HA_T_BAT_VOL, "Internal Battery Voltage", "battery",
-                                                  "mV", "voltage", "", EC_DIAGNOSTIC);
+        if (GSM::getBatteryType() == 0) {
+            allSendsSuccessed |= mqtt.sendTopicConfig(HA_T_BAT_VOL, "Internal Battery Voltage", "battery",
+                                                      "mV", "voltage", "", EC_DIAGNOSTIC);
+        } else if (GSM::getBatteryType() == 1) {
+            allSendsSuccessed |= mqtt.sendTopicConfig(HA_T_BAT_LVL, "Internal Battery Level", "battery",
+                                                      "%", "battery", "", EC_DIAGNOSTIC);
+        }
     }
 
     consoleSendFooter(allSendsSuccessed, millis() - start);
@@ -618,8 +624,13 @@ bool sendDiagnosticData() {
     }
 
     if (GSM::hasBattery()) {
-        sprintf(tmp_char, "%d", GSM::getBatteryVoltage());
-        allSendsSuccessed |= mqtt.sendTopicUpdate(HA_T_BAT_VOL, std::string(tmp_char));
+        if (GSM::getBatteryType() == 0) {
+            sprintf(tmp_char, "%d", GSM::getBatteryVoltage());
+            allSendsSuccessed |= mqtt.sendTopicUpdate(HA_T_BAT_VOL, std::string(tmp_char));
+        } else if (GSM::getBatteryType() == 1) {
+            sprintf(tmp_char, "%d", static_cast<int>(GSM::getBatteryLevel()));
+            allSendsSuccessed |= mqtt.sendTopicUpdate(HA_T_BAT_LVL, std::string(tmp_char));
+        }
     }
 
     consoleSendFooter(allSendsSuccessed, millis() - start);
@@ -828,7 +839,7 @@ void mqttSendData() {
     unsigned long checkInterval = 0;
     for (;;) {
         if (!wifiAPInUse) {
-            if (GSM::hasBattery() && GSM::isBatteryUsed()) {
+            if (GSM::canDeepSleep() && GSM::hasBattery() && GSM::isBatteryUsed()) {
                 const unsigned int batVoltage = GSM::getBatteryVoltage();
                 if (batVoltage > MIN_VOLTAGE_LEVEL) {
                     const int sum = std::accumulate(batteryVoltages.begin(), batteryVoltages.end(), 0);
@@ -973,6 +984,9 @@ void setup() {
 
     // init the coprozessor
     GSM::ulpInit();
+
+    // init battery if needed
+    GSM::initBattery();
 
     Settings.readSettings(LittleFS);
     OBD.readStates(LittleFS);
