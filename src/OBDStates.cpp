@@ -112,15 +112,15 @@ OBDState *OBDStates::getStateByName(const char *name) {
 double OBDStates::getStateValue(const char *name) {
     auto *state = getStateByName(name);
     if (state != nullptr) {
-        if (state->valueType() == "int") {
+        if (state->valueType() == OBD_STATE_TYPE_INT) {
             auto *is = reinterpret_cast<OBDStateInt *>(state);
             return is->getValue();
         }
-        if (state->valueType() == "float") {
+        if (state->valueType() == OBD_STATE_TYPE_FLOAT) {
             auto *is = reinterpret_cast<OBDStateFloat *>(state);
             return is->getValue();
         }
-        if (state->valueType() == "bool") {
+        if (state->valueType() == OBD_STATE_TYPE_BOOL) {
             auto *is = reinterpret_cast<OBDStateBool *>(state);
             return is->getValue();
         }

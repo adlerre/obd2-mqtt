@@ -81,7 +81,7 @@ export class SettingsComponent implements OnInit {
 
     discoveredDevices: DiscoveredDevices | undefined;
 
-    hasBattery: boolean | undefined;
+    canDeepSleep: boolean | undefined;
 
     form: FormGroup;
 
@@ -179,7 +179,7 @@ export class SettingsComponent implements OnInit {
 
     ngOnInit(): void {
         this.$api.configuration().subscribe((configuration: Configuration) => this.configuration = configuration);
-        this.$api.hasBattery().subscribe(res => this.hasBattery = res.hasBattery);
+        this.$api.canDeepSleep().subscribe(res => this.canDeepSleep = res.canDeepSleep);
         this.$api.settings().subscribe(settings => this.form.patchValue(settings));
         this.$api.discoveredDevices()
             .pipe(catchError(() => of({} as DiscoveredDevices)))

@@ -70,8 +70,8 @@ export class ApiService {
         return this.$http.get<Array<OBDState>>("/api/states");
     }
 
-    hasBattery() {
-        return this.$http.get<{ "hasBattery": boolean }>("/api/hasBattery");
+    canDeepSleep() {
+        return this.$http.get<{ "canDeepSleep": boolean }>("/api/canDeepSleep");
     }
 
     updateStates(states: Array<OBDState>) {

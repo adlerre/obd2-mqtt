@@ -40,7 +40,7 @@ void HTTPServer::init(fs::FS &fs) {
         for (uint8_t i = 0; i < request->args(); i++) {
             message += " " + request->argName(i) + ": " + request->arg(i) + "\n";
         }
-        request->send(404, "text/plain", message);
+        request->send(404, MIME_TYPE_PLAIN, message);
     });
 
     server.on(
@@ -59,9 +59,9 @@ void HTTPServer::init(fs::FS &fs) {
 
     server.on("/api/ota/status", HTTP_GET, [](AsyncWebServerRequest *request) {
 #if OTA_ENABLED
-        request->send(200, "text/plain", "enabled");
+        request->send(200, MIME_TYPE_PLAIN, "enabled");
 #else
-        request->send(501, "text/plain", "disabled");
+        request->send(501, MIME_TYPE_PLAIN, "disabled");
 #endif
     });
 

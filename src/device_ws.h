@@ -17,7 +17,8 @@
 
 #pragma once
 
-#if defined(WS_A7670E) or defined(WS_A7670E_R2)
+#if defined(WS_A7670E)
+
 #define MODEM_BAUDRATE                      (115200)
 #define MODEM_DTR_PIN                       (25)
 #define MODEM_TX_PIN                        (18)
@@ -36,16 +37,44 @@
 #define MODEM_RESET_LEVEL                   HIGH
 #define SerialAT                            Serial1
 
-#if defined(WS_A7670E)
 #define MODEM_GPS_ENABLE_GPIO               (-1)
-#else
-#define MODEM_GPS_ENABLE_GPIO               (127)
-#endif
 
 #ifndef TINY_GSM_MODEM_A7670
 #define TINY_GSM_MODEM_A7670
 #endif
 
+#define MAX17048_I2C_ADDRESS                0x36
+#define MAX17048_I2C_SDA                    (3)
+#define MAX17048_I2C_SCL                    (2)
+
+#elif defined(WS_A7670E_R2)
+#define MODEM_BAUDRATE                      (115200)
+#define MODEM_DTR_PIN                       (25)
+#define MODEM_TX_PIN                        (18)
+#define MODEM_RX_PIN                        (17)
+// The modem boot pin needs to follow the startup sequence.
+#define BOARD_PWRKEY_PIN                    (4)
+#define BOARD_ADC_PIN                       (35)
+// The modem power switch must be set to HIGH for the modem to supply power.
+#define BOARD_POWERON_PIN                   (12)
+#define MODEM_RING_PIN                      (33)
+#define MODEM_RESET_PIN                     (5)
+#define BOARD_MISO_PIN                      (2)
+#define BOARD_MOSI_PIN                      (15)
+#define BOARD_SCK_PIN                       (14)
+#define BOARD_SD_CS_PIN                     (13)
+#define MODEM_RESET_LEVEL                   HIGH
+#define SerialAT                            Serial1
+
+#define MODEM_GPS_ENABLE_GPIO               (127)
+
+#ifndef TINY_GSM_MODEM_A7670
+#define TINY_GSM_MODEM_A7670
+#endif
+
+#define MAX17048_I2C_ADDRESS                0x36
+#define MAX17048_I2C_SDA                    (15)
+#define MAX17048_I2C_SCL                    (16)
 #endif
 
 #endif //DEVICE_WS_H

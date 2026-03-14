@@ -105,7 +105,7 @@ OBDClass::OBDClass() : OBDStates(&elm327), elm327() {
                     }
 
                     if (op.substr(0, 1) == "b" && op.length() > 1 && (
-                            state->valueType() == "int" || state->valueType() == "float")) {
+                            state->valueType() == OBD_STATE_TYPE_INT || state->valueType() == OBD_STATE_TYPE_FLOAT)) {
                         if (state->getPayload() != nullptr) {
                             size_t si = op.find(':');
                             int i = strtol(
@@ -130,15 +130,15 @@ OBDClass::OBDClass() : OBDStates(&elm327), elm327() {
                         }
                     }
 
-                    if (op == "ov" && state->valueType() == "int") {
+                    if (op == "ov" && state->valueType() == OBD_STATE_TYPE_INT) {
                         auto *is = reinterpret_cast<OBDStateInt *>(state);
                         return is->getOldValue();
                     }
-                    if (op == "ov" && state->valueType() == "float") {
+                    if (op == "ov" && state->valueType() == OBD_STATE_TYPE_FLOAT) {
                         auto *is = reinterpret_cast<OBDStateFloat *>(state);
                         return is->getOldValue();
                     }
-                    if (op == "ov" && state->valueType() == "bool") {
+                    if (op == "ov" && state->valueType() == OBD_STATE_TYPE_BOOL) {
                         auto *is = reinterpret_cast<OBDStateBool *>(state);
                         return is->getOldValue();
                     }
@@ -232,7 +232,7 @@ void OBDClass::readJSON(JsonDocument &doc) {
     clearStates();
     const JsonArray array = doc.as<JsonArray>();
     for (JsonDocument stateObj: array) {
-        if (stateObj["valueType"] == "bool") {
+        if (stateObj["valueType"] == OBD_STATE_TYPE_BOOL) {
             auto *state = new OBDStateBool(
                 stateObj["type"].as<obd::OBDStateType>(),
                 stateObj["name"].as<std::string>().c_str(),
@@ -245,7 +245,7 @@ void OBDClass::readJSON(JsonDocument &doc) {
             );
             fromJSON(state, stateObj);
             addState(state);
-        } else if (stateObj["valueType"] == "float") {
+        } else if (stateObj["valueType"] == OBD_STATE_TYPE_FLOAT) {
             auto *state = new OBDStateFloat(
                 stateObj["type"].as<obd::OBDStateType>(),
                 stateObj["name"].as<std::string>().c_str(),
@@ -258,7 +258,7 @@ void OBDClass::readJSON(JsonDocument &doc) {
             );
             fromJSON(state, stateObj);
             addState(state);
-        } else if (stateObj["valueType"] == "int") {
+        } else if (stateObj["valueType"] == OBD_STATE_TYPE_INT) {
             auto *state = new OBDStateInt(
                 stateObj["type"].as<obd::OBDStateType>(),
                 stateObj["name"].as<std::string>().c_str(),
@@ -307,7 +307,7 @@ bool OBDClass::writeStates(FS &fs) {
 
 template<typename T>
 T *OBDClass::setReadFuncByName(const char *funcName, T *state) {
-    if (strcmp(funcName, "batteryVoltage") == 0 && strcmp(state->valueType(), "float") == 0) {
+    if (strcmp(funcName, "batteryVoltage") == 0 && strcmp(state->valueType(), OBD_STATE_TYPE_FLOAT) == 0) {
         state
                 ->withReadFuncName("batteryVoltage")
                 ->withReadFunc([&]() {
@@ -320,7 +320,7 @@ T *OBDClass::setReadFuncByName(const char *funcName, T *state) {
 
 template<typename T>
 T *OBDClass::setFormatFuncByName(const char *funcName, T *state) {
-    if (strcmp(state->valueType(), "int") == 0) {
+    if (strcmp(state->valueType(), OBD_STATE_TYPE_INT) == 0) {
         auto *is = reinterpret_cast<OBDStateInt *>(state);
         if (strcmp(funcName, "toBitStr") == 0) {
             is
@@ -345,7 +345,7 @@ T *OBDClass::setFormatFuncByName(const char *funcName, T *state) {
                         return strdup(is->getPayload());
                     });
         }
-    } else if (strcmp(state->valueType(), "float") == 0) {
+    } else if (strcmp(state->valueType(), OBD_STATE_TYPE_FLOAT) == 0) {
         auto *is = reinterpret_cast<OBDStateFloat *>(state);
         if (strcmp(funcName, "toMiles") == 0) {
             is
@@ -704,15 +704,15 @@ void OBDClass::loop() {
 #ifdef DEBUG_OBDSTATE
         OBDState *state = nextState();
         if (state != nullptr && state->getType() == obd::READ && state->getLastUpdate() != -1 && state->isSupported()) {
-            if (state->valueType() == "int") {
+            if (state->valueType() == OBD_STATE_TYPE_INT) {
                 auto s = reinterpret_cast<TypedOBDState<int> *>(state);
                 Serial.printf("%s : %d -> %d\n", s->getName(), s->getOldValue(), s->getValue());
             }
-            if (state->valueType() == "float") {
+            if (state->valueType() == OBD_STATE_TYPE_FLOAT) {
                 auto s = reinterpret_cast<TypedOBDState<float> *>(state);
                 Serial.printf("%s : %4.2f -> %4.2f\n", s->getName(), s->getOldValue(), s->getValue());
             }
-            if (state->valueType() == "bool") {
+            if (state->valueType() == OBD_STATE_TYPE_BOOL) {
                 auto s = reinterpret_cast<TypedOBDState<bool> *>(state);
                 Serial.printf("%s %d -> %d\n", s->getName(), s->getOldValue(), s->getValue());
             }

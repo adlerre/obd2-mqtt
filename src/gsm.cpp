@@ -53,6 +53,10 @@ TinyGPSPlus gps;
 #endif
 #endif
 
+#ifdef MAX17048_I2C_ADDRESS
+#include <Wire.h>
+#endif
+
 #include "soc/adc_periph.h"
 
 int GSM::convertSQToRSSI(int signalQuality) {
@@ -362,8 +366,7 @@ restart:
     // To skip it, call init() instead of restart()
     Serial.println("Initializing modem...");
     if (!modem.init()) {
-        Serial.println("Failed to restart modem, delaying 10s and retrying");
-        Serial.println("SIM Card insert?");
+        Serial.println("...fail");
         delay(10000L);
         ESP.restart();
         return;
@@ -512,34 +515,34 @@ bool GSM::isNetworkConnected() {
     return modem.isNetworkConnected();
 }
 
-bool GSM::updateLocaleTime() {
-    int GSMyear = 0;
-    int GSMmonth = 0;
-    int GSMdate = 0;
-    int GSMhours = 0;
-    int GSMminutes = 0;
-    int GSMseconds = 0;
-    float GSMtimezone = 0;
-    time_t GSMTime = 0;
-
-    if (modem.getNetworkTime(&GSMyear, &GSMmonth, &GSMdate, &GSMhours, &GSMminutes, &GSMseconds, &GSMtimezone)) {
-        tm s = {};
-        s.tm_sec = (GSMseconds);
-        s.tm_min = (GSMminutes);
-        s.tm_hour = (GSMhours);
-        s.tm_mday = (GSMdate);
-        s.tm_mon = (GSMmonth - 1);
-        s.tm_year = (GSMyear - 1900);
-        GSMTime = mktime(&s);
-
-        timeval tv = {};
-        tv.tv_sec = GSMTime;
-        settimeofday(&tv, nullptr);
-        Serial.printf("Time: %s\n", ctime(&GSMTime));
-        return true;
-    }
-    return false;
-}
+// bool GSM::updateLocaleTime() {
+//     int GSMyear = 0;
+//     int GSMmonth = 0;
+//     int GSMdate = 0;
+//     int GSMhours = 0;
+//     int GSMminutes = 0;
+//     int GSMseconds = 0;
+//     float GSMtimezone = 0;
+//     time_t GSMTime = 0;
+//
+//     if (modem.getNetworkTime(&GSMyear, &GSMmonth, &GSMdate, &GSMhours, &GSMminutes, &GSMseconds, &GSMtimezone)) {
+//         tm s = {};
+//         s.tm_sec = (GSMseconds);
+//         s.tm_min = (GSMminutes);
+//         s.tm_hour = (GSMhours);
+//         s.tm_mday = (GSMdate);
+//         s.tm_mon = (GSMmonth - 1);
+//         s.tm_year = (GSMyear - 1900);
+//         GSMTime = mktime(&s);
+//
+//         timeval tv = {};
+//         tv.tv_sec = GSMTime;
+//         settimeofday(&tv, nullptr);
+//         Serial.printf("Time: %s\n", ctime(&GSMTime));
+//         return true;
+//     }
+//     return false;
+// }
 
 short int GSM::getSignalQuality() {
     if (isUseGPRS()) {
@@ -566,7 +569,7 @@ bool GSM::hasGPSLocation() {
 
 void GSM::enableGPS() {
 #if defined TINY_GSM_MODEM_HAS_GPS
-#if !defined(TINY_GSM_MODEM_SARAR5)  // not needed for this module
+#if !defined(TINY_GSM_MODEM_SARAR5) // not needed for this module
     Serial.print("Enabling GPS/GNSS/GLONASS...");
     while (!modem.enableGPS(MODEM_GPS_ENABLE_GPIO)) {
         Serial.print(".");
@@ -653,8 +656,14 @@ bool GSM::readGPSLocation(float &gpsLatitude, float &gpsLongitude, float &gpsAcc
     return true;
 }
 
+void GSM::initBattery() {
+#if defined(MAX17048_I2C_ADDRESS)
+    Wire.begin(MAX17048_I2C_SDA, MAX17048_I2C_SCL);
+#endif
+}
+
 bool GSM::hasBattery() {
-#ifdef BOARD_BAT_ADC_PIN
+#if defined(BOARD_BAT_ADC_PIN) or defined(MAX17048_I2C_ADDRESS)
     return true;
 #else
     return false;
@@ -670,11 +679,45 @@ bool GSM::isBatteryUsed() {
 #endif
 }
 
+int GSM::getBatteryType() {
+#if defined(BOARD_BAT_ADC_PIN)
+    return 0;
+#elif defined(MAX17048_I2C_ADDRESS)
+    return 1;
+#else
+    return -1;
+#endif
+}
+
 unsigned int GSM::getBatteryVoltage() {
 #ifdef BOARD_BAT_ADC_PIN
     return analogReadMilliVolts(BOARD_BAT_ADC_PIN) * 2;
 #else
     return 0;
+#endif
+}
+
+float GSM::getBatteryLevel() {
+#if defined(MAX17048_I2C_ADDRESS)
+    Wire.beginTransmission(MAX17048_I2C_ADDRESS);
+    Wire.write(0x02);
+    Wire.endTransmission();
+
+    Wire.requestFrom(MAX17048_I2C_ADDRESS, 2);
+    uint16_t soc = (Wire.read() << 8) | Wire.read();
+    if (soc > 65535) soc = 65535;
+
+    return static_cast<float>(soc) / 65535.0 * 100.0;
+#else
+    return 0;
+#endif
+}
+
+bool GSM::canDeepSleep() {
+#if defined(BOARD_BAT_ADC_PIN)
+    return true;
+#else
+    return false;
 #endif
 }
 

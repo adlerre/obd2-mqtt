@@ -21,6 +21,10 @@
 #include <map>
 #include <ArduinoJson.h>
 
+#define OBD_STATE_TYPE_INT      "int"
+#define OBD_STATE_TYPE_FLOAT    "float"
+#define OBD_STATE_TYPE_BOOL     "bool"
+
 namespace obd {
     typedef enum {
         READ,
