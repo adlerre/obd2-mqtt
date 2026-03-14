@@ -642,7 +642,7 @@ OBDStateBool::OBDStateBool(obd::OBDStateType type, const char *name, const char 
 }
 
 const char *OBDStateBool::valueType() const {
-    return "bool";
+    return OBD_STATE_TYPE_BOOL;
 }
 
 OBDStateBool *OBDStateBool::withPIDSettings(const uint8_t &service, const uint16_t &pid, const uint32_t &header,
@@ -727,7 +727,7 @@ OBDStateFloat::OBDStateFloat(obd::OBDStateType type, const char *name, const cha
 }
 
 const char *OBDStateFloat::valueType() const {
-    return "float";
+    return OBD_STATE_TYPE_FLOAT;
 }
 
 OBDStateFloat *OBDStateFloat::withPIDSettings(const uint8_t &service, const uint16_t &pid, const uint32_t &header,
@@ -813,7 +813,7 @@ OBDStateInt::OBDStateInt(obd::OBDStateType type, const char *name, const char *d
 }
 
 const char *OBDStateInt::valueType() const {
-    return "int";
+    return OBD_STATE_TYPE_INT;
 }
 
 OBDStateInt *OBDStateInt::withPIDSettings(const uint8_t &service, const uint16_t &pid, const uint32_t &header,

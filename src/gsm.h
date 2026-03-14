@@ -154,7 +154,7 @@ public:
      */
     bool isNetworkConnected();
 
-    bool updateLocaleTime();
+    // bool updateLocaleTime();
 
     /**
      * Returns the signal quality.

@@ -42,9 +42,6 @@
 
 #define DISCOVERED_DEVICES_FILE "/discovered_devices.json"
 
-#define MIME_TYPE_JSON          "application/json"
-#define MIME_TYPE_PLAIN         "text/plain"
-
 #define HA_T_CPUTEMP            "cpuTemp"
 #define HA_T_FREEMEM            "freeMem"
 #define HA_T_UPTIME             "uptime"
@@ -449,7 +446,7 @@ bool sendDiscoveryData() {
                                                       state->getUnit(), state->getDeviceClass(),
                                                       state->isMeasurement() ? SC_MEASUREMENT : "",
                                                       state->isDiagnostic() ? EC_DIAGNOSTIC : "",
-                                                      state->valueType() == "bool" ? TT_B_SENSOR : TT_SENSOR,
+                                                      state->valueType() == OBD_STATE_TYPE_BOOL ? TT_B_SENSOR : TT_SENSOR,
                                                       "", allowOffline);
         }
     } else {
@@ -528,7 +525,7 @@ bool sendStaticDiagnosticDiscoveryData() {
                                                       state->getUnit(), state->getDeviceClass(),
                                                       state->isMeasurement() ? SC_MEASUREMENT : "",
                                                       state->isDiagnostic() ? EC_DIAGNOSTIC : "",
-                                                      state->valueType() == "bool" ? TT_B_SENSOR : TT_SENSOR);
+                                                      state->valueType() == OBD_STATE_TYPE_BOOL ? TT_B_SENSOR : TT_SENSOR);
         }
     } else {
         allSendsSuccessed = true;
@@ -548,17 +545,17 @@ bool sendStates(std::vector<OBDState *> &states, bool allSendsSuccessed) {
                 continue;
             }
 
-            if (state->valueType() == "int") {
+            if (state->valueType() == OBD_STATE_TYPE_INT) {
                 auto *is = reinterpret_cast<OBDStateInt *>(state);
                 char *str = is->formatValue();
                 strncpy(tmp_char, str, len);
                 free(str);
-            } else if (state->valueType() == "float") {
+            } else if (state->valueType() == OBD_STATE_TYPE_FLOAT) {
                 auto *is = reinterpret_cast<OBDStateFloat *>(state);
                 char *str = is->formatValue();
                 strncpy(tmp_char, str, len);
                 free(str);
-            } else if (state->valueType() == "bool") {
+            } else if (state->valueType() == OBD_STATE_TYPE_BOOL) {
                 auto *is = reinterpret_cast<OBDStateBool *>(state);
                 char *str = is->formatValue();
                 strncpy(tmp_char, str, len);

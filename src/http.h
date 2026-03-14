@@ -22,6 +22,9 @@
 #define OTA_ENABLED false
 #endif
 
+#define MIME_TYPE_JSON          "application/json"
+#define MIME_TYPE_PLAIN         "text/plain"
+
 class HTTPServer {
     AsyncWebServer server;
     unsigned long otaProgressMillis = 0;
