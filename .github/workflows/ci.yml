@@ -11,22 +11,22 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           submodules: true
 
       - name: Update NodeJS cache on every commit
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: node_modules/
           key: node_modules-${{ github.run_id }}
           restore-keys: node_modules # This matches above key as it is only used as a prefix. it the restores the nearest cache, see https://github.com/restore-keys:/blob/main/tips-and-workarounds.md#
 
-      - uses: browser-actions/setup-chrome@v1
+      - uses: browser-actions/setup-chrome@v2
         with:
           chrome-version: stable
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: 24
 
@@ -78,19 +78,19 @@ jobs:
           ]
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           submodules: true
 
       - name: Update NodeJS cache on every commit
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: node_modules/
           key: node_modules-${{ github.run_id }}
           restore-keys: node_modules # This matches above key as it is only used as a prefix. it the restores the nearest cache, see https://github.com/restore-keys:/blob/main/tips-and-workarounds.md#
 
       - name: Update generated-files cache on every commit
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             ~/.platformio/packages/framework-arduinoespressif32/tools/partitions/boot_app0.bin
@@ -101,11 +101,11 @@ jobs:
           key: generated-files-${{ github.run_id }}-${{ matrix.envs }}
           restore-keys: generated-files # This matches above key as it is only used as a prefix. it the restores the nearest cache, see https://github.com/restore-keys:/blob/main/tips-and-workarounds.md#update-a-cache
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: 24
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: '3.11'
 
@@ -162,10 +162,10 @@ jobs:
           ]
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Update generated-files cache on every commit
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             ~/.platformio/packages/framework-arduinoespressif32/tools/partitions/boot_app0.bin
@@ -177,7 +177,7 @@ jobs:
           restore-keys: generated-files # This matches above key as it is only used as a prefix. it the restores the nearest cache, see https://github.com/restore-keys:/blob/main/tips-and-workarounds.md#update-a-cache
 
       - name: Update package cache on every commit
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: package
           key: package-${{ github.run_id }}-${{ matrix.envs }}
