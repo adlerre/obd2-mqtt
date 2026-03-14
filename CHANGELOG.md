@@ -1,3 +1,18 @@
+# [0.42.0](https://github.com/adlerre/obd2-mqtt/compare/v0.41.0...v0.42.0) (2026-03-14)
+
+
+### Bug Fixes
+
+* build with Node 24 ([#128](https://github.com/adlerre/obd2-mqtt/issues/128)) ([06b30a5](https://github.com/adlerre/obd2-mqtt/commit/06b30a5994e7f56934e783075b6e8b14ffca64ce))
+* bump versions ([a5d64c3](https://github.com/adlerre/obd2-mqtt/commit/a5d64c31e6f9f0da3338772f4a4949f5a3c4c22a))
+* bump versions ([42d5e7f](https://github.com/adlerre/obd2-mqtt/commit/42d5e7f0a342d1f66c61f5157d0995f6e6e841ae))
+
+
+### Features
+
+* add support for WS A7670E R2 ([#125](https://github.com/adlerre/obd2-mqtt/issues/125)) ([cd8395a](https://github.com/adlerre/obd2-mqtt/commit/cd8395a2884eb2763a1466d430e24d2a7275c2ac))
+* output battery level for WS boards ([#127](https://github.com/adlerre/obd2-mqtt/issues/127)) ([e0108b8](https://github.com/adlerre/obd2-mqtt/commit/e0108b8a459de20e41336b891abfd2f441f85d61))
+
 # [0.41.0](https://github.com/adlerre/obd2-mqtt/compare/v0.40.1...v0.41.0) (2026-02-16)
 
 
