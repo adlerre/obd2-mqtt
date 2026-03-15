@@ -38,9 +38,7 @@
 #define TINY_GSM_USE_WIFI true
 #endif
 
-#if defined(SIM800L_IP5306_VERSION_20190610) or defined(SIM800L_AXP192_VERSION_20200327) or defined(SIM800C_AXP192_VERSION_20200609) or defined(SIM800L_IP5306_VERSION_20200811)
-#include "device_sim800.h"
-#elif defined(LILYGO_T_A7670) or defined(LILYGO_T_CALL_A7670_V1_0) or defined(LILYGO_T_CALL_A7670_V1_1) or defined(LILYGO_T_A7608X)
+#if defined(LILYGO_T_A7670) or defined(LILYGO_T_CALL_A7670_V1_0) or defined(LILYGO_T_CALL_A7670_V1_1) or defined(LILYGO_T_A7608X)
 #include "device_simA76xx.h"
 #elif defined(LILYGO_SIM7000G) or defined(LILYGO_SIM7070G)
 #include "device_sim7xxx.h"

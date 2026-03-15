@@ -18,6 +18,10 @@
 
 #include <settings.h>
 
+#if defined(SIM800L_IP5306_VERSION_20190610) or defined(SIM800L_AXP192_VERSION_20200327) or defined(SIM800C_AXP192_VERSION_20200609) or defined(SIM800L_IP5306_VERSION_20200811)
+#include "device_sim800.h"
+#endif
+
 #if defined(LILYGO_GPS_SHIELD)
 #ifndef SerialGPS
 #define SerialGPS Serial2
