@@ -202,7 +202,7 @@ jobs:
           cd ./package
 
       - name: Upload package.zip artifact (Firmware + Bootloader + Partitions + LittleFS)
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: "OBD2-MQTT-${{ matrix.envs }}-${{ steps.vars.outputs.branch }}_(${{ steps.vars.outputs.sha_short }})"
           path: ./package
