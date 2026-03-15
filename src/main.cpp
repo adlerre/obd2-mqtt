@@ -374,9 +374,11 @@ void onOBDConnected() {
 void onOBDConnectError() {
     obdConnected = false;
     ++obdConnectErrors;
-    if (GSM::hasBattery() && GSM::isBatteryUsed() && obdConnectErrors > 5) {
+#if DEVICE_CAN_DEEP_SLEEP && DEVICE_HAS_BATTERY
+    if (GSM::isBatteryUsed() && obdConnectErrors > 5) {
         deepSleep(Settings.General.getSleepDuration());
     }
+#endif
 }
 
 #ifdef USE_BLE
@@ -446,7 +448,9 @@ bool sendDiscoveryData() {
                                                       state->getUnit(), state->getDeviceClass(),
                                                       state->isMeasurement() ? SC_MEASUREMENT : "",
                                                       state->isDiagnostic() ? EC_DIAGNOSTIC : "",
-                                                      state->valueType() == OBD_STATE_TYPE_BOOL ? TT_B_SENSOR : TT_SENSOR,
+                                                      state->valueType() == OBD_STATE_TYPE_BOOL
+                                                          ? TT_B_SENSOR
+                                                          : TT_SENSOR,
                                                       "", allowOffline);
         }
     } else {
@@ -493,15 +497,15 @@ bool sendDiagnosticDiscoveryData() {
                                                   EC_DIAGNOSTIC, TT_D_TRACKER, "gps", true);
     }
 
-    if (GSM::hasBattery()) {
-        if (GSM::getBatteryType() == 0) {
-            allSendsSuccessed |= mqtt.sendTopicConfig(HA_T_BAT_VOL, "Internal Battery Voltage", "battery",
-                                                      "mV", "voltage", "", EC_DIAGNOSTIC);
-        } else if (GSM::getBatteryType() == 1) {
-            allSendsSuccessed |= mqtt.sendTopicConfig(HA_T_BAT_LVL, "Internal Battery Level", "battery",
-                                                      "%", "battery", "", EC_DIAGNOSTIC);
-        }
-    }
+#if DEVICE_HAS_BATTERY
+#if DEVICE_BATTERY_VOLTAGE
+    allSendsSuccessed |= mqtt.sendTopicConfig(HA_T_BAT_VOL, "Internal Battery Voltage", "battery",
+                                              "mV", "voltage", "", EC_DIAGNOSTIC);
+#elif DEVICE_BATTERY_LEVEL
+    allSendsSuccessed |= mqtt.sendTopicConfig(HA_T_BAT_LVL, "Internal Battery Level", "battery",
+                                              "%", "battery", "", EC_DIAGNOSTIC);
+#endif
+#endif
 
     consoleSendFooter(allSendsSuccessed, millis() - start);
 
@@ -525,7 +529,9 @@ bool sendStaticDiagnosticDiscoveryData() {
                                                       state->getUnit(), state->getDeviceClass(),
                                                       state->isMeasurement() ? SC_MEASUREMENT : "",
                                                       state->isDiagnostic() ? EC_DIAGNOSTIC : "",
-                                                      state->valueType() == OBD_STATE_TYPE_BOOL ? TT_B_SENSOR : TT_SENSOR);
+                                                      state->valueType() == OBD_STATE_TYPE_BOOL
+                                                          ? TT_B_SENSOR
+                                                          : TT_SENSOR);
         }
     } else {
         allSendsSuccessed = true;
@@ -620,15 +626,15 @@ bool sendDiagnosticData() {
         allSendsSuccessed |= mqtt.sendTopicUpdate(HA_T_SQ, std::string(tmp_char));
     }
 
-    if (GSM::hasBattery()) {
-        if (GSM::getBatteryType() == 0) {
-            sprintf(tmp_char, "%d", GSM::getBatteryVoltage());
-            allSendsSuccessed |= mqtt.sendTopicUpdate(HA_T_BAT_VOL, std::string(tmp_char));
-        } else if (GSM::getBatteryType() == 1) {
-            sprintf(tmp_char, "%d", static_cast<int>(GSM::getBatteryLevel()));
-            allSendsSuccessed |= mqtt.sendTopicUpdate(HA_T_BAT_LVL, std::string(tmp_char));
-        }
-    }
+#if DEVICE_HAS_BATTERY
+#if DEVICE_BATTERY_VOLTAGE
+    sprintf(tmp_char, "%d", GSM::getBatteryVoltage());
+    allSendsSuccessed |= mqtt.sendTopicUpdate(HA_T_BAT_VOL, std::string(tmp_char));
+#elif DEVICE_BATTERY_LEVEL
+    sprintf(tmp_char, "%d", static_cast<int>(GSM::getBatteryLevel()));
+    allSendsSuccessed |= mqtt.sendTopicUpdate(HA_T_BAT_LVL, std::string(tmp_char));
+#endif
+#endif
 
     consoleSendFooter(allSendsSuccessed, millis() - start);
 
@@ -836,7 +842,8 @@ void mqttSendData() {
     unsigned long checkInterval = 0;
     for (;;) {
         if (!wifiAPInUse) {
-            if (GSM::canDeepSleep() && GSM::hasBattery() && GSM::isBatteryUsed()) {
+#if DEVICE_CAN_DEEP_SLEEP && DEVICE_HAS_BATTERY
+            if (GSM::isBatteryUsed()) {
                 const unsigned int batVoltage = GSM::getBatteryVoltage();
                 if (batVoltage > MIN_VOLTAGE_LEVEL) {
                     const int sum = std::accumulate(batteryVoltages.begin(), batteryVoltages.end(), 0);
@@ -865,6 +872,7 @@ void mqttSendData() {
                     }
                 }
             }
+#endif
 
             if (!gsm.checkNetwork()) {
                 continue;

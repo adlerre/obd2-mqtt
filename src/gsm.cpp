@@ -20,18 +20,9 @@
 
 #if defined(SIM800L_IP5306_VERSION_20190610) or defined(SIM800L_AXP192_VERSION_20200327) or defined(SIM800C_AXP192_VERSION_20200609) or defined(SIM800L_IP5306_VERSION_20200811)
 #include "device_sim800.h"
-#elif defined(LILYGO_T_A7670) or defined(LILYGO_T_CALL_A7670_V1_0) or defined(LILYGO_T_CALL_A7670_V1_1) or defined(LILYGO_T_A7608X)
-#include "device_simA76xx.h"
-#elif defined(LILYGO_SIM7000G) or defined(LILYGO_SIM7070G)
-#include "device_sim7xxx.h"
-#elif defined(WS_A7670E) or defined(WS_A7670E_R2)
-#include "device_ws.h"
 #endif
 
 #if defined(LILYGO_GPS_SHIELD)
-#define BOARD_GPS_TX_PIN                    21
-#define BOARD_GPS_RX_PIN                    22
-
 #ifndef SerialGPS
 #define SerialGPS Serial2
 #endif
@@ -39,22 +30,6 @@
 #include <TinyGPS++.h>
 
 TinyGPSPlus gps;
-#endif
-
-#ifdef BOARD_BAT_ADC_PIN
-#include <numeric>
-#if defined(LILYGO_T_A7670) or defined(LILYGO_T_A7608X) or defined(LILYGO_SIM7000G) or defined(LILYGO_SIM7070G)
-#include "driver/rtc_io.h"
-#include "driver/adc.h"
-
-#include "esp32/ulp.h"
-#include "soc/soc.h"
-#define ULP_START_OFFSET 32
-#endif
-#endif
-
-#ifdef MAX17048_I2C_ADDRESS
-#include <Wire.h>
 #endif
 
 #include "soc/adc_periph.h"
@@ -86,7 +61,7 @@ int GSM::adcChannelNum(const gpio_num_t pin) {
 }
 
 void GSM::ulpInit(unsigned int threshold, unsigned int highThreshold, int wakeupPeriod) {
-#if defined(BOARD_BAT_ADC_PIN) && defined(LILYGO_T_A7670) || defined(LILYGO_T_A7608X) || defined(LILYGO_SIM7000G) || defined(LILYGO_SIM7070G)
+#if DEVICE_CAN_DEEP_SLEEP && defined(BOARD_BAT_ADC_PIN)
     unsigned int idx = adcPeriphNum(static_cast<gpio_num_t>(BOARD_BAT_ADC_PIN));
 
     if (idx == 0) {
@@ -207,7 +182,7 @@ void GSM::ulpInit(unsigned int threshold, unsigned int highThreshold, int wakeup
 }
 
 void GSM::ulpPrepareSleep() {
-#if defined(BOARD_BAT_ADC_PIN) && defined(LILYGO_T_A7670) || defined(LILYGO_T_A7608X) || defined(LILYGO_SIM7000G) || defined(LILYGO_SIM7070G)
+#if DEVICE_CAN_DEEP_SLEEP && defined(BOARD_BAT_ADC_PIN)
     unsigned int idx = adcPeriphNum(static_cast<gpio_num_t>(BOARD_BAT_ADC_PIN));
 
     if (idx == 0) {
@@ -663,15 +638,11 @@ void GSM::initBattery() {
 }
 
 bool GSM::hasBattery() {
-#if defined(BOARD_BAT_ADC_PIN) or defined(MAX17048_I2C_ADDRESS)
-    return true;
-#else
-    return false;
-#endif
+    return DEVICE_HAS_BATTERY;
 }
 
 bool GSM::isBatteryUsed() {
-#ifdef BOARD_BAT_ADC_PIN
+#if DEVICE_HAS_BATTERY && defined(BOARD_BAT_ADC_PIN)
     pinMode(BOARD_BAT_ADC_PIN, INPUT);
     return digitalRead(BOARD_BAT_ADC_PIN) == HIGH;
 #else
@@ -680,9 +651,9 @@ bool GSM::isBatteryUsed() {
 }
 
 int GSM::getBatteryType() {
-#if defined(BOARD_BAT_ADC_PIN)
+#if DEVICE_HAS_BATTERY && DEVICE_BATTERY_VOLTAGE
     return 0;
-#elif defined(MAX17048_I2C_ADDRESS)
+#elif DEVICE_HAS_BATTERY && DEVICE_BATTERY_LEVEL
     return 1;
 #else
     return -1;
@@ -714,16 +685,14 @@ float GSM::getBatteryLevel() {
 }
 
 bool GSM::canDeepSleep() {
-#if defined(BOARD_BAT_ADC_PIN)
-    return true;
-#else
-    return false;
-#endif
+    return DEVICE_CAN_DEEP_SLEEP;
 }
 
 void GSM::deepSleep(uint32_t ms) {
+#if DEVICE_CAN_DEEP_SLEEP
     esp_sleep_enable_timer_wakeup(ms * 1000);
     esp_sleep_pd_config(ESP_PD_DOMAIN_RTC_PERIPH, ESP_PD_OPTION_ON);
     ulpPrepareSleep();
     esp_deep_sleep_start();
+#endif
 }

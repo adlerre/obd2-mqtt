@@ -19,8 +19,7 @@
 #define IP5306_REG_SYS_CTL0  0x00
 
 // setPowerBoostKeepOn
-bool setupPMU()
-{
+bool setupPMU() {
     bool en = true;
     Wire.begin(I2C_SDA, I2C_SCL);
     Wire.beginTransmission(IP5306_ADDR);
@@ -88,8 +87,7 @@ bool setupPMU()
 #define IP5306_REG_SYS_CTL0  0x00
 
 // setPowerBoostKeepOn
-bool setupPMU()
-{
+bool setupPMU() {
     bool en = true;
     Wire.begin(I2C_SDA, I2C_SCL);
     Wire.beginTransmission(IP5306_ADDR);
@@ -114,9 +112,8 @@ bool setupPMU()
 
 AXP20X_Class axp;
 
-bool setupPMU()
-{
-// For more information about the use of AXP192, please refer to AXP202X_Library https://github.com/lewisxhe/AXP202X_Library
+bool setupPMU() {
+    // For more information about the use of AXP192, please refer to AXP202X_Library https://github.com/lewisxhe/AXP202X_Library
     Wire.begin(I2C_SDA, I2C_SCL);
     int ret = axp.begin(Wire, AXP192_SLAVE_ADDRESS);
 

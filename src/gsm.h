@@ -38,6 +38,48 @@
 #define TINY_GSM_USE_WIFI true
 #endif
 
+#if defined(LILYGO_T_A7670) or defined(LILYGO_T_CALL_A7670_V1_0) or defined(LILYGO_T_CALL_A7670_V1_1) or defined(LILYGO_T_A7608X)
+#include "device_simA76xx.h"
+#elif defined(LILYGO_SIM7000G) or defined(LILYGO_SIM7070G)
+#include "device_sim7xxx.h"
+#elif defined(WS_A7670E) or defined(WS_A7670E_R2)
+#include "device_ws.h"
+#endif
+
+#if defined(BOARD_BAT_ADC_PIN) or defined(MAX17048_I2C_ADDRESS)
+#define DEVICE_HAS_BATTERY      true
+
+#if defined(BOARD_BAT_ADC_PIN)
+#define DEVICE_BATTERY_VOLTAGE  true
+#define DEVICE_BATTERY_LEVEL    false
+
+#include <numeric>
+#define DEVICE_CAN_DEEP_SLEEP   true
+#include "driver/rtc_io.h"
+#include "driver/adc.h"
+
+#include "esp32/ulp.h"
+#include "soc/soc.h"
+#define ULP_START_OFFSET 32
+
+#elif defined(MAX17048_I2C_ADDRESS)
+#define DEVICE_BATTERY_VOLTAGE  false
+#define DEVICE_BATTERY_LEVEL    true
+#define DEVICE_CAN_DEEP_SLEEP   false
+
+#include <Wire.h>
+#endif
+
+#else
+#define DEVICE_HAS_BATTERY      false
+#define DEVICE_CAN_DEEP_SLEEP   false
+#endif
+
+#if defined(LILYGO_GPS_SHIELD)
+#define BOARD_GPS_TX_PIN                    21
+#define BOARD_GPS_RX_PIN                    22
+#endif
+
 #define SQ_NOT_KNOWN    99
 
 class GSM {
