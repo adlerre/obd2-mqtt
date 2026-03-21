@@ -63,7 +63,7 @@
 #define ULP_START_OFFSET 32
 
 #elif defined(MAX17048_I2C_ADDRESS)
-#define DEVICE_BATTERY_VOLTAGE  false
+#define DEVICE_BATTERY_VOLTAGE  true
 #define DEVICE_BATTERY_LEVEL    true
 #define DEVICE_CAN_DEEP_SLEEP   false
 
@@ -271,7 +271,7 @@ public:
     /**
      * Returns the battery type.
      *
-     * @return -1 N/A, 0 voltage, 1 level
+     * @return -1 N/A, 0 voltage, 1 level, 2 voltage and level
      */
     static int getBatteryType();
 
