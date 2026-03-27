@@ -1,3 +1,15 @@
+## [0.42.1](https://github.com/adlerre/obd2-mqtt/compare/v0.42.0...v0.42.1) (2026-03-27)
+
+
+### Bug Fixes
+
+* battery level and implement voltage reading ([#134](https://github.com/adlerre/obd2-mqtt/issues/134)) ([78ff5b6](https://github.com/adlerre/obd2-mqtt/commit/78ff5b6c0790ce58e8470e10c926e2d7f64a26f3))
+* bump versions ([8ae681f](https://github.com/adlerre/obd2-mqtt/commit/8ae681f5a4474890728f39d4f149c6b75b069f30))
+* downgrade domhandler ([f44bcc3](https://github.com/adlerre/obd2-mqtt/commit/f44bcc32bf1cee09f1feee9be17d71dc1f3838ff))
+* rework includes and definitions ([#133](https://github.com/adlerre/obd2-mqtt/issues/133)) ([3554322](https://github.com/adlerre/obd2-mqtt/commit/35543223bd3f0945cd13f37c5ed0ce42b88d1360))
+* update also upload action ([06e9fe1](https://github.com/adlerre/obd2-mqtt/commit/06e9fe176f23e8d2600a3e78aee377422398fd61))
+* update CI actions ([#129](https://github.com/adlerre/obd2-mqtt/issues/129)) ([202a7ac](https://github.com/adlerre/obd2-mqtt/commit/202a7ac537ae906e353868dc069cab7b81ab3421))
+
 # [0.42.0](https://github.com/adlerre/obd2-mqtt/compare/v0.41.0...v0.42.0) (2026-03-14)
 
 
