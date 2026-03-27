@@ -651,10 +651,12 @@ bool GSM::isBatteryUsed() {
 }
 
 int GSM::getBatteryType() {
-#if DEVICE_HAS_BATTERY && DEVICE_BATTERY_VOLTAGE
+#if DEVICE_HAS_BATTERY && DEVICE_BATTERY_VOLTAGE && !DEVICE_BATTERY_LEVEL
     return 0;
-#elif DEVICE_HAS_BATTERY && DEVICE_BATTERY_LEVEL
+#elif DEVICE_HAS_BATTERY && DEVICE_BATTERY_LEVEL && !DEVICE_BATTERY_VOLTAGE
     return 1;
+#elif DEVICE_HAS_BATTERY && DEVICE_BATTERY_LEVEL && DEVICE_BATTERY_VOLTAGE
+    return 2;
 #else
     return -1;
 #endif
@@ -663,6 +665,15 @@ int GSM::getBatteryType() {
 unsigned int GSM::getBatteryVoltage() {
 #ifdef BOARD_BAT_ADC_PIN
     return analogReadMilliVolts(BOARD_BAT_ADC_PIN) * 2;
+#elif defined(MAX17048_I2C_ADDRESS)
+    Wire.beginTransmission(MAX17048_I2C_ADDRESS);
+    Wire.write(0x02);
+    Wire.endTransmission();
+
+    Wire.requestFrom(MAX17048_I2C_ADDRESS, 2);
+    uint16_t result = ((uint16_t) Wire.read() << 8) | Wire.read();
+
+    return static_cast<int>(1.0f * result * 78.125f / 1000.0f);
 #else
     return 0;
 #endif
@@ -671,14 +682,14 @@ unsigned int GSM::getBatteryVoltage() {
 float GSM::getBatteryLevel() {
 #if defined(MAX17048_I2C_ADDRESS)
     Wire.beginTransmission(MAX17048_I2C_ADDRESS);
-    Wire.write(0x02);
+    Wire.write(0x04);
     Wire.endTransmission();
 
     Wire.requestFrom(MAX17048_I2C_ADDRESS, 2);
-    uint16_t soc = (Wire.read() << 8) | Wire.read();
-    if (soc > 65535) soc = 65535;
+    uint16_t result = ((uint16_t) Wire.read() << 8) | Wire.read();
+    if (result > 25600) result = 25600;
 
-    return static_cast<float>(soc) / 65535.0 * 100.0;
+    return 1.0f * result / 256.0f;
 #else
     return 0;
 #endif

@@ -501,7 +501,8 @@ bool sendDiagnosticDiscoveryData() {
 #if DEVICE_BATTERY_VOLTAGE
     allSendsSuccessed |= mqtt.sendTopicConfig(HA_T_BAT_VOL, "Internal Battery Voltage", "battery",
                                               "mV", "voltage", "", EC_DIAGNOSTIC);
-#elif DEVICE_BATTERY_LEVEL
+#endif
+#if DEVICE_BATTERY_LEVEL
     allSendsSuccessed |= mqtt.sendTopicConfig(HA_T_BAT_LVL, "Internal Battery Level", "battery",
                                               "%", "battery", "", EC_DIAGNOSTIC);
 #endif
@@ -630,7 +631,8 @@ bool sendDiagnosticData() {
 #if DEVICE_BATTERY_VOLTAGE
     sprintf(tmp_char, "%d", GSM::getBatteryVoltage());
     allSendsSuccessed |= mqtt.sendTopicUpdate(HA_T_BAT_VOL, std::string(tmp_char));
-#elif DEVICE_BATTERY_LEVEL
+#endif
+#if DEVICE_BATTERY_LEVEL
     sprintf(tmp_char, "%d", static_cast<int>(GSM::getBatteryLevel()));
     allSendsSuccessed |= mqtt.sendTopicUpdate(HA_T_BAT_LVL, std::string(tmp_char));
 #endif
