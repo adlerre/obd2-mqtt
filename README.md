@@ -93,6 +93,11 @@ Set up the MQTT configuration with your data. __If you want to use TLS/SSL on a 
 only SSL 2/3 and TLS 1.0 are supported.__
 For devices with a battery, you can set the automatic sleep timeout (no data/ignition off) and the sleep duration.
 
+To reduce mobile data usage while the vehicle is parked, you can set a separate data interval for when the engine is
+stopped ("Data (Engine stopped)"). Once the engine has been off for longer than the sleep timeout, OBD data is only
+sent at this reduced interval; publishing resumes at the regular data interval as soon as the engine is started
+again. This is especially useful for devices powered from a permanently live OBD port, which never enter deep sleep.
+
 ## Configure Sensors
 
 The following sensors are included in the supplied standard profile:

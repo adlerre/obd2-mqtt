@@ -105,6 +105,9 @@ std::atomic<unsigned long> lastMQTTStaticDiagnosticOutput{0};
 std::atomic<unsigned long> lastMQTTDTCDiagnosticOutput{0};
 std::atomic<unsigned long> lastMQTTLocationOutput{0};
 
+std::atomic<unsigned long> engineStoppedSince{0};
+std::atomic_bool stoppedThrottleActive{false};
+
 std::atomic<int> signalQuality{0};
 std::atomic<float> gsmLatitude{0};
 std::atomic<float> gsmLongitude{0};
@@ -734,7 +737,40 @@ unsigned long calcTimestamp(const unsigned int interval) {
     return millis() + interval * 1000L;
 }
 
+/**
+ * Returns the interval in seconds until the next OBD data output. While the engine has been
+ * stopped for longer than the sleep timeout, the configured stopped data interval is used to
+ * reduce mobile data usage; otherwise the regular data interval applies.
+ */
+unsigned int nextDataInterval() {
+    const unsigned int stoppedInterval = Settings.MQTT.getStoppedDataInterval();
+
+    if (stoppedInterval == 0 || !obdConnected || OBD.getStateValue("engineRunning", true)) {
+        engineStoppedSince = 0;
+        stoppedThrottleActive = false;
+        return Settings.MQTT.getDataInterval();
+    }
+
+    if (engineStoppedSince == 0) {
+        engineStoppedSince = millis();
+    }
+
+    if (millis() - engineStoppedSince < Settings.General.getSleepTimeout() * 1000UL) {
+        return Settings.MQTT.getDataInterval();
+    }
+
+    stoppedThrottleActive = true;
+    return stoppedInterval;
+}
+
 void mqttSendData() {
+    if (stoppedThrottleActive && OBD.getStateValue("engineRunning", false)) {
+        // the engine was started again, resume the regular data interval right away
+        stoppedThrottleActive = false;
+        engineStoppedSince = 0;
+        lastMQTTOutput = 0;
+    }
+
     if (millis() < lastMQTTOutput) {
         return;
     }
@@ -810,7 +846,7 @@ void mqttSendData() {
             }
 
             if (sendOBDData()) {
-                lastMQTTOutput = calcTimestamp(Settings.MQTT.getDataInterval());
+                lastMQTTOutput = calcTimestamp(nextDataInterval());
             }
         } else if (mqtt.sendTopicUpdate(LWT_TOPIC, LWT_CONNECTED)) {
             const uint iv = Settings.MQTT.getDataInterval() * 5;

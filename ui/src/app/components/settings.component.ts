@@ -31,6 +31,7 @@ import {
     NetworkMode,
     OBD2Protocol,
     Settings,
+    stoppedDataIntervals,
     stripEmptyProps,
 } from "../definitions";
 import { DomSanitizer } from "@angular/platform-browser";
@@ -166,6 +167,8 @@ export class SettingsComponent implements OnInit {
 
     protected readonly dataIntervals = dataIntervals;
 
+    protected readonly stoppedDataIntervals = stoppedDataIntervals;
+
     protected readonly diagnosticIntervals = diagnosticIntervals;
 
     protected readonly discoveryIntervals = discoveryIntervals;
@@ -236,6 +239,7 @@ export class SettingsComponent implements OnInit {
             password: new FormControl("", Validators.maxLength(32)),
             allowOffline: new FormControl<boolean>(false),
             dataInterval: new FormControl<number>(1),
+            stoppedDataInterval: new FormControl<number>(0),
             diagnosticInterval: new FormControl<number>(30),
             discoveryInterval: new FormControl<number>(1800),
             locationInterval: new FormControl<number>(30),

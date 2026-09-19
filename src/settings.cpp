@@ -293,6 +293,7 @@ void MQTTSettings::readJson(JsonDocument &doc) {
     strlcpy(mqtt.password, doc["mqtt"]["password"] | "", sizeof(mqtt.password));
     mqtt.allowOffline = doc["mqtt"]["allowOffline"] | false;
     mqtt.dataInterval = doc["mqtt"]["dataInterval"] | 1;
+    mqtt.stoppedDataInterval = doc["mqtt"]["stoppedDataInterval"] | 0;
     mqtt.diagnosticInterval = doc["mqtt"]["diagnosticInterval"] | 30;
     mqtt.discoveryInterval = doc["mqtt"]["discoveryInterval"] | 300;
     mqtt.locationInterval = doc["mqtt"]["locationInterval"] | 30;
@@ -309,6 +310,7 @@ void MQTTSettings::writeJson(JsonDocument &doc) {
     doc["mqtt"]["password"] = mqtt.password;
     doc["mqtt"]["allowOffline"] = mqtt.allowOffline;
     doc["mqtt"]["dataInterval"] = mqtt.dataInterval;
+    doc["mqtt"]["stoppedDataInterval"] = mqtt.stoppedDataInterval;
     doc["mqtt"]["diagnosticInterval"] = mqtt.diagnosticInterval;
     doc["mqtt"]["discoveryInterval"] = mqtt.discoveryInterval;
     doc["mqtt"]["locationInterval"] = mqtt.locationInterval;
@@ -392,6 +394,14 @@ unsigned int MQTTSettings::getDataInterval() const {
 
 void MQTTSettings::setDataInterval(unsigned int dataInterval) {
     mqtt.dataInterval = dataInterval;
+}
+
+unsigned int MQTTSettings::getStoppedDataInterval() const {
+    return mqtt.stoppedDataInterval;
+}
+
+void MQTTSettings::setStoppedDataInterval(unsigned int stoppedDataInterval) {
+    mqtt.stoppedDataInterval = stoppedDataInterval;
 }
 
 unsigned int MQTTSettings::getDiagnosticInterval() const {
