@@ -2,18 +2,19 @@
   "extends": "../tsconfig.json",
   "compilerOptions": {
     "outDir": "../out-tsc/app",
-    "baseUrl": "/",
     "types": [],
+    "strict": false,
     "skipLibCheck": true
   },
   "angularCompilerOptions": {
-    "enableIvy": true
+//    "extendedDiagnostics": {
+//      "checks": {
+//        "nullishCoalescingNotNullable": "suppress",
+//        "optionalChainNotNullable": "suppress"
+//      }
+//    },
+    "strictTemplates": false
   },
-  "files": [
-    "main.ts",
-    "polyfills.ts"
-  ],
-  "include": [
-    "ui/src/**/*.d.ts"
-  ]
+  "files": ["main.ts", "polyfills.ts"],
+  "include": ["ui/src/**/*.d.ts"]
 }
