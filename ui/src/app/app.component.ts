@@ -15,7 +15,7 @@
  *  59 Temple Place - Suite 330, Boston, MA  02111-1307 USA
  */
 
-import { Component, DOCUMENT, inject, OnInit, ViewEncapsulation } from "@angular/core";
+import { ChangeDetectionStrategy, Component, DOCUMENT, inject, OnInit, ViewEncapsulation, } from "@angular/core";
 import { ApiService } from "./services/api.service";
 
 import { Observable } from "rxjs";
@@ -25,10 +25,10 @@ import { Observable } from "rxjs";
     templateUrl: "./app.component.html",
     styleUrls: ["./app.component.scss"],
     encapsulation: ViewEncapsulation.None,
-    standalone: false
+    changeDetection: ChangeDetectionStrategy.Eager,
+    standalone: false,
 })
 export class AppComponent implements OnInit {
-
     private static ATTR_COLOR_SCHEME = "colorScheme";
 
     private static COLOR_SCHEME_LIGHT = "light";
@@ -47,15 +47,16 @@ export class AppComponent implements OnInit {
 
     constructor() {
         this.otaEnabled$ = this.$api.otaEnabled();
-        this.prefersColorScheme = window.matchMedia("(prefers-color-scheme: dark)").matches ?
-            AppComponent.COLOR_SCHEME_DARK : AppComponent.COLOR_SCHEME_LIGHT;
+        this.prefersColorScheme = window.matchMedia("(prefers-color-scheme: dark)")
+            .matches
+            ? AppComponent.COLOR_SCHEME_DARK
+            : AppComponent.COLOR_SCHEME_LIGHT;
     }
 
     ngOnInit(): void {
         this.getColorScheme();
         this.changeColorScheme(this.colorScheme);
     }
-
 
     rebootConfirm() {
         if (window.confirm("Are you sure you want to reboot?")) {
@@ -65,8 +66,11 @@ export class AppComponent implements OnInit {
     }
 
     switchColorScheme() {
-        this.changeColorScheme(this.colorScheme === AppComponent.COLOR_SCHEME_LIGHT ?
-            AppComponent.COLOR_SCHEME_DARK : AppComponent.COLOR_SCHEME_LIGHT)
+        this.changeColorScheme(
+            this.colorScheme === AppComponent.COLOR_SCHEME_LIGHT
+                ? AppComponent.COLOR_SCHEME_DARK
+                : AppComponent.COLOR_SCHEME_LIGHT,
+        );
     }
 
     changeColorScheme(scheme: string | null) {
@@ -78,7 +82,10 @@ export class AppComponent implements OnInit {
             this.setColorScheme(null);
         }
 
-        this.document.documentElement.setAttribute("data-ui-theme", scheme || this.prefersColorScheme);
+        this.document.documentElement.setAttribute(
+            "data-ui-theme",
+            scheme || this.prefersColorScheme,
+        );
     }
 
     private setColorScheme(scheme: string | null) {
@@ -91,7 +98,8 @@ export class AppComponent implements OnInit {
     }
 
     private getColorScheme() {
-        this.colorScheme = window.localStorage.getItem(AppComponent.ATTR_COLOR_SCHEME);
+        this.colorScheme = window.localStorage.getItem(
+            AppComponent.ATTR_COLOR_SCHEME,
+        );
     }
-
 }

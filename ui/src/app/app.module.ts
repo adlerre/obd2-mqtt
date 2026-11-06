@@ -16,7 +16,7 @@
  */
 
 import { BrowserModule } from "@angular/platform-browser";
-import { provideHttpClient, withInterceptorsFromDi } from "@angular/common/http";
+import { provideHttpClient, withInterceptorsFromDi, withXhr, } from "@angular/common/http";
 import { NgModule } from "@angular/core";
 
 import { AppComponent } from "./app.component";
@@ -27,7 +27,7 @@ import {
     OBDStatesComponent,
     OTAComponent,
     SettingsComponent,
-    ToastsComponent
+    ToastsComponent,
 } from "./components";
 import { ToastService } from "./services/toast.service";
 import { ReactiveFormsModule } from "@angular/forms";
@@ -53,15 +53,15 @@ import { NgbHighlight, NgbTypeahead } from "@ng-bootstrap/ng-bootstrap";
                 {path: "states", component: OBDStatesComponent},
                 {path: "ota", component: OTAComponent},
             ],
-            {useHash: true}
+            {useHash: true},
         ),
-        ToastsComponent
+        ToastsComponent,
     ],
     providers: [
-        provideHttpClient(withInterceptorsFromDi()),
+        provideHttpClient(withXhr(), withInterceptorsFromDi()),
         ApiService,
-        ToastService
-    ]
+        ToastService,
+    ],
 })
 export class AppModule {
 }
