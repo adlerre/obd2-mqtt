@@ -15,44 +15,40 @@
  *  59 Temple Place - Suite 330, Boston, MA  02111-1307 USA
  */
 
-import {
-  Component,
-  inject,
-  OnInit,
-  ChangeDetectionStrategy,
-} from "@angular/core";
+import { Component, inject, OnInit } from "@angular/core";
 import { DTCs, ModemInfo, WifiInfo } from "../definitions";
 import { ApiService } from "../services/api.service";
 
 @Component({
-  selector: "ui-device-info",
-  templateUrl: "./deviceInfo.component.html",
-  changeDetection: ChangeDetectionStrategy.Eager,
-  standalone: false,
+    selector: "ui-device-info",
+    templateUrl: "./deviceInfo.component.html",
+    standalone: false
 })
 export class DeviceInfoComponent implements OnInit {
-  version: string | undefined;
 
-  wifiInfo: WifiInfo | undefined;
+    version: string | undefined;
 
-  modemInfo: ModemInfo | undefined;
+    wifiInfo: WifiInfo | undefined;
 
-  dtcs: DTCs | undefined;
+    modemInfo: ModemInfo | undefined;
 
-  private $api = inject(ApiService);
+    dtcs: DTCs | undefined;
 
-  ngOnInit(): void {
-    this.$api.version().subscribe((ver) => (this.version = ver));
-    this.$api.wifiInfo().subscribe((wi) => (this.wifiInfo = wi));
-    this.$api.modemInfo().subscribe((mi) => (this.modemInfo = mi));
-    this.$api.dtcs().subscribe((d: DTCs) => (this.dtcs = d));
-  }
+    private $api = inject(ApiService);
 
-  calcRSSI(signalQuality: number): number {
-    if (signalQuality > 0 && signalQuality <= 32) {
-      return (111 - signalQuality * 2 - 2) * -1;
+    ngOnInit(): void {
+        this.$api.version().subscribe(ver => this.version = ver);
+        this.$api.wifiInfo().subscribe((wi) => this.wifiInfo = wi);
+        this.$api.modemInfo().subscribe((mi) => this.modemInfo = mi);
+        this.$api.dtcs().subscribe((d: DTCs) => this.dtcs = d);
     }
 
-    return signalQuality;
-  }
+    calcRSSI(signalQuality: number): number {
+        if (signalQuality > 0 && signalQuality <= 32) {
+            return (111 - signalQuality * 2 - 2) * -1;
+        }
+
+        return signalQuality;
+    }
+
 }
