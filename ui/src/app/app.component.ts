@@ -15,8 +15,18 @@
  *  59 Temple Place - Suite 330, Boston, MA  02111-1307 USA
  */
 
-import { ChangeDetectionStrategy, Component, DOCUMENT, inject, OnInit, ViewEncapsulation, } from "@angular/core";
+import {
+    ChangeDetectionStrategy,
+    Component,
+    DOCUMENT,
+    inject,
+    OnInit,
+    signal,
+    ViewEncapsulation,
+} from "@angular/core";
 import { ApiService } from "./services";
+
+const pageFromHash = () => location.hash.replace(/^#\/?/, "");
 
 @Component({
     selector: "ui-root",
@@ -25,8 +35,10 @@ import { ApiService } from "./services";
     encapsulation: ViewEncapsulation.None,
     changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false,
+    host: {"(window:hashchange)": "onHashChange()"},
 })
 export class AppComponent implements OnInit {
+
     private static ATTR_COLOR_SCHEME = "colorScheme";
 
     private static COLOR_SCHEME_LIGHT = "light";
@@ -36,6 +48,8 @@ export class AppComponent implements OnInit {
     public otaEnabled: Promise<boolean>;
 
     public colorScheme: string | null | undefined;
+
+    readonly page = signal(pageFromHash());
 
     private $api = inject(ApiService);
 
@@ -54,6 +68,10 @@ export class AppComponent implements OnInit {
     ngOnInit(): void {
         this.getColorScheme();
         this.changeColorScheme(this.colorScheme);
+    }
+
+    onHashChange() {
+        this.page.set(pageFromHash());
     }
 
     rebootConfirm() {

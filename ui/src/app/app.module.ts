@@ -20,7 +20,6 @@ import { NgModule } from "@angular/core";
 
 import { AppComponent } from "./app.component";
 import { ApiService, ToastService } from "./services";
-import { RouterModule } from "@angular/router";
 import {
     DeviceInfoComponent,
     OBDStatesComponent,
@@ -43,15 +42,7 @@ import { ReactiveFormsModule } from "@angular/forms";
         BrowserModule,
         ReactiveFormsModule,
         TypeaheadDirective,
-        RouterModule.forRoot(
-            [
-                {path: "", component: DeviceInfoComponent},
-                {path: "settings", component: SettingsComponent},
-                {path: "states", component: OBDStatesComponent},
-                {path: "ota", component: OTAComponent},
-            ],
-            {useHash: true},
-        ),
+        OTAComponent,
         ToastsComponent,
     ],
     providers: [
