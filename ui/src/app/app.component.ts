@@ -45,11 +45,11 @@ export class AppComponent implements OnInit {
 
     private static COLOR_SCHEME_DARK = "dark";
 
-    public otaEnabled: Promise<boolean>;
+    public readonly otaEnabled = signal(false);
 
     public colorScheme: string | null | undefined;
 
-    readonly page = signal(pageFromHash());
+    public readonly page = signal(pageFromHash());
 
     private $api = inject(ApiService);
 
@@ -58,7 +58,7 @@ export class AppComponent implements OnInit {
     private readonly prefersColorScheme: string;
 
     constructor() {
-        this.otaEnabled = this.$api.otaEnabled();
+        this.$api.otaEnabled().then((enabled) => this.otaEnabled.set(enabled));
         this.prefersColorScheme = window.matchMedia("(prefers-color-scheme: dark)")
             .matches
             ? AppComponent.COLOR_SCHEME_DARK

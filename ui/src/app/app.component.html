@@ -27,7 +27,7 @@
             <li [class.active]="page() === 'states'">
                 <a href="#/states">OBD</a>
             </li>
-            @if ((otaEnabled | async)) {
+            @if (otaEnabled()) {
                 <li [class.active]="page() === 'ota'">
                     <a href="#/ota">OTA</a>
                 </li>
