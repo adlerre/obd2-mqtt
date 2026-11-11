@@ -28,10 +28,10 @@ import {
     OTAComponent,
     SettingsComponent,
     ToastsComponent,
+    TypeaheadDirective,
 } from "./components";
 import { ToastService } from "./services/toast.service";
 import { ReactiveFormsModule } from "@angular/forms";
-import { NgbHighlight, NgbTypeahead } from "@ng-bootstrap/ng-bootstrap";
 
 @NgModule({
     bootstrap: [AppComponent],
@@ -44,8 +44,7 @@ import { NgbHighlight, NgbTypeahead } from "@ng-bootstrap/ng-bootstrap";
     imports: [
         BrowserModule,
         ReactiveFormsModule,
-        NgbHighlight,
-        NgbTypeahead,
+        TypeaheadDirective,
         RouterModule.forRoot(
             [
                 {path: "", component: DeviceInfoComponent},

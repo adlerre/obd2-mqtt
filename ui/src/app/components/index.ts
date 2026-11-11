@@ -20,3 +20,4 @@ export * from "./obdStates.component";
 export * from "./ota.component";
 export * from "./settings.component";
 export * from "./toasts.component";
+export * from "./typeahead.directive";

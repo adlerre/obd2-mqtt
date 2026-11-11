@@ -15,7 +15,7 @@
  *  59 Temple Place - Suite 330, Boston, MA  02111-1307 USA
  */
 
-import { ChangeDetectionStrategy, Component, inject, OnInit, ViewChild, } from "@angular/core";
+import { ChangeDetectionStrategy, Component, inject, OnInit, } from "@angular/core";
 import { ApiService } from "../services/api.service";
 import { FormControl, FormGroup, Validators, } from "@angular/forms";
 import {
@@ -33,19 +33,7 @@ import {
     Settings,
     stripEmptyProps,
 } from "../definitions";
-import { NgbTypeahead, NgbTypeaheadSelectItemEvent, } from "@ng-bootstrap/ng-bootstrap";
-import {
-    catchError,
-    debounceTime,
-    distinctUntilChanged,
-    filter,
-    map,
-    merge,
-    Observable,
-    of,
-    OperatorFunction,
-    Subject,
-} from "rxjs";
+import { catchError, of, } from "rxjs";
 import { ToastService } from "../services/toast.service";
 import { DomSanitizer } from "@angular/platform-browser";
 
@@ -158,8 +146,6 @@ export class SettingsComponent implements OnInit {
         ],
     };
 
-    @ViewChild("devTypeahead", {static: true}) devTypeahead: NgbTypeahead;
-
     configuration: Configuration | undefined;
 
     discoveredDevices: DiscoveredDevices | undefined;
@@ -177,10 +163,6 @@ export class SettingsComponent implements OnInit {
     obd2: FormGroup;
 
     mqtt: FormGroup;
-
-    focus$ = new Subject<string>();
-
-    click$ = new Subject<string>();
 
     downloadHref: any;
 
@@ -292,7 +274,7 @@ export class SettingsComponent implements OnInit {
         return (
             (this.configuration &&
                 Object.keys(SettingsComponent.DEVICE_WITH_NETWORK_MODE).indexOf(
-                    this.configuration.deviceType,
+                    this.configuration.deviceType || "",
                 ) !== -1) ||
             false
         );
@@ -304,7 +286,7 @@ export class SettingsComponent implements OnInit {
             .filter(
                 (k: any) =>
                     SettingsComponent.DEVICE_WITH_NETWORK_MODE[
-                        this.configuration.deviceType
+                    this.configuration?.deviceType || ""
                         ].indexOf(NetworkMode[k as keyof typeof NetworkMode]) !== -1,
             )
             .map((key) => ({
@@ -338,38 +320,10 @@ export class SettingsComponent implements OnInit {
             }));
     }
 
-    searchDevice: OperatorFunction<string, readonly DiscoveredDevice[]> = (
-        text$: Observable<string>,
-    ) => {
-        const debouncedText$ = text$.pipe(
-            debounceTime(200),
-            distinctUntilChanged(),
-        );
-        const clicksWithClosedPopup$ = this.click$.pipe(
-            filter(() => !this.devTypeahead.isPopupOpen()),
-        );
-        const inputFocus$ = this.focus$;
+    deviceLabel = (d: DiscoveredDevice) => `${d.name} (${d.mac})`;
 
-        return merge(debouncedText$, inputFocus$, clicksWithClosedPopup$).pipe(
-            map((term) =>
-                (
-                    (term === ""
-                        ? this.discoveredDevices?.device
-                        : (this.discoveredDevices?.device || []).filter(
-                            (v) =>
-                                v.name.toLowerCase().indexOf(term.toLowerCase()) > -1 ||
-                                v.mac.toLowerCase().indexOf(term.toLowerCase()) > -1,
-                        )) || []
-                ).slice(0, 10),
-            ),
-        );
-    };
-
-    onSelectDevice(event: NgbTypeaheadSelectItemEvent) {
-        event.preventDefault();
-        if (event.item) {
-            this.obd2.patchValue({name: event.item.name, mac: event.item.mac});
-        }
+    onSelectDevice(item: DiscoveredDevice) {
+        this.obd2.patchValue({name: item.name, mac: item.mac});
     }
 
     generateDownload() {

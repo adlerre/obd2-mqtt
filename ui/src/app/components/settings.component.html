@@ -15,10 +15,6 @@
 ~  59 Temple Place - Suite 330, Boston, MA  02111-1307 USA
 -->
 
-<ng-template #deviceName let-r="result" let-t="term">
-    <ngb-highlight [result]="r.name + ' (' + r.mac + ')'" [term]="t"></ngb-highlight>
-</ng-template>
-
 <div id="settings">
     <div class="d-flex my-2 justify-content-end">
         <div class="btn-group">
@@ -160,12 +156,9 @@
                            placeholder="OBDII"
                            class="form-control"
                            [class]="{'is-invalid': obd2.controls.name.dirty && obd2.controls.name.errors}"
-                           [ngbTypeahead]="searchDevice"
-                           [resultTemplate]="deviceName"
-                           (focus)="focus$.next($any($event).target.value)"
-                           (click)="click$.next($any($event).target.value)"
+                           [uiTypeahead]="discoveredDevices?.device"
+                           [uiTypeaheadLabel]="deviceLabel"
                            (selectItem)="onSelectDevice($event)"
-                           #devTypeahead="ngbTypeahead"
                     >
                 </div>
             </div>

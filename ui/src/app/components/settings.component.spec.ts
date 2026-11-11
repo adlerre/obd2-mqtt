@@ -21,7 +21,7 @@ import { ComponentFixture, inject, TestBed, waitForAsync } from "@angular/core/t
 import { SettingsComponent } from "./settings.component";
 import { of } from "rxjs";
 import { ReactiveFormsModule } from "@angular/forms";
-import { NgbTypeaheadModule } from "@ng-bootstrap/ng-bootstrap";
+import { TypeaheadDirective } from "./typeahead.directive";
 import { ToastService } from "../services/toast.service";
 
 const testSettings: Settings = {
@@ -66,7 +66,7 @@ describe("SettingsComponent", () => {
         waitForAsync(() => {
             TestBed.configureTestingModule({
                 declarations: [SettingsComponent],
-                imports: [NgbTypeaheadModule, ReactiveFormsModule],
+                imports: [TypeaheadDirective, ReactiveFormsModule],
                 providers: [{provide: ApiService, useClass: MockApiService}, ToastService],
                 teardown: {destroyAfterEach: true},
             }).compileComponents();
