@@ -66,11 +66,10 @@
                         <div class="d-inline-flex flex-row w-25">
                             @if (item.progress) {
                                 <div class="w-100 mt-auto mb-auto">
-                                    <ngb-progressbar
-                                            [type]="!item.complete ? 'info' : item.error !== true ? 'success' : 'danger'"
-                                            textType="white" [value]="item.progress" [animated]="item.processing"
-                                            [striped]="true" [showValue]="true">
-                                    </ngb-progressbar>
+                                    <ui-progress
+                                            [type]="!item.complete ? 'info' : !item.error ? 'success' : 'danger'"
+                                            [value]="item.progress" [animated]="item.processing">
+                                    </ui-progress>
                                 </div>
                             }
                         </div>

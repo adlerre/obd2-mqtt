@@ -27,7 +27,7 @@ import {
 } from "@angular/core";
 import { ApiService } from "../services/api.service";
 import { distinctUntilChanged, Subject } from "rxjs";
-import { NgbProgressbarModule } from "@ng-bootstrap/ng-bootstrap";
+import { ProgressComponent } from "./progress.component";
 import { CommonModule } from "@angular/common";
 import { FileItem, OTAMode } from "../definitions";
 import { FormControl, ReactiveFormsModule } from "@angular/forms";
@@ -131,7 +131,7 @@ export class FileDropZoneDirective {
     imports: [
         CommonModule,
         ReactiveFormsModule,
-        NgbProgressbarModule,
+        ProgressComponent,
         FileDropZoneDirective,
     ],
     changeDetection: ChangeDetectionStrategy.Eager,
@@ -250,7 +250,7 @@ export class OTAComponent {
         const waiting = this.queue
             .filter(
                 (i) =>
-                    i.complete === false && i.processing === false && i.error === false,
+                    !i.complete && !i.processing && !i.error,
             )
             .slice(0, OTAComponent.MAX_CONCURRENT_UPLOADS);
 
