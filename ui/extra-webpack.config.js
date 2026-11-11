@@ -15,6 +15,7 @@
  *  59 Temple Place - Suite 330, Boston, MA  02111-1307 USA
  */
 const CompressionPlugin = require("compression-webpack-plugin");
+const zopfli = require("@gfx/zopfli");
 
 let settingsJson = {};
 
@@ -124,7 +125,12 @@ module.exports = {
     plugins: [
         new CompressionPlugin({
             filename: "[path][base].gz",
-            algorithm: "gzip",
+            compressionOptions: {
+                numiterations: 15,
+            },
+            algorithm(input, compressionOptions, callback) {
+                return zopfli.gzip(input, compressionOptions, callback);
+            },
             test: /\.js$|\.css$|\.html$|\.txt$/,
         }),
     ]
