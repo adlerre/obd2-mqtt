@@ -1,3 +1,15 @@
+# [0.43.0](https://github.com/adlerre/obd2-mqtt/compare/v0.42.1...v0.43.0) (2026-11-11)
+
+
+### Bug Fixes
+
+* bump versions ([54a950a](https://github.com/adlerre/obd2-mqtt/commit/54a950a6bea7600c9faae508bf1f23c8cfc0748e))
+
+
+### Features
+
+* migrate to Angular 22 ([#139](https://github.com/adlerre/obd2-mqtt/issues/139)) ([e0831a7](https://github.com/adlerre/obd2-mqtt/commit/e0831a793c4d6b14d22bfaddd5b0b9e81706331a))
+
 ## [0.42.1](https://github.com/adlerre/obd2-mqtt/compare/v0.42.0...v0.42.1) (2026-03-27)
 
 
