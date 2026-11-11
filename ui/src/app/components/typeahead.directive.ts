@@ -45,7 +45,9 @@ export class TypeaheadDirective<T> implements OnDestroy {
         this.list = (this.uiTypeahead() ?? [])
             .filter((i) => label(i).toLowerCase().includes(term))
             .slice(0, 10);
-        if (!this.list.length) return;
+        if (!this.list.length) {
+            return
+        }
         this.idx = 0;
 
         const m = (this.menu = document.createElement("div"));
@@ -89,7 +91,9 @@ export class TypeaheadDirective<T> implements OnDestroy {
 
     key(e: KeyboardEvent) {
         if (!this.menu) {
-            if (e.key === "ArrowDown") this.open();
+            if (e.key === "ArrowDown") {
+                this.open();
+            }
             return;
         }
         const n = this.list.length;
@@ -116,14 +120,18 @@ export class TypeaheadDirective<T> implements OnDestroy {
     private pick(i: number) {
         const item = this.list[i];
         this.close();
-        if (item !== undefined) this.selectItem.emit(item);
+        if (item !== undefined) {
+            this.selectItem.emit(item);
+        }
     }
 
     private mark() {
         this.idx = Math.min(this.idx, this.list.length - 1);
-        Array.from(this.menu!.children).forEach((c, i) => {
+        Array.from(this.menu?.children ?? []).forEach((c, i) => {
             c.classList.toggle("active", i === this.idx);
-            if (i === this.idx) c.scrollIntoView({block: "nearest"});
+            if (i === this.idx) {
+                c.scrollIntoView({block: "nearest"});
+            }
         });
     }
 }
