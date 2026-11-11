@@ -35,7 +35,7 @@ export class AppComponent implements OnInit {
 
     public otaEnabled: Promise<boolean>;
 
-    public colorScheme: string;
+    public colorScheme: string | null | undefined;
 
     private $api = inject(ApiService);
 
@@ -70,7 +70,7 @@ export class AppComponent implements OnInit {
         );
     }
 
-    changeColorScheme(scheme: string | null) {
+    changeColorScheme(scheme: string | null | undefined) {
         if (scheme) {
             if (scheme !== this.colorScheme) {
                 this.setColorScheme(scheme);
@@ -85,7 +85,7 @@ export class AppComponent implements OnInit {
         );
     }
 
-    private setColorScheme(scheme: string | null) {
+    private setColorScheme(scheme: string | null | undefined) {
         if (scheme) {
             window.localStorage.setItem(AppComponent.ATTR_COLOR_SCHEME, scheme);
         } else {
