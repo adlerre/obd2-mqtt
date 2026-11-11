@@ -15,10 +15,9 @@
  *  59 Temple Place - Suite 330, Boston, MA  02111-1307 USA
  */
 
-import { Injectable, TemplateRef } from "@angular/core";
+import { Injectable, signal } from "@angular/core";
 
 export interface Toast {
-    template?: TemplateRef<any>;
     text?: string;
     classname?: string;
     delay?: number;
@@ -26,17 +25,18 @@ export interface Toast {
 
 @Injectable({providedIn: "root"})
 export class ToastService {
-    toasts: Array<Toast> = [];
+    readonly toasts = signal<Toast[]>([]);
 
     show(toast: Toast) {
-        this.toasts.push(toast);
+        this.toasts.update((t) => [...t, toast]);
+        setTimeout(() => this.remove(toast), toast.delay || 5000);
     }
 
     remove(toast: Toast) {
-        this.toasts = this.toasts.filter((t) => t !== toast);
+        this.toasts.update((t) => t.filter((i) => i !== toast));
     }
 
     clear() {
-        this.toasts.splice(0, this.toasts.length);
+        this.toasts.set([]);
     }
 }
