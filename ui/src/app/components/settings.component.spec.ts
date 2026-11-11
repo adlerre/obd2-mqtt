@@ -16,13 +16,11 @@
  */
 
 import { Configuration, Settings } from "../definitions";
-import { ApiService } from "../services/api.service";
-import { ComponentFixture, inject, TestBed, waitForAsync } from "@angular/core/testing";
+import { ApiService, ToastService } from "../services";
+import { ComponentFixture, TestBed, waitForAsync } from "@angular/core/testing";
 import { SettingsComponent } from "./settings.component";
-import { of } from "rxjs";
 import { ReactiveFormsModule } from "@angular/forms";
 import { TypeaheadDirective } from "./typeahead.directive";
-import { ToastService } from "../services/toast.service";
 
 const testSettings: Settings = {
     wifi: {
@@ -33,25 +31,25 @@ const testSettings: Settings = {
 export class MockApiService {
 
     configuration() {
-        return of({deviceType: "T-A7670X"} as Configuration)
+        return Promise.resolve({deviceType: "T-A7670X"} as Configuration);
     }
 
     settings() {
-        return of(testSettings);
+        return Promise.resolve(testSettings);
     }
 
     canDeepSleep() {
-        return of({canDeepSleep: true})
+        return Promise.resolve({canDeepSleep: true});
     }
 
     updateSettings(settings: Settings) {
         expect(settings.mobile?.apn).toBe("apn.test.provider");
         expect(settings.mqtt?.hostname).toBe("broker.obd2-mqtt.test");
-        return of(settings);
+        return Promise.resolve(settings);
     }
 
     discoveredDevices() {
-        return of({"device": [{"name": "OBDII", "mac": "11:22:de:ad:be:ef"}]});
+        return Promise.resolve({"device": [{"name": "OBDII", "mac": "11:22:de:ad:be:ef"}]});
     }
 
 }
@@ -73,15 +71,16 @@ describe("SettingsComponent", () => {
         })
     );
 
-    beforeEach(inject([ApiService, ToastService], (apiService: ApiService, toastService: ToastService) => {
+    beforeEach(async () => {
+        service = TestBed.inject(ApiService);
+        toast = TestBed.inject(ToastService);
         fixture = TestBed.createComponent(SettingsComponent);
         component = fixture.componentInstance;
 
-        service = apiService;
-        toast = toastService;
-
         fixture.detectChanges();
-    }));
+        await fixture.whenStable();
+        fixture.detectChanges();
+    });
 
     it("should submit be disabled", () => {
         expect(getElement("#settings")).toBeTruthy();
@@ -107,7 +106,7 @@ describe("SettingsComponent", () => {
         expect((<HTMLInputElement>getElement("input[type='submit']")).disabled).toBeFalse();
     });
 
-    it("should update done", () => {
+    it("should update done", async () => {
         const spyToast = spyOn(toast, "show");
 
         expect(getElement("#settings")).toBeTruthy();
@@ -135,6 +134,7 @@ describe("SettingsComponent", () => {
         const submitBtn = <HTMLInputElement>getElement("input[type='submit']");
         expect(submitBtn.disabled).toBeFalse();
         submitBtn?.click();
+        await fixture.whenStable();
 
         expect(spyToast).toHaveBeenCalledWith({
             text: "Settings updated successfully.",

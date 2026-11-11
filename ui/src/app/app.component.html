@@ -27,7 +27,7 @@
             <li routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
                 <a routerLink="states">OBD</a>
             </li>
-            @if ((otaEnabled$ | async)) {
+            @if ((otaEnabled | async)) {
                 <li routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
                     <a routerLink="ota">OTA</a>
                 </li>

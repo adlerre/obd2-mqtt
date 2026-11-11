@@ -16,11 +16,10 @@
  */
 
 import { BrowserModule } from "@angular/platform-browser";
-import { provideHttpClient, withInterceptorsFromDi, withXhr, } from "@angular/common/http";
 import { NgModule } from "@angular/core";
 
 import { AppComponent } from "./app.component";
-import { ApiService } from "./services/api.service";
+import { ApiService, ToastService } from "./services";
 import { RouterModule } from "@angular/router";
 import {
     DeviceInfoComponent,
@@ -30,7 +29,6 @@ import {
     ToastsComponent,
     TypeaheadDirective,
 } from "./components";
-import { ToastService } from "./services/toast.service";
 import { ReactiveFormsModule } from "@angular/forms";
 
 @NgModule({
@@ -57,7 +55,6 @@ import { ReactiveFormsModule } from "@angular/forms";
         ToastsComponent,
     ],
     providers: [
-        provideHttpClient(withXhr(), withInterceptorsFromDi()),
         ApiService,
         ToastService,
     ],

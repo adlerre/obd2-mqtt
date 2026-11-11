@@ -15,8 +15,6 @@
  *  59 Temple Place - Suite 330, Boston, MA  02111-1307 USA
  */
 
-import { Subject } from "rxjs";
-
 export enum OTAMode {
     FIRMWARE = "fw",
     LITTLE_FS = "fs"
@@ -25,7 +23,6 @@ export enum OTAMode {
 export interface FileItem {
     file: File | any;
     mode?: OTAMode;
-    progressEvent?: Subject<number>;
     progress?: number;
     complete: boolean;
     processing: boolean;

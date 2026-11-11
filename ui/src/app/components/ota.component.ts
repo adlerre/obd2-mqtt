@@ -25,8 +25,7 @@ import {
     Output,
     ViewEncapsulation,
 } from "@angular/core";
-import { ApiService } from "../services/api.service";
-import { distinctUntilChanged, Subject } from "rxjs";
+import { ApiService } from "../services";
 import { ProgressComponent } from "./progress.component";
 import { CommonModule } from "@angular/common";
 import { FileItem, OTAMode } from "../definitions";
@@ -167,15 +166,11 @@ export class OTAComponent {
                             : f.name.toLowerCase().indexOf("firmware") !== -1
                                 ? OTAMode.FIRMWARE
                                 : OTAMode.LITTLE_FS,
-                    progressEvent: new Subject(),
                     complete: false,
                     processing: false,
                     error: false,
                     created: Date.now(),
                 };
-                qitem.progressEvent
-                    .pipe(distinctUntilChanged())
-                    .subscribe((p) => (qitem.progress = p));
                 this.queue.push(qitem);
             });
 
@@ -212,14 +207,13 @@ export class OTAComponent {
             item.started = Date.now();
             item.processing = true;
 
-            this.$api.otaStart(item.mode || this.mode.value).subscribe({
-                next: () =>
-                    this.$api.otaUpload(item.file, item.progressEvent).subscribe({
-                        next: (res) => this.queueItemDone(item, res),
-                        error: (err) => this.queueItemError(item, err),
-                    }),
-                error: (err) => this.queueItemError(item, err),
-            });
+            this.$api
+                .otaStart(item.mode || this.mode.value)
+                .then(() => this.$api.otaUpload(item.file, (p) => (item.progress = p)))
+                .then(
+                    (res) => this.queueItemDone(item, res),
+                    (err) => this.queueItemError(item, err),
+                );
         }
     }
 

@@ -16,7 +16,7 @@
  */
 
 import { ChangeDetectionStrategy, Component, inject, OnInit, } from "@angular/core";
-import { ApiService } from "../services/api.service";
+import { ApiService, ToastService } from "../services";
 import { FormControl, FormGroup, Validators, } from "@angular/forms";
 import {
     Configuration,
@@ -33,8 +33,6 @@ import {
     Settings,
     stripEmptyProps,
 } from "../definitions";
-import { catchError, of, } from "rxjs";
-import { ToastService } from "../services/toast.service";
 import { DomSanitizer } from "@angular/platform-browser";
 
 @Component({
@@ -255,19 +253,19 @@ export class SettingsComponent implements OnInit {
     ngOnInit(): void {
         this.$api
             .configuration()
-            .subscribe(
+            .then(
                 (configuration: Configuration) => (this.configuration = configuration),
             );
         this.$api
             .canDeepSleep()
-            .subscribe((res) => (this.canDeepSleep = res.canDeepSleep));
+            .then((res) => (this.canDeepSleep = res.canDeepSleep));
         this.$api
             .settings()
-            .subscribe((settings) => this.form.patchValue(settings));
+            .then((settings) => this.form.patchValue(settings));
         this.$api
             .discoveredDevices()
-            .pipe(catchError(() => of({} as DiscoveredDevices)))
-            .subscribe((dd) => (this.discoveredDevices = dd));
+            .catch(() => ({} as DiscoveredDevices))
+            .then((dd) => (this.discoveredDevices = dd));
     }
 
     isNetworkModeAllowed(): boolean {
@@ -357,22 +355,22 @@ export class SettingsComponent implements OnInit {
 
     onSubmit({value, valid}: { value: Settings; valid: boolean }) {
         if (valid) {
-            this.$api.updateSettings(this.fixJson(value)).subscribe({
-                next: () => {
+            this.$api.updateSettings(this.fixJson(value)).then(
+                () => {
                     this.toast.show({
                         text: "Settings updated successfully.",
                         classname: "bg-success text-light",
                         delay: 10000,
                     });
                 },
-                error: (err) => {
+                (err) => {
                     this.toast.show({
                         text: err.message,
                         classname: "bg-danger text-light",
                         delay: 10000,
                     });
                 },
-            });
+            );
         }
     }
 

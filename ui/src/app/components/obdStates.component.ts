@@ -16,7 +16,7 @@
  */
 
 import { ChangeDetectionStrategy, Component, inject, OnInit, } from "@angular/core";
-import { ApiService } from "../services/api.service";
+import { ApiService, ToastService } from "../services";
 import {
     AbstractControl,
     FormArray,
@@ -40,7 +40,6 @@ import {
     ValueTypes,
 } from "../definitions";
 import { DomSanitizer } from "@angular/platform-browser";
-import { ToastService } from "../services/toast.service";
 
 export function expressionValidator(
     checkStates: boolean = true,
@@ -225,7 +224,7 @@ export class OBDStatesComponent implements OnInit {
     }
 
     ngOnInit(): void {
-        this.$api.states().subscribe((states) => {
+        this.$api.states().then((states) => {
             if (states && states.length !== 0) {
                 states.forEach((state) => this.states.push(this.buildState(state)));
             } else {
@@ -518,22 +517,22 @@ export class OBDStatesComponent implements OnInit {
     }) {
         if (valid) {
             const states: Array<OBDState> = stripEmptyProps(value.states);
-            this.$api.updateStates(states).subscribe({
-                next: () => {
+            this.$api.updateStates(states).then(
+                () => {
                     this.toast.show({
                         text: "States updated successfully.",
                         classname: "bg-success text-light",
                         delay: 10000,
                     });
                 },
-                error: (err) => {
+                (err) => {
                     this.toast.show({
                         text: err.message,
                         classname: "bg-danger text-light",
                         delay: 10000,
                     });
                 },
-            });
+            );
         }
     }
 

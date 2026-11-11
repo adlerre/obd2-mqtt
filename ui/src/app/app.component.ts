@@ -16,9 +16,7 @@
  */
 
 import { ChangeDetectionStrategy, Component, DOCUMENT, inject, OnInit, ViewEncapsulation, } from "@angular/core";
-import { ApiService } from "./services/api.service";
-
-import { Observable } from "rxjs";
+import { ApiService } from "./services";
 
 @Component({
     selector: "ui-root",
@@ -35,7 +33,7 @@ export class AppComponent implements OnInit {
 
     private static COLOR_SCHEME_DARK = "dark";
 
-    public otaEnabled$: Observable<boolean>;
+    public otaEnabled: Promise<boolean>;
 
     public colorScheme: string;
 
@@ -46,7 +44,7 @@ export class AppComponent implements OnInit {
     private readonly prefersColorScheme: string;
 
     constructor() {
-        this.otaEnabled$ = this.$api.otaEnabled();
+        this.otaEnabled = this.$api.otaEnabled();
         this.prefersColorScheme = window.matchMedia("(prefers-color-scheme: dark)")
             .matches
             ? AppComponent.COLOR_SCHEME_DARK
@@ -60,8 +58,7 @@ export class AppComponent implements OnInit {
 
     rebootConfirm() {
         if (window.confirm("Are you sure you want to reboot?")) {
-            this.$api.reboot().subscribe(() => {
-            });
+            this.$api.reboot().catch(console.error);
         }
     }
 
