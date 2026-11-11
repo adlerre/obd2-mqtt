@@ -18,5 +18,7 @@
 export * from "./deviceInfo.component";
 export * from "./obdStates.component";
 export * from "./ota.component";
+export * from "./progress.component";
 export * from "./settings.component";
 export * from "./toasts.component";
+export * from "./typeahead.directive";

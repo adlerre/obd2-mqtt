@@ -16,10 +16,9 @@
  */
 
 import { DTCs, ModemInfo, WifiInfo } from "../definitions";
-import { of } from "rxjs";
 import { DeviceInfoComponent } from "./deviceInfo.component";
-import { ApiService } from "../services/api.service";
-import { ComponentFixture, inject, TestBed, waitForAsync } from "@angular/core/testing";
+import { ApiService } from "../services";
+import { ComponentFixture, TestBed, waitForAsync } from "@angular/core/testing";
 
 const testWiFiInfo: WifiInfo = {
     SSID: "Test AP",
@@ -43,19 +42,19 @@ const dtcs: DTCs = {
 export class MockApiService {
 
     version() {
-        return of("1.0.0");
+        return Promise.resolve("1.0.0");
     }
 
     wifiInfo() {
-        return of<WifiInfo>(testWiFiInfo);
+        return Promise.resolve<WifiInfo>(testWiFiInfo);
     }
 
     modemInfo() {
-        return of<ModemInfo>(testModemInfo);
+        return Promise.resolve<ModemInfo>(testModemInfo);
     }
 
     dtcs() {
-        return of<DTCs>(dtcs);
+        return Promise.resolve<DTCs>(dtcs);
     }
 
 }
@@ -84,13 +83,15 @@ describe("DeviceInfoComponent", () => {
         })
     );
 
-    beforeEach(inject([ApiService], (apiService: ApiService) => {
+    beforeEach(async () => {
+        service = TestBed.inject(ApiService);
         fixture = TestBed.createComponent(DeviceInfoComponent);
         component = fixture.componentInstance;
-        service = apiService;
 
         fixture.detectChanges();
-    }));
+        await fixture.whenStable();
+        fixture.detectChanges();
+    });
 
     it("should show infos", () => {
         expect(getElement("#deviceInfo")).toBeTruthy();

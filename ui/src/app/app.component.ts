@@ -15,17 +15,27 @@
  *  59 Temple Place - Suite 330, Boston, MA  02111-1307 USA
  */
 
-import { Component, DOCUMENT, inject, OnInit, ViewEncapsulation } from "@angular/core";
-import { ApiService } from "./services/api.service";
+import {
+    ChangeDetectionStrategy,
+    Component,
+    DOCUMENT,
+    inject,
+    OnInit,
+    signal,
+    ViewEncapsulation,
+} from "@angular/core";
+import { ApiService } from "./services";
 
-import { Observable } from "rxjs";
+const pageFromHash = () => location.hash.replace(/^#\/?/, "");
 
 @Component({
     selector: "ui-root",
     templateUrl: "./app.component.html",
     styleUrls: ["./app.component.scss"],
     encapsulation: ViewEncapsulation.None,
-    standalone: false
+    changeDetection: ChangeDetectionStrategy.Eager,
+    standalone: false,
+    host: {"(window:hashchange)": "onHashChange()"},
 })
 export class AppComponent implements OnInit {
 
@@ -35,9 +45,11 @@ export class AppComponent implements OnInit {
 
     private static COLOR_SCHEME_DARK = "dark";
 
-    public otaEnabled$: Observable<boolean>;
+    public readonly otaEnabled = signal(false);
 
-    public colorScheme: string;
+    public colorScheme: string | null | undefined;
+
+    public readonly page = signal(pageFromHash());
 
     private $api = inject(ApiService);
 
@@ -46,9 +58,11 @@ export class AppComponent implements OnInit {
     private readonly prefersColorScheme: string;
 
     constructor() {
-        this.otaEnabled$ = this.$api.otaEnabled();
-        this.prefersColorScheme = window.matchMedia("(prefers-color-scheme: dark)").matches ?
-            AppComponent.COLOR_SCHEME_DARK : AppComponent.COLOR_SCHEME_LIGHT;
+        this.$api.otaEnabled().then((enabled) => this.otaEnabled.set(enabled));
+        this.prefersColorScheme = window.matchMedia("(prefers-color-scheme: dark)")
+            .matches
+            ? AppComponent.COLOR_SCHEME_DARK
+            : AppComponent.COLOR_SCHEME_LIGHT;
     }
 
     ngOnInit(): void {
@@ -56,20 +70,25 @@ export class AppComponent implements OnInit {
         this.changeColorScheme(this.colorScheme);
     }
 
+    onHashChange() {
+        this.page.set(pageFromHash());
+    }
 
     rebootConfirm() {
         if (window.confirm("Are you sure you want to reboot?")) {
-            this.$api.reboot().subscribe(() => {
-            });
+            this.$api.reboot().catch(console.error);
         }
     }
 
     switchColorScheme() {
-        this.changeColorScheme(this.colorScheme === AppComponent.COLOR_SCHEME_LIGHT ?
-            AppComponent.COLOR_SCHEME_DARK : AppComponent.COLOR_SCHEME_LIGHT)
+        this.changeColorScheme(
+            this.colorScheme === AppComponent.COLOR_SCHEME_LIGHT
+                ? AppComponent.COLOR_SCHEME_DARK
+                : AppComponent.COLOR_SCHEME_LIGHT,
+        );
     }
 
-    changeColorScheme(scheme: string | null) {
+    changeColorScheme(scheme: string | null | undefined) {
         if (scheme) {
             if (scheme !== this.colorScheme) {
                 this.setColorScheme(scheme);
@@ -78,10 +97,13 @@ export class AppComponent implements OnInit {
             this.setColorScheme(null);
         }
 
-        this.document.documentElement.setAttribute("data-ui-theme", scheme || this.prefersColorScheme);
+        this.document.documentElement.setAttribute(
+            "data-ui-theme",
+            scheme || this.prefersColorScheme,
+        );
     }
 
-    private setColorScheme(scheme: string | null) {
+    private setColorScheme(scheme: string | null | undefined) {
         if (scheme) {
             window.localStorage.setItem(AppComponent.ATTR_COLOR_SCHEME, scheme);
         } else {
@@ -91,7 +113,8 @@ export class AppComponent implements OnInit {
     }
 
     private getColorScheme() {
-        this.colorScheme = window.localStorage.getItem(AppComponent.ATTR_COLOR_SCHEME);
+        this.colorScheme = window.localStorage.getItem(
+            AppComponent.ATTR_COLOR_SCHEME,
+        );
     }
-
 }

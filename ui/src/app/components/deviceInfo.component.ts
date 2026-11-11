@@ -15,17 +15,17 @@
  *  59 Temple Place - Suite 330, Boston, MA  02111-1307 USA
  */
 
-import { Component, inject, OnInit } from "@angular/core";
+import { ChangeDetectionStrategy, Component, inject, OnInit, } from "@angular/core";
 import { DTCs, ModemInfo, WifiInfo } from "../definitions";
-import { ApiService } from "../services/api.service";
+import { ApiService } from "../services";
 
 @Component({
     selector: "ui-device-info",
     templateUrl: "./deviceInfo.component.html",
-    standalone: false
+    changeDetection: ChangeDetectionStrategy.Eager,
+    standalone: false,
 })
 export class DeviceInfoComponent implements OnInit {
-
     version: string | undefined;
 
     wifiInfo: WifiInfo | undefined;
@@ -37,10 +37,10 @@ export class DeviceInfoComponent implements OnInit {
     private $api = inject(ApiService);
 
     ngOnInit(): void {
-        this.$api.version().subscribe(ver => this.version = ver);
-        this.$api.wifiInfo().subscribe((wi) => this.wifiInfo = wi);
-        this.$api.modemInfo().subscribe((mi) => this.modemInfo = mi);
-        this.$api.dtcs().subscribe((d: DTCs) => this.dtcs = d);
+        this.$api.version().then((ver) => (this.version = ver));
+        this.$api.wifiInfo().then((wi) => (this.wifiInfo = wi));
+        this.$api.modemInfo().then((mi) => (this.modemInfo = mi));
+        this.$api.dtcs().then((d: DTCs) => (this.dtcs = d));
     }
 
     calcRSSI(signalQuality: number): number {
@@ -50,5 +50,4 @@ export class DeviceInfoComponent implements OnInit {
 
         return signalQuality;
     }
-
 }

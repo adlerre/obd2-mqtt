@@ -15,8 +15,7 @@
  *  59 Temple Place - Suite 330, Boston, MA  02111-1307 USA
  */
 
-import { inject, Injectable } from "@angular/core";
-import { HttpClient, HttpEvent, HttpEventType, HttpHeaders, HttpRequest, HttpResponse } from "@angular/common/http";
+import { Injectable } from "@angular/core";
 import {
     Configuration,
     DiscoveredDevices,
@@ -27,112 +26,115 @@ import {
     Settings,
     WifiInfo
 } from "../definitions";
-import { catchError, distinctUntilChanged, last, map, of, Subject } from "rxjs";
+
+function httpError(url: string, status: number, statusText: string, error: string) {
+    return Object.assign(
+        new Error(`Http failure response for ${url}: ${status} ${statusText}`),
+        {status, error},
+    );
+}
+
+async function http(url: string, method = "GET", body?: unknown): Promise<string> {
+    const res = await fetch(url, {
+        method,
+        body: body === undefined ? undefined : JSON.stringify(body),
+        headers: body === undefined ? undefined : {"Content-Type": "application/json"},
+    });
+    const text = await res.text();
+    if (!res.ok) {
+        throw httpError(url, res.status, res.statusText, text);
+    }
+    return text;
+}
+
+async function json<T>(url: string, method?: string, body?: unknown): Promise<T | null> {
+    const text = await http(url, method, body);
+    return text ? JSON.parse(text) : null;
+}
 
 @Injectable()
 export class ApiService {
 
-    $http = inject(HttpClient);
-
     configuration() {
-        return this.$http.get<Configuration>("configuration.json");
+        return json<Configuration>("configuration.json");
     }
 
     reboot() {
-        return this.$http.post("/api/reboot?reboot=true", {}, {responseType: "text"});
+        return http("/api/reboot?reboot=true", "POST", {});
     }
 
     version() {
-        return this.$http.get("/api/version", {responseType: "text"});
+        return http("/api/version");
     }
 
     wifiInfo() {
-        return this.$http.get<WifiInfo>("/api/wifi");
+        return json<WifiInfo>("/api/wifi");
     }
 
     modemInfo() {
-        return this.$http.get<ModemInfo>("/api/modem");
+        return json<ModemInfo>("/api/modem");
     }
 
     dtcs() {
-        return this.$http.get<DTCs>("/api/DTCs");
+        return json<DTCs>("/api/DTCs");
     }
 
     settings() {
-        return this.$http.get<Settings>("/api/settings");
+        return json<Settings>("/api/settings");
     }
 
     updateSettings(settings: Settings) {
-        return this.$http.put<Settings>("/api/settings", settings);
+        return json<Settings>("/api/settings", "PUT", settings);
     }
 
     states() {
-        return this.$http.get<Array<OBDState>>("/api/states");
+        return json<Array<OBDState>>("/api/states");
     }
 
     canDeepSleep() {
-        return this.$http.get<{ "canDeepSleep": boolean }>("/api/canDeepSleep");
+        return json<{ "canDeepSleep": boolean }>("/api/canDeepSleep");
     }
 
     updateStates(states: Array<OBDState>) {
-        return this.$http.put<Array<OBDState>>("/api/states", states);
+        return json<Array<OBDState>>("/api/states", "PUT", states);
     }
 
     discoveredDevices() {
-        return this.$http.get<DiscoveredDevices>("/api/discoveredDevices");
+        return json<DiscoveredDevices>("/api/discoveredDevices");
     }
 
     otaEnabled() {
-        return this.$http.get("/api/ota/status", {observe: "response", responseType: "text"})
-            .pipe(
-                map((res: HttpResponse<any>) => res.status === 200),
-                catchError((_err, _caught) => of(false))
-            );
+        return fetch("/api/ota/status").then((res) => res.status === 200, () => false);
     }
 
     otaStart(mode: OTAMode = OTAMode.FIRMWARE) {
-        return this.$http.get(`/api/ota/start?mode=${mode}`, {responseType: "text"});
+        return http(`/api/ota/start?mode=${mode}`);
     }
 
-    otaUpload(file: File, progress?: Subject<number>) {
-        const formData = new FormData();
-        formData.append("file", file, file.name);
+    otaUpload(file: File, onProgress?: (percent: number) => void) {
+        return new Promise<{ status: number }>((resolve, reject) => {
+            const url = "/api/ota/upload";
+            const body = new FormData();
+            body.append("file", file, file.name);
 
-        const req = new HttpRequest(
-            "POST",
-            "/api/ota/upload",
-            formData,
-            {
-                headers: new HttpHeaders(
-                    {"ngsw-bypass": "true"},
-                ),
-                reportProgress: progress !== undefined,
-                responseType: "text"
-            }
-        );
-
-        return this.$http.request(req).pipe(
-            distinctUntilChanged(),
-            map((event: HttpEvent<any>) => {
-                if (event) {
-                    if (event.type === HttpEventType.UploadProgress && progress && event.total) {
-                        const percentDone = Math.round(100 * event.loaded / event.total);
-                        progress.next(percentDone);
-                    } else if (event.type === HttpEventType.Response) {
-                        if (progress) {
-                            progress.next(100);
-                            progress.complete();
-                        }
-
-                        return event;
-                    }
+            const xhr = new XMLHttpRequest();
+            xhr.open("POST", url);
+            xhr.upload.onprogress = (e) => {
+                if (e.lengthComputable) {
+                    onProgress?.(Math.round(100 * e.loaded / e.total));
                 }
-
-                return event;
-            }),
-            last()
-        );
+            };
+            xhr.onerror = () => reject(httpError(url, 0, "Unknown Error", xhr.responseText));
+            xhr.onload = () => {
+                if (xhr.status >= 200 && xhr.status < 300) {
+                    onProgress?.(100);
+                    resolve({status: xhr.status});
+                } else {
+                    reject(httpError(url, xhr.status, xhr.statusText, xhr.responseText));
+                }
+            };
+            xhr.send(body);
+        });
     }
-
 
 }

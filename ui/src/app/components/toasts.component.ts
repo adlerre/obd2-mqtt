@@ -15,36 +15,25 @@
  *  59 Temple Place - Suite 330, Boston, MA  02111-1307 USA
  */
 
-import { Component, inject } from "@angular/core";
+import { ChangeDetectionStrategy, Component, inject } from "@angular/core";
 
 import { ToastService } from "../services/toast.service";
-import { NgTemplateOutlet } from "@angular/common";
-import { NgbToast } from "@ng-bootstrap/ng-bootstrap/toast";
 
 @Component({
-    selector: "ui-toast",
-    imports: [NgbToast, NgTemplateOutlet],
-    template: `
-        @for (toast of toastService.toasts; track toast) {
-            <ngb-toast
-                    [class]="toast.classname"
-                    [autohide]="true"
-                    [delay]="toast.delay || 5000"
-                    (hidden)="toastService.remove(toast)"
-            >
-                @if (toast.template) {
-                    <ng-template [ngTemplateOutlet]="toast.template"></ng-template>
-                } @else {
-                    {{ toast.text }}
-                }
-            </ngb-toast>
-        }
-    `,
-    host: {
-        class: "toast-container p-3",
-        style: "position: fixed; top: 0; right: 0; z-index: 1200"
+  selector: "ui-toast",
+  template: `
+    @for (toast of toastService.toasts(); track toast) {
+      <div class="toast show" role="alert" [class]="toast.classname">
+        <div class="toast-body">{{ toast.text }}</div>
+      </div>
     }
+  `,
+  changeDetection: ChangeDetectionStrategy.Eager,
+  host: {
+    class: "toast-container p-3",
+    style: "position: fixed; top: 0; right: 0; z-index: 1200",
+  },
 })
 export class ToastsComponent {
-    toastService = inject(ToastService);
+  toastService = inject(ToastService);
 }

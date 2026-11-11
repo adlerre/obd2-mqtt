@@ -16,22 +16,19 @@
  */
 
 import { BrowserModule } from "@angular/platform-browser";
-import { provideHttpClient, withInterceptorsFromDi } from "@angular/common/http";
 import { NgModule } from "@angular/core";
 
 import { AppComponent } from "./app.component";
-import { ApiService } from "./services/api.service";
-import { RouterModule } from "@angular/router";
+import { ApiService, ToastService } from "./services";
 import {
     DeviceInfoComponent,
     OBDStatesComponent,
     OTAComponent,
     SettingsComponent,
-    ToastsComponent
+    ToastsComponent,
+    TypeaheadDirective,
 } from "./components";
-import { ToastService } from "./services/toast.service";
 import { ReactiveFormsModule } from "@angular/forms";
-import { NgbHighlight, NgbTypeahead } from "@ng-bootstrap/ng-bootstrap";
 
 @NgModule({
     bootstrap: [AppComponent],
@@ -44,24 +41,14 @@ import { NgbHighlight, NgbTypeahead } from "@ng-bootstrap/ng-bootstrap";
     imports: [
         BrowserModule,
         ReactiveFormsModule,
-        NgbHighlight,
-        NgbTypeahead,
-        RouterModule.forRoot(
-            [
-                {path: "", component: DeviceInfoComponent},
-                {path: "settings", component: SettingsComponent},
-                {path: "states", component: OBDStatesComponent},
-                {path: "ota", component: OTAComponent},
-            ],
-            {useHash: true}
-        ),
-        ToastsComponent
+        TypeaheadDirective,
+        OTAComponent,
+        ToastsComponent,
     ],
     providers: [
-        provideHttpClient(withInterceptorsFromDi()),
         ApiService,
-        ToastService
-    ]
+        ToastService,
+    ],
 })
 export class AppModule {
 }
