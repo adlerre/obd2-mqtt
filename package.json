@@ -9,9 +9,9 @@
     "test": "ng test --watch=false --code-coverage --no-progress",
     "test:ci": "ng test --watch=false --code-coverage --no-progress --browsers=ChromeHeadlessCI",
     "lint": "ng lint",
-    "build:esp-wt": "webpack --config tools/esp-web-tools/webpack.config.js --mode=production --node-env=production",
+    "build:esp-wt": "webpack --config tools/esp-web-tools/webpack.config.js --mode=production --env=production",
     "build:esp-wt:dev": "webpack --config tools/esp-web-tools/webpack.config.js --mode=development",
-    "build:esp-wt:prod": "webpack --config tools/esp-web-tools/webpack.config.js --mode=production --node-env=production",
+    "build:esp-wt:prod": "webpack --config tools/esp-web-tools/webpack.config.js --mode=production --env=production",
     "watch:esp-wt": "webpack --config tools/esp-web-tools/webpack.config.js --watch",
     "serve:esp-wt": "webpack serve  --config tools/esp-web-tools/webpack.config.js",
     "build:manifest": "ts-node tools/esp-web-tools/src/build-manifest.ts --dist ./docs/"
