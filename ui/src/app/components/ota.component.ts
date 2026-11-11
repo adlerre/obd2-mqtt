@@ -27,7 +27,6 @@ import {
 } from "@angular/core";
 import { ApiService } from "../services";
 import { ProgressComponent } from "./progress.component";
-import { CommonModule } from "@angular/common";
 import { FileItem, OTAMode } from "../definitions";
 import { FormControl, ReactiveFormsModule } from "@angular/forms";
 
@@ -128,7 +127,6 @@ export class FileDropZoneDirective {
     templateUrl: "./ota.component.html",
     styleUrls: ["./ota.component.scss"],
     imports: [
-        CommonModule,
         ReactiveFormsModule,
         ProgressComponent,
         FileDropZoneDirective,
