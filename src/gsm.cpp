@@ -34,6 +34,26 @@ TinyGPSPlus gps;
 
 #include "soc/adc_periph.h"
 
+#if defined(MAX17048_I2C_ADDRESS)
+static bool max17048ReadReg16(const uint8_t reg, uint16_t &value) {
+    uint8_t addr = MAX17048_I2C_ADDRESS;
+
+    Wire.beginTransmission(addr);
+    Wire.write(reg);
+    if (Wire.endTransmission(false) != 0) {
+        // Repeated Start
+        return false;
+    }
+    if (Wire.requestFrom(addr, (uint8_t) 2) != 2) {
+        return false;
+    }
+    uint8_t msb = Wire.read();
+    uint8_t lsb = Wire.read();
+    value = ((uint16_t) msb << 8) | lsb;
+    return true;
+}
+#endif
+
 int GSM::convertSQToRSSI(int signalQuality) {
     if (signalQuality > 0 && signalQuality <= 32) {
         return (111 - signalQuality * 2 - 2) * -1;
@@ -61,7 +81,8 @@ int GSM::adcChannelNum(const gpio_num_t pin) {
 }
 
 void GSM::ulpInit(unsigned int threshold, unsigned int highThreshold, int wakeupPeriod) {
-#if DEVICE_CAN_DEEP_SLEEP && defined(BOARD_BAT_ADC_PIN)
+#if DEVICE_CAN_DEEP_SLEEP
+#if defined(BOARD_BAT_ADC_PIN)
     unsigned int idx = adcPeriphNum(static_cast<gpio_num_t>(BOARD_BAT_ADC_PIN));
 
     if (idx == 0) {
@@ -178,6 +199,83 @@ void GSM::ulpInit(unsigned int threshold, unsigned int highThreshold, int wakeup
         // Run ULP program
         ESP_ERROR_CHECK(ulp_run(ULP_START_OFFSET));
     }
+
+#elif defined(MAX17048_I2C_ADDRESS)
+    const ulp_insn_t program[] = {
+        /* Read VCELL and assemble into 16 bits */
+        I_I2C_READ(0, REG_VCELL_MSB), // R0 = MSB
+        I_LSHI(R1, R0, 8), // R1 = MSB << 8
+        I_I2C_READ(0, REG_VCELL_LSB), // R0 = LSB
+        I_ORR(R1, R1, R0), // R1 = VCELL (raw)
+
+        I_MOVI(R3, 2),
+        I_ST(R1, R3, 0), // mem[2] = current raw value (debug)
+
+        /* Retrieve previous value, save new one */
+        I_MOVI(R3, 1),
+        I_LD(R2, R3, 0), // R2 = old value (mem[1])
+        I_ST(R1, R3, 0), // mem[1] = new value
+
+        /* First pass? (old value == 0) -> save only */
+        I_MOVR(R0, R2),
+        M_BL(9, 1), // R0 < 1 -> End
+
+        /* Differenz neu - alt */
+        I_SUBR(R0, R1, R2),
+        I_MOVI(R3, 0),
+        I_ST(R0, R3, 0), // mem[0] = Difference (Debug)
+        M_BXF(9), // Overflow = negative = voltage dropped -> End
+        M_BGE(6, VCELL_THRESHOLD), // Rise >= threshold -> wake up
+        M_BX(9),
+
+        /* Wake up */
+        M_LABEL(6),
+        I_MOVI(R0, 0),
+        I_RD_REG(RTC_CNTL_LOW_POWER_ST_REG, RTC_CNTL_RDY_FOR_WAKEUP_S, RTC_CNTL_RDY_FOR_WAKEUP_S),
+        M_BGE(7, 1), // Wakeup allowed?
+        M_BX(6),
+
+        M_LABEL(7),
+        I_WAKE(),
+
+        M_LABEL(9),
+        I_HALT()
+    };
+
+    size_t ulpSize = sizeof(program) / sizeof(ulp_insn_t);
+
+    const esp_sleep_wakeup_cause_t wakeup_reason = esp_sleep_get_wakeup_cause();
+    switch (wakeup_reason) {
+        case ESP_SLEEP_WAKEUP_EXT0:
+            log_d("Wakeup caused by external signal using RTC_IO");
+            break;
+        case ESP_SLEEP_WAKEUP_EXT1:
+            log_d("Wakeup caused by external signal using RTC_CNTL");
+            break;
+        case ESP_SLEEP_WAKEUP_TIMER:
+            log_d("Wakeup caused by timer");
+            break;
+        case ESP_SLEEP_WAKEUP_TOUCHPAD:
+            log_d("Wakeup caused by touchpad");
+            break;
+        case ESP_SLEEP_WAKEUP_ULP:
+            log_d("Wakeup caused by ULP program");
+            log_d("threshold result = %d\n", RTC_SLOW_MEM[0] & 0xFFF);
+            break;
+        default:
+            log_d("Wakeup was not caused by deep sleep: %d\n", wakeup_reason);
+            break;
+    }
+
+    // Load ULP program
+    ESP_ERROR_CHECK(ulp_process_macros_and_load(ULP_START_OFFSET, program, &ulpSize));
+    if (wakeupPeriod > 0) {
+        ESP_ERROR_CHECK(ulp_set_wakeup_period(0, wakeupPeriod * 1000 * 1000));
+    }
+
+    // Run ULP program
+    ESP_ERROR_CHECK(ulp_run(ULP_START_OFFSET));
+#endif
 #endif
 }
 
@@ -645,6 +743,26 @@ bool GSM::isBatteryUsed() {
 #if DEVICE_HAS_BATTERY && defined(BOARD_BAT_ADC_PIN)
     pinMode(BOARD_BAT_ADC_PIN, INPUT);
     return digitalRead(BOARD_BAT_ADC_PIN) == HIGH;
+#elif defined(MAX17048_I2C_ADDRESS)
+    uint16_t raw;
+
+    // Is the battery even present/plausible? (VCELL: 78.125 µV/LSB)
+    if (!max17048ReadReg16(REG_VCELL_LSB, raw)) {
+        return false;
+    }
+    float vcell = raw * 78.125e-6f;
+    if (vcell < 2.5f || vcell > 4.5f) {
+        return false; // no cell
+    }
+
+    // Read charging/discharging rate (signed)
+    if (!max17048ReadReg16(REG_CRATE, raw)) {
+        return false;
+    }
+    int16_t crate = (int16_t) raw;
+
+    // negative = battery is releasing energy = in use
+    return crate <= CRATE_DISCHARGE_TH;
 #else
     return false;
 #endif
@@ -666,12 +784,10 @@ unsigned int GSM::getBatteryVoltage() {
 #ifdef BOARD_BAT_ADC_PIN
     return analogReadMilliVolts(BOARD_BAT_ADC_PIN) * 2;
 #elif defined(MAX17048_I2C_ADDRESS)
-    Wire.beginTransmission(MAX17048_I2C_ADDRESS);
-    Wire.write(0x02);
-    Wire.endTransmission();
-
-    Wire.requestFrom(MAX17048_I2C_ADDRESS, 2);
-    uint16_t result = ((uint16_t) Wire.read() << 8) | Wire.read();
+    uint16_t result = 0;
+    if (!max17048ReadReg16(REG_VCELL_LSB, result)) {
+        return 0;
+    }
 
     return static_cast<int>(1.0f * result * 78.125f / 1000.0f);
 #else
@@ -681,12 +797,11 @@ unsigned int GSM::getBatteryVoltage() {
 
 float GSM::getBatteryLevel() {
 #if defined(MAX17048_I2C_ADDRESS)
-    Wire.beginTransmission(MAX17048_I2C_ADDRESS);
-    Wire.write(0x04);
-    Wire.endTransmission();
+    uint16_t result = 0;
+    if (!max17048ReadReg16(REG_LEVEL, result)) {
+        return 0;
+    }
 
-    Wire.requestFrom(MAX17048_I2C_ADDRESS, 2);
-    uint16_t result = ((uint16_t) Wire.read() << 8) | Wire.read();
     if (result > 25600) result = 25600;
 
     return 1.0f * result / 256.0f;
