@@ -55,19 +55,29 @@
 
 #include <numeric>
 #define DEVICE_CAN_DEEP_SLEEP   true
-#include "driver/rtc_io.h"
 #include "driver/adc.h"
-
-#include "esp32/ulp.h"
-#include "soc/soc.h"
-#define ULP_START_OFFSET 32
-
 #elif defined(MAX17048_I2C_ADDRESS)
 #define DEVICE_BATTERY_VOLTAGE  true
 #define DEVICE_BATTERY_LEVEL    true
-#define DEVICE_CAN_DEEP_SLEEP   false
 
+#define DEVICE_CAN_DEEP_SLEEP   true
+
+#define REG_VCELL_MSB           0x02
+#define REG_VCELL_LSB           0x03
+#define VCELL_THRESHOLD         512
+
+#define REG_CRATE               0x16
+#define CRATE_DISCHARGE_TH      (-4)
+
+#define REG_LEVEL               0x04
 #include <Wire.h>
+#endif
+
+#if defined(DEVICE_CAN_DEEP_SLEEP)
+#include "driver/rtc_io.h"
+#include "esp32/ulp.h"
+#include "soc/soc.h"
+#define ULP_START_OFFSET 32
 #endif
 
 #else
