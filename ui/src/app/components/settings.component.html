@@ -326,6 +326,24 @@
                     </div>
                 </div>
                 <div class="row mb-2">
+                    <label for="stoppedDataInterval" class="col-sm-2 col-form-label">Data (Engine stopped)</label>
+                    <div class="col-sm-10">
+                        <select class="form-control form-select" id="stoppedDataInterval"
+                                formControlName="stoppedDataInterval"
+                                [class]="{'is-invalid': mqtt.controls.stoppedDataInterval.errors}">
+                            @for (interval of stoppedDataIntervals; track interval) {
+                                <option [value]="interval">
+                                    @if (interval === 0) {
+                                        disabled
+                                    } @else {
+                                        {{ interval }}&nbsp;sec
+                                    }
+                                </option>
+                            }
+                        </select>
+                    </div>
+                </div>
+                <div class="row mb-2">
                     <label for="diagnosticInterval" class="col-sm-2 col-form-label">Diagnostic Data</label>
                     <div class="col-sm-10">
                         <select class="form-control form-select" id="diagnosticInterval"

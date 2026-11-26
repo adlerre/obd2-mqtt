@@ -183,6 +183,7 @@ class MQTTSettings {
         char password[33];
         bool allowOffline;
         unsigned int dataInterval;
+        unsigned int stoppedDataInterval;
         unsigned int diagnosticInterval;
         unsigned int discoveryInterval;
         unsigned int locationInterval;
@@ -240,6 +241,10 @@ public:
     unsigned int getDataInterval() const;
 
     void setDataInterval(unsigned int dataInterval);
+
+    unsigned int getStoppedDataInterval() const;
+
+    void setStoppedDataInterval(unsigned int stoppedDataInterval);
 
     unsigned int getDiagnosticInterval() const;
 
