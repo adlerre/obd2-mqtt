@@ -112,6 +112,16 @@ std::atomic<float> gsmAccuracy{0};
 std::atomic<float> gpsLatitude{0};
 std::atomic<float> gpsLongitude{0};
 std::atomic<float> gpsAccuracy{0};
+std::atomic_bool gsmLocationValid{false};
+std::atomic_bool gpsLocationValid{false};
+
+/**
+ * A position of exactly 0 on either axis is what the modem/library reports
+ * when there is no fix, never publish that (it puts the car at "Null Island").
+ */
+bool isValidLocation(const float lat, const float lon) {
+    return lat != 0 && lon != 0 && lat >= -90 && lat <= 90 && lon >= -180 && lon <= 180;
+}
 
 std::atomic_bool clearDTC{false};
 
@@ -707,22 +717,31 @@ std::string buildLocationAttrib(const float lat, const float lon, const float ac
 bool sendLocationData() {
     const unsigned long start = millis();
     bool allSendsSuccessed = false;
+    bool anyLocation = false;
 
     consoleSendHeader("location");
 
-    if (GSM::hasGSMLocation()) {
+    // only publish locations we actually have, so HA keeps the last known position
+    if (GSM::hasGSMLocation() && gsmLocationValid) {
+        anyLocation = true;
         allSendsSuccessed |= mqtt.sendTopicUpdate(
             HA_T_GSM_LOC,
             buildLocationAttrib(gsmLatitude, gsmLongitude, gsmAccuracy),
             true
         );
     }
-    if (GSM::hasGPSLocation()) {
+    if (GSM::hasGPSLocation() && gpsLocationValid) {
+        anyLocation = true;
         allSendsSuccessed |= mqtt.sendTopicUpdate(
             HA_T_GPS_LOC,
             buildLocationAttrib(gpsLatitude, gpsLongitude, gpsAccuracy),
             true
         );
+    }
+
+    // nothing to send yet is not a failure, otherwise the output loop stalls here
+    if (!anyLocation) {
+        allSendsSuccessed = true;
     }
 
     consoleSendFooter(allSendsSuccessed, millis() - start);
@@ -892,10 +911,13 @@ void mqttSendData() {
                     float gsm_longitude = 0;
                     float gsm_accuracy = 0;
 
-                    if ((allReadSuccessed |= gsm.readGSMLocation(gsm_latitude, gsm_longitude, gsm_accuracy))) {
+                    if (gsm.readGSMLocation(gsm_latitude, gsm_longitude, gsm_accuracy) &&
+                        isValidLocation(gsm_latitude, gsm_longitude)) {
+                        allReadSuccessed = true;
                         gsmLatitude = gsm_latitude;
                         gsmLongitude = gsm_longitude;
                         gsmAccuracy = gsm_accuracy;
+                        gsmLocationValid = true;
                     }
                 }
 
@@ -904,12 +926,17 @@ void mqttSendData() {
                     float gps_longitude = 0;
                     float gps_accuracy = 0;
 
-                    if (!(allReadSuccessed |= gsm.readGPSLocation(gps_latitude, gps_longitude, gps_accuracy))) {
-                        gsm.checkGPS();
-                    } else {
+                    // evaluate the GPS read on its own, a successful GSM read must not
+                    // make a failed GPS read (0,0) look valid
+                    if (gsm.readGPSLocation(gps_latitude, gps_longitude, gps_accuracy) &&
+                        isValidLocation(gps_latitude, gps_longitude)) {
+                        allReadSuccessed = true;
                         gpsLatitude = gps_latitude;
                         gpsLongitude = gps_longitude;
                         gpsAccuracy = gps_accuracy;
+                        gpsLocationValid = true;
+                    } else {
+                        gsm.checkGPS();
                     }
                 }
 
